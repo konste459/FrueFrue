@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d0d0f" />
+    <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
+    <title>FrueFrue | Social Brunch</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css?v=11" />
+  </head>
+  <body>
+    <section id="loginScreen" class="login-screen">
+      <div class="table-scene">
+        <span class="utensil fork" aria-hidden="true">&#9581;</span>
+        <div class="plate" aria-hidden="true"></div>
+        <span class="utensil knife" aria-hidden="true">&#9580;</span>
+      </div>
+
+      <form id="loginForm" class="login-card">
+        <h1>Bitte anmelden</h1>
+        <p class="hint">
+          User: <strong>admin</strong> oder <strong>gast</strong> | Passwort: <strong>1234</strong>
+        </p>
+
+        <label for="username">Benutzername</label>
+        <input id="username" name="username" type="text" autocomplete="username" required />
+
+        <label for="password">Passwort</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+        <button id="loginBtn" type="button" class="cta-primary">Einloggen</button>
+        <p id="loginError" class="error" aria-live="polite"></p>
+
+        <div class="register-box">
+          <p class="register-title">Neu hier? Registrieren</p>
+          <label for="regFirstName">Vorname</label>
+          <input id="regFirstName" name="regFirstName" type="text" autocomplete="given-name" />
+
+          <label for="regLastName">Nachname</label>
+          <input id="regLastName" name="regLastName" type="text" autocomplete="family-name" />
+
+          <label for="regPassword">Passwort</label>
+          <input id="regPassword" name="regPassword" type="password" autocomplete="new-password" />
+
+          <label for="regGender">Geschlecht</label>
+          <select id="regGender" name="regGender">
+            <option value="weiblich">weiblich</option>
+            <option value="maennlich">maennlich</option>
+            <option value="divers">divers</option>
+          </select>
+
+          <label for="regAge">Alter</label>
+          <input id="regAge" name="regAge" type="number" min="10" max="99" />
+
+          <label for="regLevel">Max. Klettergrad</label>
+          <select id="regLevel" name="regLevel">
+            <option value="4a">4a</option>
+            <option value="4b">4b</option>
+            <option value="4c">4c</option>
+            <option value="5a">5a</option>
+            <option value="5b">5b</option>
+            <option value="5c">5c</option>
+            <option value="6a">6a</option>
+            <option value="6b">6b</option>
+            <option value="6c">6c</option>
+            <option value="7a">7a</option>
+            <option value="7b">7b</option>
+            <option value="7c">7c</option>
+            <option value="8a">8a</option>
+            <option value="8b">8b</option>
+            <option value="8c">8c</option>
+            <option value="9a">9a</option>
+            <option value="9b">9b</option>
+            <option value="9c">9c</option>
+          </select>
+
+          <button id="registerBtn" type="button" class="cta-secondary">Registrieren</button>
+          <p id="registerStatus" class="register-status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+
+    <div id="appShell" class="app-shell hidden">
+      <header class="topbar">
+        <div class="topbar-spacer" aria-hidden="true"></div>
+        <img class="topbar-logo" src="assets/logo/fruefrue-logo.png" alt="FrueFrue Logo" />
+        <button id="profileBtn" class="profile-btn" data-route="profil">Profil</button>
+      </header>
+
+      <nav class="menu-bar" aria-label="Hauptmenue">
+        <button class="menu-link active" data-route="home">Home</button>
+        <button class="menu-link" data-route="archiv">Archiv</button>
+        <button class="menu-link" data-route="fakten">Fakten</button>
+        <button class="menu-link" data-route="spotify">Spotify</button>
+        <button class="menu-link" data-route="zarti">Zarti Pause</button>
+        <button class="menu-link" data-route="event-create" data-admin-only>Event erstellen</button>
+        <button class="menu-link" data-route="event" data-ticket-only>Event</button>
+      </nav>
+
+      <main>
+        <section id="page-home" class="page active">
+          <button id="fixedEventNotice" class="fixed-event-notice hidden" type="button">
+            Termin steht fest fuer das Event.
+          </button>
+          <button id="ticketReminder" class="ticket-reminder hidden" type="button">
+            <span id="ticketReminderText">Du hast ein Ticket.</span>
+            <span id="ticketCountdown">Countdown: --:--:--</span>
+          </button>
+
+          <div class="event-film-wrap">
+            <div class="event-film">
+              <div id="eventTrack" class="event-track" aria-hidden="true"></div>
+            </div>
+            <div class="film-overlay"></div>
+            <div class="film-content">
+              <p class="badge">Social Brunch Community</p>
+              <h2>Willkommen <span id="welcomeUser">Gast</span> bei</h2>
+              <img class="welcome-logo" src="assets/logo/fruefrue-logo.png" alt="FrueFrue Logo" />
+              <p>Treffpunkt fuer neue Kontakte, gutes Essen und entspannte Wochenenden.</p>
+            </div>
+          </div>
+
+          <section class="content-block">
+            <h3>Was ist FrueFrue?</h3>
+            <p class="fruefrue-intro">
+              FrueFrue ist dein Social-Brunch-Spot fuer Connecten, Viben und neue Storys in Real Life.
+            </p>
+            <blockquote id="fruefrueQuote" class="fruefrue-quote">
+              "FR&uuml;FR&uuml; ist fuer mich wie Sunday Reset mit Lieblingsmenschen."
+            </blockquote>
+            <p id="fruefrueQuoteAuthor" class="fruefrue-quote-author">- Community Voice</p>
+            <form id="fruefrueAnswerForm" class="fruefrue-answer-form">
+              <label for="fruefrueAnswerInput">Was ist FR&uuml;FR&uuml; fuer dich?</label>
+              <textarea
+                id="fruefrueAnswerInput"
+                rows="3"
+                maxlength="220"
+                placeholder="Drop hier deinen Vibe in einem Satz..."
+                required
+              ></textarea>
+              <button class="cta-primary" type="submit">Antwort droppen</button>
+              <p id="fruefrueAnswerStatus" class="event-status" aria-live="polite"></p>
+            </form>
+          </section>
+
+          <section class="content-block">
+            <h3>Naechster Event</h3>
+            <button id="calendarWidget" class="calendar-widget" type="button">
+              <span id="calMonth" class="cal-month">MAERZ</span>
+              <span id="calDay" class="cal-day">02</span>
+              <span id="calTitle" class="cal-title">Sunday Brunch Circle</span>
+              <span id="calMeta" class="cal-meta">02.03. · 11:00 · Tippen fuer Ticket</span>
+            </button>
+          </section>
+        </section>
+
+        <section id="page-archiv" class="page">
+          <div class="archive-scene">
+            <h3 class="archive-headline">Vergangene Events</h3>
+            <div class="archive-carousel">
+              <div id="archiveTrack" class="archive-track">
+                <div class="archive-panel">
+                  <img class="archive-table" src="assets/archive/archivtisch.png" alt="Archiv Tisch" />
+                  <div class="archive-plate archive-plate-a">
+                    <img class="transparent-cutout" src="assets/login/anmeldeteller.png" alt="Teller mit Besteck" />
+                    <div class="archive-plate-content">
+                      <p class="archive-title">Fr&uuml;Fr&uuml; 1.0</p>
+                      <button class="archive-play" data-archive-event="fruefrue-1" type="button">&#9658;</button>
+                    </div>
+                  </div>
+                  <div class="archive-plate archive-plate-b">
+                    <img class="transparent-cutout" src="assets/login/anmeldeteller.png" alt="Teller mit Besteck" />
+                    <div class="archive-plate-content">
+                      <p class="archive-title">Fr&uuml;Fr&uuml; 2.0</p>
+                      <button class="archive-play" data-archive-event="fruefrue-2" type="button">&#9658;</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="archive-panel">
+                  <img class="archive-table" src="assets/archive/archivtisch.png" alt="Archiv Tisch" />
+                  <div class="archive-plate archive-plate-a">
+                    <img class="transparent-cutout" src="assets/login/anmeldeteller.png" alt="Teller mit Besteck" />
+                    <div class="archive-plate-content">
+                      <p class="archive-title">PaPa x Fr&uuml;Fr&uuml;</p>
+                      <button class="archive-play" data-archive-event="papa-x-fruefrue" type="button">&#9658;</button>
+                    </div>
+                  </div>
+                  <div class="archive-plate archive-plate-b">
+                    <img class="transparent-cutout" src="assets/login/anmeldeteller.png" alt="Teller mit Besteck" />
+                    <div class="archive-plate-content">
+                      <p class="archive-title">CockOGott x Fr&uuml;Fr&uuml;</p>
+                      <button class="archive-play" data-archive-event="cockogott-x-fruefrue" type="button">
+                        &#9658;
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button id="archiveNextScene" class="archive-scene-next" type="button" aria-label="Naechste Ansicht">
+                &rsaquo;
+              </button>
+            </div>
+
+            <div id="archiveViewer" class="archive-viewer hidden">
+              <div class="archive-viewer-inner">
+                <button id="archiveCloseBtn" class="archive-close" type="button">Schliessen</button>
+                <img id="archiveViewerImage" class="archive-viewer-image" src="" alt="Archiv Bild" />
+                <div class="archive-viewer-controls">
+                  <button id="archivePrevBtn" class="archive-nav-btn" type="button">Zurueck</button>
+                  <p id="archiveViewerLabel" class="archive-viewer-label"></p>
+                  <button id="archiveNextBtn" class="archive-nav-btn" type="button">Weiter</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-fakten" class="page">
+          <div class="placeholder-card facts-card">
+            <h3>Fakten</h3>
+            <p class="facts-intro">
+              FR&uuml;FR&uuml; Data-Tea: Wer ist alles am Start und wie sieht der Club-Vibe in Zahlen aus.
+            </p>
+            <div class="facts-grid">
+              <div class="facts-kpi">
+                <p class="facts-label">Crew Size</p>
+                <p id="factsUserCount" class="facts-value">0</p>
+              </div>
+              <div class="facts-kpi">
+                <p class="facts-label">Ø Alter</p>
+                <p id="factsAvgAge" class="facts-value">0</p>
+              </div>
+              <div class="facts-kpi">
+                <p class="facts-label">Juengste / Aelteste</p>
+                <p id="factsAgeRange" class="facts-value small">- / -</p>
+              </div>
+              <div class="facts-kpi">
+                <p class="facts-label">Ø Boulderlevel</p>
+                <p id="factsAvgLevel" class="facts-value small">-</p>
+              </div>
+              <div class="facts-kpi">
+                <p class="facts-label">Min / Max Level</p>
+                <p id="factsLevelRange" class="facts-value small">- / -</p>
+              </div>
+            </div>
+            <div class="facts-gender-wrap">
+              <div id="factsGenderPie" class="facts-gender-pie" aria-label="Gender Verteilung"></div>
+              <ul class="facts-gender-legend">
+                <li><span class="dot female"></span>weiblich: <strong id="factsFemaleCount">0</strong></li>
+                <li><span class="dot male"></span>maennlich: <strong id="factsMaleCount">0</strong></li>
+                <li><span class="dot divers"></span>divers: <strong id="factsDiversCount">0</strong></li>
+              </ul>
+            </div>
+            <p id="factsOutro" class="facts-outro">
+              Straight facts only: FR&uuml;FR&uuml; bleibt iconic, cozy und komplett community-driven.
+            </p>
+          </div>
+        </section>
+
+        <section id="page-zarti" class="page">
+          <div class="placeholder-card">
+            <h3>Zarti Pause</h3>
+            <p>Musikpause mit Zartmann.</p>
+            <div class="video-wrap">
+              <iframe
+                src="https://www.youtube.com/embed/M0_z5WmMV-c?rel=0"
+                title="Tau mich auf - Zartmann"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-spotify" class="page">
+          <div class="placeholder-card">
+            <h3>Spotify Playlist</h3>
+            <p>Add deinen Track fuer den naechsten FR&uuml;FR&uuml; Vibe.</p>
+            <a
+              class="drive-link"
+              href="https://open.spotify.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Playlist auf Spotify oeffnen</a
+            >
+            <form id="spotifySongForm" class="event-form">
+              <label for="spotifySongTitle">Songtitel</label>
+              <input id="spotifySongTitle" type="text" placeholder="z.B. Tau mich auf" required />
+              <label for="spotifySongArtist">Artist</label>
+              <input id="spotifySongArtist" type="text" placeholder="z.B. Zartmann" required />
+              <label for="spotifySongLink">Spotify Link (optional)</label>
+              <input id="spotifySongLink" type="url" placeholder="https://open.spotify.com/track/..." />
+              <button class="cta-primary" type="submit">Zur Playlist droppen</button>
+              <p id="spotifySongStatus" class="event-status" aria-live="polite"></p>
+            </form>
+            <ul id="spotifySongList" class="spotify-song-list"></ul>
+          </div>
+        </section>
+
+        <section id="page-event-create" class="page">
+          <div class="placeholder-card">
+            <h3>Neues Event erstellen (Admin)</h3>
+            <form id="eventCreateForm" class="event-form">
+              <label for="eventType">Event-Typ</label>
+              <select id="eventType" name="type">
+                <option value="regular">Normales Event</option>
+                <option value="planned">Planned Event</option>
+              </select>
+
+              <label for="eventTitle">Titel</label>
+              <input id="eventTitle" name="title" type="text" placeholder="Brunch Titel" required />
+
+              <div id="regularFields">
+                <label for="eventDate">Datum</label>
+                <input id="eventDate" name="date" type="date" required />
+
+                <label for="eventTime">Startzeit</label>
+                <input id="eventTime" name="time" type="time" required />
+              </div>
+
+              <div id="plannedFields" class="hidden">
+                <label for="eventMonth">Monat (Planned)</label>
+                <select id="eventMonth" name="month">
+                  <option value="0">Januar</option>
+                  <option value="1">Februar</option>
+                  <option value="2">Maerz</option>
+                  <option value="3">April</option>
+                  <option value="4">Mai</option>
+                  <option value="5">Juni</option>
+                  <option value="6">Juli</option>
+                  <option value="7">August</option>
+                  <option value="8">September</option>
+                  <option value="9">Oktober</option>
+                  <option value="10">November</option>
+                  <option value="11">Dezember</option>
+                </select>
+              </div>
+
+              <label for="eventDescription">Beschreibung</label>
+              <textarea
+                id="eventDescription"
+                name="description"
+                rows="4"
+                placeholder="Kurzbeschreibung und Ort"
+                required
+              ></textarea>
+
+              <label for="eventPrice">Ticketpreis (EUR)</label>
+              <input id="eventPrice" name="price" type="number" min="0" step="0.5" value="7" required />
+
+              <button class="cta-primary" type="submit">Event speichern</button>
+              <p id="eventFormStatus" class="event-status" aria-live="polite"></p>
+            </form>
+
+            <div class="event-list-block">
+              <h4>Geplante Events</h4>
+              <ul id="eventList" class="event-list"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-ticket" class="page">
+          <div class="placeholder-card">
+            <h3>Ticket holen</h3>
+            <div id="regularTicketFlow">
+              <img id="ticketImage" class="ticket-image" src="assets/ticket/ticket.png" alt="FrueFrue Ticket" />
+              <p id="ticketTitle" class="ticket-title">Sunday Brunch Circle</p>
+              <p id="ticketDateTime" class="ticket-meta">02.03. · 11:00</p>
+              <p id="ticketDescription" class="ticket-description">
+                Entspannter Brunch mit Community und guten Gespraechen.
+              </p>
+              <button id="buyTicketBtn" class="cta-primary" type="button">Ticket holen fuer 7,00 EUR</button>
+              <p id="ticketStatus" class="event-status" aria-live="polite"></p>
+            </div>
+
+            <div id="plannedTicketFlow" class="hidden">
+              <p id="plannedEventTitle" class="ticket-title">Planned Event</p>
+              <p id="plannedEventMonth" class="ticket-meta">Monat: --</p>
+              <p class="ticket-description">
+                Waehle die Wochenendtermine, an denen du Zeit hast. Pro Termin kannst du zwischen Ja und Nein
+                wechseln, ohne doppelt zu zaehlen.
+              </p>
+              <div class="event-admin-tools" data-admin-only>
+                <label for="plannedFinalizeTime">Startzeit fuer finalen Termin (Admin)</label>
+                <input id="plannedFinalizeTime" type="time" value="11:00" />
+              </div>
+              <div id="plannedCalendar" class="planned-calendar"></div>
+              <p id="plannedVoteStatus" class="event-status" aria-live="polite"></p>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-ticket-success" class="page">
+          <div class="placeholder-card">
+            <h3>Ticket gekauft</h3>
+            <p id="ticketSuccessText">Du hast dir ein Ticket gekauft.</p>
+            <button id="goToEventBtn" class="cta-primary" type="button" data-route="event">Zur Eventseite</button>
+          </div>
+        </section>
+
+        <section id="page-event" class="page">
+          <div class="placeholder-card">
+            <h3 id="eventPageTitle">Event</h3>
+            <p id="eventInfoText" class="event-info-big">
+              Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.
+            </p>
+
+            <div class="event-media">
+              <h4>Event Bilder</h4>
+              <div id="eventGallery" class="event-gallery"></div>
+              <p id="eventDriveGuestText" class="event-status">
+                Noch kein Drive Link zum Bilder hochladen veroeffentlicht.
+              </p>
+              <a id="eventDriveLink" class="drive-link hidden" href="#" target="_blank" rel="noopener noreferrer"
+                >Zum Bilderordner (Google Drive)</a
+              >
+              <div class="event-admin-tools" data-admin-only>
+                <label for="eventDriveInput">Google Drive Link (Admin)</label>
+                <input id="eventDriveInput" type="url" placeholder="https://drive.google.com/..." />
+                <button id="publishDriveBtn" class="cta-primary" type="button">Drive Link veroeffentlichen</button>
+                <p id="eventImageStatus" class="event-status" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="event-polls">
+              <h4>Abstimmungen</h4>
+              <div id="pollList" class="poll-list"></div>
+              <div class="event-admin-tools" data-admin-only>
+                <label for="pollQuestion">Abstimmungstitel (Admin)</label>
+                <input id="pollQuestion" type="text" placeholder="z.B. Bestes Gericht" />
+                <label for="pollType">Abstimmungs-Typ</label>
+                <select id="pollType">
+                  <option value="rating">Taste + Kreativitaet (1-10)</option>
+                  <option value="choice">Freie Abstimmung</option>
+                </select>
+                <label for="pollOptions">Gerichte (Komma getrennt)</label>
+                <input id="pollOptions" type="text" placeholder="z.B. Pancakes, Avocado Toast, Eggs Benedict" />
+                <button id="createPollBtn" class="cta-primary" type="button">Abstimmung erstellen</button>
+                <p id="pollStatus" class="event-status" aria-live="polite"></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-profil" class="page">
+          <div class="placeholder-card">
+            <h3>Profil</h3>
+            <p>
+              Angemeldet als <strong id="profileUsername">-</strong>. Rolle:
+              <strong id="profileRole">-</strong>
+            </p>
+            <div class="admin-user-box" data-admin-only>
+              <h4>Alle Nutzer</h4>
+              <ul id="adminUserList" class="admin-user-list"></ul>
+              <p id="adminUserStatus" class="event-status" aria-live="polite"></p>
+            </div>
+            <button id="logoutBtn" class="cta-primary" type="button">Ausloggen</button>
+          </div>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <p>FR&uuml;FR&uuml; Social Brunch Club</p>
+        <div class="site-footer-links">
+          <a href="#impressum">Impressum</a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Insta</a>
+          <a href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">Spotify</a>
+        </div>
+        <p id="impressum" class="impressum-note">
+          Impressum: FR&uuml;FR&uuml; Club Demo, Kontakt via Insta DM, all vibes reserved.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        if (!("serviceWorker" in navigator)) {
+          return;
+        }
+        const flag = "fruefrue-sw-reset-v1";
+        if (sessionStorage.getItem(flag)) {
+          return;
+        }
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          if (!registrations.length) {
+            return;
+          }
+          Promise.all(registrations.map((registration) => registration.unregister()))
+            .then(() => {
+              if (!("caches" in window)) {
+                return;
+              }
+              return caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
+            })
+            .then(() => {
+              sessionStorage.setItem(flag, "1");
+              window.location.reload();
+            });
+        });
+      })();
+    </script>
+    <script src="main.js?v=28"></script>
+  </body>
+</html>
