@@ -2296,6 +2296,15 @@ function mountMenuLinks() {
   });
 }
 
+function shuffleMedia(items) {
+  const next = [...items];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
 function startEventFilm() {
   if (!eventTrack || homeFeedMedia.length === 0) {
     return;
@@ -2303,10 +2312,11 @@ function startEventFilm() {
   if (eventTrack.children.length > 0) {
     return;
   }
+  const randomizedFeed = shuffleMedia(homeFeedMedia);
 
   // Duplicate the sequence for seamless infinite marquee movement.
   for (let round = 0; round < 2; round += 1) {
-    homeFeedMedia.forEach((media, index) => {
+    randomizedFeed.forEach((media, index) => {
       const item = document.createElement("div");
       item.className = "event-track-item";
 

@@ -29,8 +29,20 @@ body {
 body.logged-in,
 body.logging-in {
   background:
-    linear-gradient(180deg, rgba(255, 253, 249, 0.72), rgba(251, 242, 232, 0.8)),
-    url("assets/backgrounds/trippy.png") center center / cover no-repeat fixed;
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.62), transparent 22%),
+    radial-gradient(circle at 82% 16%, rgba(255, 232, 204, 0.52), transparent 20%),
+    radial-gradient(circle at 50% 86%, rgba(135, 188, 255, 0.18), transparent 26%),
+    repeating-radial-gradient(
+      circle at 12% 110%,
+      rgba(77, 145, 231, 0.14) 0 18px,
+      rgba(77, 145, 231, 0) 18px 56px
+    ),
+    repeating-radial-gradient(
+      circle at 88% 108%,
+      rgba(255, 210, 166, 0.16) 0 22px,
+      rgba(255, 210, 166, 0) 22px 64px
+    ),
+    linear-gradient(180deg, #fffdf9 0%, #f7eee1 54%, #eef5ff 100%);
 }
 
 body:not(.logged-in):not(.logging-in) #appShell {
@@ -286,8 +298,18 @@ h3 {
   min-height: 100vh;
   padding-bottom: 24px;
   background:
-    linear-gradient(180deg, rgba(255, 253, 249, 0.78), rgba(251, 242, 232, 0.84)),
-    url("assets/backgrounds/trippy.png") center center / cover fixed;
+    radial-gradient(circle at 15% 18%, rgba(255, 255, 255, 0.52), transparent 20%),
+    radial-gradient(circle at 80% 14%, rgba(255, 235, 210, 0.48), transparent 18%),
+    linear-gradient(180deg, rgba(255, 253, 249, 0.82), rgba(251, 242, 232, 0.88)),
+    linear-gradient(
+      165deg,
+      rgba(108, 174, 255, 0.12) 0%,
+      rgba(108, 174, 255, 0.02) 28%,
+      rgba(255, 255, 255, 0) 28%,
+      rgba(255, 214, 172, 0.14) 58%,
+      rgba(255, 214, 172, 0.02) 76%,
+      rgba(255, 255, 255, 0) 76%
+    );
 }
 
 body.logging-in #appShell {
@@ -474,7 +496,7 @@ main {
   width: max-content;
   height: 100%;
   will-change: transform;
-  animation: conveyorRight 52s linear infinite;
+  animation: conveyorRight 76s linear infinite;
 }
 
 .event-track-item {
