@@ -193,7 +193,7 @@ const SPOTIFY_CLIENT_ID = "dd17d9878f3544dda2b1286c652365cf";
 const SPOTIFY_PLAYLIST_ID = "1ZMxyXU9lfbgHl8x9vv4uE";
 const SPOTIFY_PLAYLIST_URL =
   "https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32";
-const LOGIN_VIDEO_LOOP_END = 0.5;
+const LOGIN_VIDEO_LOOP_END = 1;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 let currentUser = "";
 let currentRole = "";
