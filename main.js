@@ -73,6 +73,8 @@ const eventFrames = [
 const loginScreen = document.getElementById("loginScreen");
 const appShell = document.getElementById("appShell");
 const loginForm = document.getElementById("loginForm");
+const loginVideo = document.getElementById("loginVideo");
+const loginFogOverlay = document.getElementById("loginFogOverlay");
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
@@ -169,6 +171,8 @@ const spotifySongStatus = document.getElementById("spotifySongStatus");
 const spotifySongList = document.getElementById("spotifySongList");
 
 let activePage = "home";
+let loginRevealActive = false;
+let loginRevealTimeout = null;
 const STORAGE_KEY = "fruefrue-events-v1";
 const TICKET_STORAGE_KEY = "fruefrue-ticket-v1";
 const EVENT_IMAGES_KEY = "fruefrue-event-images-v1";
@@ -189,6 +193,7 @@ const SPOTIFY_CLIENT_ID = "dd17d9878f3544dda2b1286c652365cf";
 const SPOTIFY_PLAYLIST_ID = "1ZMxyXU9lfbgHl8x9vv4uE";
 const SPOTIFY_PLAYLIST_URL =
   "https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32";
+const LOGIN_VIDEO_LOOP_END = 1.5;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 let currentUser = "";
 let currentRole = "";
@@ -1994,9 +1999,11 @@ function mountLogout() {
     currentUser = "";
     currentRole = "";
     currentFirstName = "";
-    document.body.classList.remove("logged-in", "logging-in", "is-admin", "has-ticket");
+    document.body.classList.remove("logged-in", "logging-in", "login-fadeout", "is-admin", "has-ticket");
     loginScreen.classList.remove("hidden");
     appShell.classList.add("hidden");
+    resetLoginVideoState();
+    startLoginVideoLoop();
     if (loginForm) {
       loginForm.reset();
     }
@@ -2251,6 +2258,103 @@ function startEventFilm() {
   }
 }
 
+function resetLoginVideoState() {
+  loginRevealActive = false;
+  if (loginRevealTimeout) {
+    window.clearTimeout(loginRevealTimeout);
+    loginRevealTimeout = null;
+  }
+  document.body.classList.remove("login-fadeout");
+  if (!loginVideo) {
+    return;
+  }
+  loginVideo.pause();
+  try {
+    loginVideo.currentTime = 0.01;
+  } catch (error) {
+    // Metadata may not be ready yet.
+  }
+}
+
+function finalizeLoginTransition() {
+  if (!loginScreen || !appShell) {
+    return;
+  }
+  if (loginRevealTimeout) {
+    window.clearTimeout(loginRevealTimeout);
+    loginRevealTimeout = null;
+  }
+  document.body.classList.add("login-fadeout");
+  window.setTimeout(() => {
+    document.body.classList.remove("logging-in", "login-fadeout");
+    document.body.classList.add("logged-in");
+    loginScreen.classList.add("hidden");
+  }, 720);
+}
+
+function startLoginVideoLoop() {
+  if (!loginVideo) {
+    return;
+  }
+  const playVideo = () => {
+    loginVideo.play().catch(() => {});
+  };
+
+  if (loginVideo.readyState >= 1) {
+    try {
+      loginVideo.currentTime = 0.01;
+    } catch (error) {
+      // Ignore initial seek issues.
+    }
+    playVideo();
+    return;
+  }
+
+  loginVideo.addEventListener(
+    "loadedmetadata",
+    () => {
+      try {
+        loginVideo.currentTime = 0.01;
+      } catch (error) {
+        // Ignore initial seek issues.
+      }
+      playVideo();
+    },
+    { once: true }
+  );
+}
+
+function playLoginRevealVideo() {
+  if (!loginVideo) {
+    finalizeLoginTransition();
+    return;
+  }
+
+  loginRevealActive = true;
+  const continuePlayback = () => {
+    try {
+      const revealStart = Math.min(LOGIN_VIDEO_LOOP_END, Math.max(0.01, loginVideo.duration - 0.2));
+      if (loginVideo.currentTime < LOGIN_VIDEO_LOOP_END - 0.15 || loginVideo.currentTime > LOGIN_VIDEO_LOOP_END + 0.45) {
+        loginVideo.currentTime = revealStart;
+      }
+    } catch (error) {
+      // Ignore seek issues.
+    }
+    loginVideo.play().catch(() => {
+      finalizeLoginTransition();
+    });
+    const remainingMs = Math.max(1200, (Math.max(loginVideo.duration - LOGIN_VIDEO_LOOP_END, 0.7) * 1000) + 250);
+    loginRevealTimeout = window.setTimeout(finalizeLoginTransition, Math.min(5200, remainingMs));
+  };
+
+  if (loginVideo.readyState >= 1) {
+    continuePlayback();
+    return;
+  }
+
+  loginVideo.addEventListener("loadedmetadata", continuePlayback, { once: true });
+}
+
 function login(username, password) {
   const user = getAllUsers()[username];
   if (!user) {
@@ -2382,11 +2486,7 @@ function handleLogin() {
     renderFacts(false);
     renderSpotifySongs();
     startFruefrueQuoteRotation();
-    window.setTimeout(() => {
-      document.body.classList.remove("logging-in");
-      document.body.classList.add("logged-in");
-      loginScreen.classList.add("hidden");
-    }, 650);
+    playLoginRevealVideo();
     return;
   }
 
@@ -2426,6 +2526,28 @@ if (loginForm) {
   });
 }
 
+if (loginVideo) {
+  loginVideo.addEventListener("timeupdate", () => {
+    if (loginRevealActive) {
+      return;
+    }
+    if (loginVideo.currentTime >= LOGIN_VIDEO_LOOP_END) {
+      try {
+        loginVideo.currentTime = 0.01;
+      } catch (error) {
+        return;
+      }
+      loginVideo.play().catch(() => {});
+    }
+  });
+
+  loginVideo.addEventListener("ended", () => {
+    if (loginRevealActive) {
+      finalizeLoginTransition();
+    }
+  });
+}
+
 mountMenuLinks();
 normalizeLogos();
 mountEventTypeToggle();
@@ -2448,3 +2570,5 @@ renderEventGallery();
 renderPolls();
 renderFacts(false);
 renderSpotifySongs();
+resetLoginVideoState();
+startLoginVideoLoop();

@@ -7,26 +7,21 @@
     <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
     <title>FrueFrue | Social Brunch</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=16" />
+    <link rel="stylesheet" href="styles.css?v=17" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
-      <div class="table-scene">
-        <div class="table-glow" aria-hidden="true"></div>
-        <div class="plate-shadow" aria-hidden="true"></div>
-        <div class="plate" aria-hidden="true">
-          <div class="plate-rim"></div>
-          <div class="plate-core"></div>
-          <div class="plate-highlight"></div>
-        </div>
-        <div class="utensil fork" aria-hidden="true">
-          <span class="utensil-handle"></span>
-          <span class="utensil-head"></span>
-        </div>
-        <div class="utensil knife" aria-hidden="true">
-          <span class="utensil-handle"></span>
-          <span class="utensil-head"></span>
-        </div>
+      <div class="login-video-shell" aria-hidden="true">
+        <video
+          id="loginVideo"
+          class="login-video"
+          src="assets/video/login-coffee-pot.mp4"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+        <div class="login-video-vignette"></div>
+        <div id="loginFogOverlay" class="login-fog-overlay"></div>
       </div>
 
       <form id="loginForm" class="login-card">
@@ -529,6 +524,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=32"></script>
+    <script src="main.js?v=33"></script>
   </body>
 </html>
