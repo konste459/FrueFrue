@@ -226,7 +226,7 @@ const SPOTIFY_PLAYLIST_URL =
   "https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32";
 const LOGIN_LOOP_CONTINUE_END = 5;
 const LOGIN_REVEAL_START = 0.75;
-const LOGIN_REVEAL_END = 8;
+const LOGIN_REVEAL_END = 7;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 let currentUser = "";
 let currentRole = "";
