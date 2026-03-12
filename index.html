@@ -292,7 +292,7 @@
         <section id="page-spotify" class="page">
           <div class="placeholder-card">
             <h3>Spotify Playlist</h3>
-            <p>Hier laeuft die echte FR&uuml;FR&uuml; Playlist. Unten koennen Leute direkt ueber den Invite-Link zur Playlist jumpen.</p>
+            <p>Hier laeuft die echte FR&uuml;FR&uuml; Playlist direkt eingebettet. Du kannst sie hier abspielen oder in Spotify komplett oeffnen.</p>
             <div class="spotify-embed-shell">
               <iframe
                 data-testid="embed-iframe"
@@ -308,22 +308,18 @@
             </div>
             <a
               class="drive-link"
+              href="https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Playlist in Spotify oeffnen</a
+            >
+            <a
+              class="drive-link"
               href="https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=75b626b787234803&pt=7ec12060291657600e09d5d00c3c2fdd"
               target="_blank"
               rel="noopener noreferrer"
               >Invite-Link zum Songs hinzufuegen</a
             >
-            <form id="spotifySongForm" class="event-form">
-              <label for="spotifySongTitle">Songtitel</label>
-              <input id="spotifySongTitle" type="text" placeholder="z.B. Tau mich auf" required />
-              <label for="spotifySongArtist">Artist</label>
-              <input id="spotifySongArtist" type="text" placeholder="z.B. Zartmann" required />
-              <label for="spotifySongLink">Spotify Link (optional)</label>
-              <input id="spotifySongLink" type="url" placeholder="https://open.spotify.com/track/..." />
-              <button class="cta-primary" type="submit">Songwunsch merken</button>
-              <p id="spotifySongStatus" class="event-status" aria-live="polite"></p>
-            </form>
-            <ul id="spotifySongList" class="spotify-song-list"></ul>
           </div>
         </section>
 
@@ -533,6 +529,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=31"></script>
+    <script src="main.js?v=32"></script>
   </body>
 </html>
