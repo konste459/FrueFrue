@@ -102,6 +102,32 @@ body.logged-in #loginScreen {
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.72);
 }
 
+h1,
+h2,
+h3,
+.menu-link,
+.badge,
+.cal-month,
+.cal-title,
+.ticket-title,
+.archive-title,
+.profile-btn {
+  font-family: "Marker Felt", "Bradley Hand", "Snell Roundhand", "Avenir Next", cursive;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0.02em;
+  color: #1f67c3;
+}
+
+.menu-link,
+.profile-btn,
+.badge {
+  letter-spacing: 0.015em;
+}
+
 .login-card h1 {
   margin: 0 0 6px;
   font-size: clamp(1.2rem, 2.6vmin, 1.8rem);
@@ -283,7 +309,7 @@ body.logging-in #loginScreen {
 }
 
 body.is-admin .menu-link[data-admin-only] {
-  display: inline-flex;
+  display: inline-flex !important;
 }
 
 body.is-admin .event-admin-tools[data-admin-only] {
