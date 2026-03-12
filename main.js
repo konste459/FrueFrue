@@ -61,14 +61,44 @@ const BOULDER_GRADES = [
   "9c"
 ];
 
-const eventFrames = [
-  "./assets/events/IMG_0108.HEIC.png",
-  "./assets/events/IMG_0109.HEIC.png",
-  "./assets/events/IMG_0110.HEIC.png",
-  "./assets/events/IMG_0111.HEIC.png",
-  "./assets/events/IMG_0112.HEIC.png",
-  "./assets/events/IMG_0113.HEIC.png"
+const cockogottMedia = [
+  { type: "image", src: "./assets/events/IMG_0108.HEIC.png" },
+  { type: "image", src: "./assets/events/IMG_0109.HEIC.png" },
+  { type: "image", src: "./assets/events/IMG_0110.HEIC.png" },
+  { type: "image", src: "./assets/events/IMG_0111.HEIC.png" },
+  { type: "image", src: "./assets/events/IMG_0112.HEIC.png" },
+  { type: "image", src: "./assets/events/IMG_0113.HEIC.png" }
 ];
+
+const fruefrue2Media = [
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0108.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0109.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0110.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0111.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0112.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0113.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0114.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0115.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0117.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0118.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0120.jpg" },
+  { type: "image", src: "./assets/events/fruefrue-2/IMG_0121.jpg" },
+  { type: "video", src: "./assets/events/fruefrue-2/IMG_0107.mp4" },
+  { type: "video", src: "./assets/events/fruefrue-2/IMG_0124.mp4" }
+];
+
+const papaMedia = [
+  { type: "image", src: "./assets/events/papa/IMG_0536.jpeg" },
+  { type: "image", src: "./assets/events/papa/IMG_0538.jpeg" },
+  { type: "image", src: "./assets/events/papa/IMG_0540.jpeg" },
+  { type: "image", src: "./assets/events/papa/PXL_20251123_185250077.jpg" },
+  { type: "image", src: "./assets/events/papa/PXL_20251123_184646509.jpg" },
+  { type: "image", src: "./assets/events/papa/DSC00202.JPG" },
+  { type: "image", src: "./assets/events/papa/DSC00203.JPG" },
+  { type: "image", src: "./assets/events/papa/DSC00215.JPG" }
+];
+
+const homeFeedMedia = [...fruefrue2Media, ...papaMedia, ...cockogottMedia];
 
 const loginScreen = document.getElementById("loginScreen");
 const appShell = document.getElementById("appShell");
@@ -140,6 +170,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const archivePlayButtons = document.querySelectorAll(".archive-play");
 const archiveViewer = document.getElementById("archiveViewer");
 const archiveViewerImage = document.getElementById("archiveViewerImage");
+const archiveViewerVideo = document.getElementById("archiveViewerVideo");
 const archiveViewerLabel = document.getElementById("archiveViewerLabel");
 const archiveCloseBtn = document.getElementById("archiveCloseBtn");
 const archivePrevBtn = document.getElementById("archivePrevBtn");
@@ -210,19 +241,19 @@ let loginLoopLastTs = 0;
 const archiveEvents = {
   "fruefrue-1": {
     title: "FrueFrue 1.0",
-    images: [...eventFrames]
+    media: []
   },
   "fruefrue-2": {
     title: "FrueFrue 2.0",
-    images: [...eventFrames]
+    media: [...fruefrue2Media]
   },
   "papa-x-fruefrue": {
     title: "PaPa x FrueFrue",
-    images: [...eventFrames]
+    media: [...papaMedia]
   },
   "cockogott-x-fruefrue": {
     title: "CockOGott x FrueFrue",
-    images: [...eventFrames]
+    media: [...cockogottMedia]
   }
 };
 
@@ -2135,17 +2166,43 @@ function mountPollDeletion() {
 }
 
 function renderArchiveViewer() {
-  if (!archiveViewerImage || !archiveViewerLabel || !archiveCurrentEvent) {
+  if (!archiveViewerImage || !archiveViewerVideo || !archiveViewerLabel || !archiveCurrentEvent) {
     return;
   }
   const event = archiveEvents[archiveCurrentEvent];
-  if (!event || !event.images.length) {
+  const mediaList = event?.media || [];
+  if (!event || !mediaList.length) {
+    archiveViewerImage.classList.add("hidden");
+    archiveViewerImage.removeAttribute("src");
+    archiveViewerVideo.classList.add("hidden");
+    archiveViewerVideo.pause();
+    archiveViewerVideo.removeAttribute("src");
+    archiveViewerVideo.load();
+    archiveViewerLabel.textContent = `${event?.title || "Event"} - Noch keine Medien hinterlegt.`;
     return;
   }
-  const index = ((archiveCurrentIndex % event.images.length) + event.images.length) % event.images.length;
+  const index = ((archiveCurrentIndex % mediaList.length) + mediaList.length) % mediaList.length;
   archiveCurrentIndex = index;
-  archiveViewerImage.src = event.images[index];
-  archiveViewerLabel.textContent = `${event.title} - Foto ${index + 1} von ${event.images.length}`;
+  const media = mediaList[index];
+  if (media.type === "video") {
+    archiveViewerImage.classList.add("hidden");
+    archiveViewerImage.removeAttribute("src");
+    archiveViewerVideo.pause();
+    archiveViewerVideo.classList.remove("hidden");
+    archiveViewerVideo.src = media.src;
+    archiveViewerVideo.load();
+    archiveViewerVideo.currentTime = 0;
+    archiveViewerVideo.play().catch(() => {});
+    archiveViewerLabel.textContent = `${event.title} - Video ${index + 1} von ${mediaList.length}`;
+  } else {
+    archiveViewerVideo.classList.add("hidden");
+    archiveViewerVideo.pause();
+    archiveViewerVideo.removeAttribute("src");
+    archiveViewerVideo.load();
+    archiveViewerImage.classList.remove("hidden");
+    archiveViewerImage.src = media.src;
+    archiveViewerLabel.textContent = `${event.title} - Bild ${index + 1} von ${mediaList.length}`;
+  }
 }
 
 function openArchiveViewer(eventKey) {
@@ -2160,9 +2217,10 @@ function openArchiveViewer(eventKey) {
 }
 
 function closeArchiveViewer() {
-  if (!archiveViewer) {
+  if (!archiveViewer || !archiveViewerVideo) {
     return;
   }
+  archiveViewerVideo.pause();
   archiveViewer.classList.add("hidden");
 }
 
@@ -2238,7 +2296,7 @@ function mountMenuLinks() {
 }
 
 function startEventFilm() {
-  if (!eventTrack || eventFrames.length === 0) {
+  if (!eventTrack || homeFeedMedia.length === 0) {
     return;
   }
   if (eventTrack.children.length > 0) {
@@ -2247,18 +2305,53 @@ function startEventFilm() {
 
   // Duplicate the sequence for seamless infinite marquee movement.
   for (let round = 0; round < 2; round += 1) {
-    eventFrames.forEach((src, index) => {
+    homeFeedMedia.forEach((media, index) => {
       const item = document.createElement("div");
       item.className = "event-track-item";
 
-      const img = document.createElement("img");
-      img.src = src;
-      img.alt = `Event Foto ${index + 1}`;
-      img.loading = "eager";
-      item.appendChild(img);
+      if (media.type === "video") {
+        const video = document.createElement("video");
+        video.src = media.src;
+        video.muted = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+        configureMediaSnippet(video, 5);
+        item.appendChild(video);
+      } else {
+        const img = document.createElement("img");
+        img.src = media.src;
+        img.alt = `Event Medium ${index + 1}`;
+        img.loading = "eager";
+        item.appendChild(img);
+      }
       eventTrack.appendChild(item);
     });
   }
+}
+
+function configureMediaSnippet(video, lengthSeconds) {
+  const onLoaded = () => {
+    const duration = Number(video.duration) || 0;
+    const usableLength = Math.max(1.5, Math.min(lengthSeconds, duration || lengthSeconds));
+    const maxStart = Math.max(0.05, duration - usableLength - 0.15);
+    const clipStart = maxStart > 0.05 ? Math.random() * maxStart : 0.05;
+    const clipEnd = duration > 0 ? Math.min(duration - 0.05, clipStart + usableLength) : clipStart + usableLength;
+    video.dataset.clipStart = String(clipStart);
+    video.dataset.clipEnd = String(Math.max(clipStart + 0.3, clipEnd));
+    video.currentTime = clipStart;
+    video.play().catch(() => {});
+  };
+
+  video.addEventListener("loadedmetadata", onLoaded, { once: true });
+  video.addEventListener("timeupdate", () => {
+    const clipEnd = Number(video.dataset.clipEnd || "0");
+    const clipStart = Number(video.dataset.clipStart || "0.05");
+    if (clipEnd > 0 && video.currentTime >= clipEnd) {
+      video.currentTime = clipStart;
+      video.play().catch(() => {});
+    }
+  });
 }
 
 function resetLoginVideoState() {

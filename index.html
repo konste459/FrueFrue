@@ -7,7 +7,7 @@
     <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
     <title>FrueFrue | Social Brunch</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=22" />
+    <link rel="stylesheet" href="styles.css?v=23" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -216,6 +216,13 @@
               <div class="archive-viewer-inner">
                 <button id="archiveCloseBtn" class="archive-close" type="button">Schliessen</button>
                 <img id="archiveViewerImage" class="archive-viewer-image" src="" alt="Archiv Bild" />
+                <video
+                  id="archiveViewerVideo"
+                  class="archive-viewer-video hidden"
+                  controls
+                  playsinline
+                  muted
+                ></video>
                 <div class="archive-viewer-controls">
                   <button id="archivePrevBtn" class="archive-nav-btn" type="button">Zurueck</button>
                   <p id="archiveViewerLabel" class="archive-viewer-label"></p>
@@ -517,6 +524,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=40"></script>
+    <script src="main.js?v=41"></script>
   </body>
 </html>
