@@ -193,7 +193,7 @@ const SPOTIFY_CLIENT_ID = "dd17d9878f3544dda2b1286c652365cf";
 const SPOTIFY_PLAYLIST_ID = "1ZMxyXU9lfbgHl8x9vv4uE";
 const SPOTIFY_PLAYLIST_URL =
   "https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32";
-const LOGIN_VIDEO_LOOP_END = 0.75;
+const LOGIN_VIDEO_LOOP_END = 0.5;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 let currentUser = "";
 let currentRole = "";
@@ -203,6 +203,9 @@ let archiveCurrentEvent = "";
 let archiveCurrentIndex = 0;
 let archiveSceneIndex = 0;
 let quoteTimer = null;
+let loginLoopRaf = null;
+let loginLoopDirection = 1;
+let loginLoopLastTs = 0;
 
 const archiveEvents = {
   "fruefrue-1": {
@@ -2260,6 +2263,12 @@ function startEventFilm() {
 
 function resetLoginVideoState() {
   loginRevealActive = false;
+  if (loginLoopRaf) {
+    window.cancelAnimationFrame(loginLoopRaf);
+    loginLoopRaf = null;
+  }
+  loginLoopDirection = 1;
+  loginLoopLastTs = 0;
   if (loginRevealTimeout) {
     window.clearTimeout(loginRevealTimeout);
     loginRevealTimeout = null;
@@ -2296,32 +2305,56 @@ function startLoginVideoLoop() {
   if (!loginVideo) {
     return;
   }
-  const playVideo = () => {
-    loginVideo.play().catch(() => {});
+  const animateLoop = (timestamp) => {
+    if (loginRevealActive || !loginVideo) {
+      loginLoopRaf = null;
+      return;
+    }
+    if (!loginLoopLastTs) {
+      loginLoopLastTs = timestamp;
+    }
+    const dt = Math.min((timestamp - loginLoopLastTs) / 1000, 0.05);
+    loginLoopLastTs = timestamp;
+
+    try {
+      let nextTime = loginVideo.currentTime + dt * loginLoopDirection;
+      if (nextTime >= LOGIN_VIDEO_LOOP_END) {
+        nextTime = LOGIN_VIDEO_LOOP_END;
+        loginLoopDirection = -1;
+      } else if (nextTime <= 0.01) {
+        nextTime = 0.01;
+        loginLoopDirection = 1;
+      }
+      loginVideo.currentTime = nextTime;
+    } catch (error) {
+      loginLoopRaf = null;
+      return;
+    }
+
+    loginLoopRaf = window.requestAnimationFrame(animateLoop);
   };
 
-  if (loginVideo.readyState >= 1) {
+  const beginLoop = () => {
+    loginVideo.pause();
     try {
       loginVideo.currentTime = 0.01;
     } catch (error) {
       // Ignore initial seek issues.
     }
-    playVideo();
+    loginLoopDirection = 1;
+    loginLoopLastTs = 0;
+    if (loginLoopRaf) {
+      window.cancelAnimationFrame(loginLoopRaf);
+    }
+    loginLoopRaf = window.requestAnimationFrame(animateLoop);
+  };
+
+  if (loginVideo.readyState >= 1) {
+    beginLoop();
     return;
   }
 
-  loginVideo.addEventListener(
-    "loadedmetadata",
-    () => {
-      try {
-        loginVideo.currentTime = 0.01;
-      } catch (error) {
-        // Ignore initial seek issues.
-      }
-      playVideo();
-    },
-    { once: true }
-  );
+  loginVideo.addEventListener("loadedmetadata", beginLoop, { once: true });
 }
 
 function playLoginRevealVideo() {
@@ -2331,6 +2364,10 @@ function playLoginRevealVideo() {
   }
 
   loginRevealActive = true;
+  if (loginLoopRaf) {
+    window.cancelAnimationFrame(loginLoopRaf);
+    loginLoopRaf = null;
+  }
   const continuePlayback = () => {
     try {
       const revealStart = Math.min(LOGIN_VIDEO_LOOP_END, Math.max(0.01, loginVideo.duration - 0.2));
@@ -2527,20 +2564,6 @@ if (loginForm) {
 }
 
 if (loginVideo) {
-  loginVideo.addEventListener("timeupdate", () => {
-    if (loginRevealActive) {
-      return;
-    }
-    if (loginVideo.currentTime >= LOGIN_VIDEO_LOOP_END) {
-      try {
-        loginVideo.currentTime = 0.01;
-      } catch (error) {
-        return;
-      }
-      loginVideo.play().catch(() => {});
-    }
-  });
-
   loginVideo.addEventListener("ended", () => {
     if (loginRevealActive) {
       finalizeLoginTransition();
