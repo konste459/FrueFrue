@@ -2382,7 +2382,7 @@ function resetLoginVideoState() {
   loginLoopVideo.classList.remove("hidden-video");
   loginRevealVideo.classList.add("hidden-video");
   try {
-    loginLoopVideo.currentTime = 0.01;
+    loginLoopVideo.currentTime = 0;
     loginRevealVideo.currentTime = LOGIN_REVEAL_START;
   } catch (error) {
     // Metadata may not be ready yet.
@@ -2415,7 +2415,7 @@ function startLoginVideoLoop() {
     loginLoopVideo.loop = true;
     loginLoopVideo.classList.remove("hidden-video");
     try {
-      loginLoopVideo.currentTime = 0.01;
+      loginLoopVideo.currentTime = 0;
     } catch (error) {
       // Ignore initial seek issues.
     }
@@ -2439,11 +2439,6 @@ function playLoginRevealVideo() {
   loginRevealActive = true;
   loginContinueActive = true;
   loginContinueNeedsWrap = loginLoopVideo.currentTime > LOGIN_LOOP_CONTINUE_END;
-  try {
-    loginLoopVideo.playbackRate = 1;
-  } catch (error) {
-    // Safari can ignore playbackRate assignments here.
-  }
   loginLoopVideo.loop = false;
   loginLoopVideo.play().catch(() => {
     startRevealSegment();
