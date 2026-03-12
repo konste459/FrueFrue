@@ -159,6 +159,9 @@ const fruefrueAnswerForm = document.getElementById("fruefrueAnswerForm");
 const fruefrueAnswerInput = document.getElementById("fruefrueAnswerInput");
 const fruefrueAnswerStatus = document.getElementById("fruefrueAnswerStatus");
 const spotifySongForm = document.getElementById("spotifySongForm");
+const spotifyAuthBtn = document.getElementById("spotifyAuthBtn");
+const spotifyLogoutBtn = document.getElementById("spotifyLogoutBtn");
+const spotifyAuthStatus = document.getElementById("spotifyAuthStatus");
 const spotifySongTitle = document.getElementById("spotifySongTitle");
 const spotifySongArtist = document.getElementById("spotifySongArtist");
 const spotifySongLink = document.getElementById("spotifySongLink");
@@ -178,6 +181,15 @@ const DELETED_USERS_KEY = "fruefrue-deleted-users-v1";
 const FIXED_NOTICE_KEY = "fruefrue-fixed-notice-v1";
 const FRUEFRUE_ANSWERS_KEY = "fruefrue-answers-v1";
 const SPOTIFY_SONGS_KEY = "fruefrue-spotify-songs-v1";
+const SPOTIFY_AUTH_KEY = "fruefrue-spotify-auth-v1";
+const SPOTIFY_PKCE_VERIFIER_KEY = "fruefrue-spotify-pkce-verifier-v1";
+const SPOTIFY_PKCE_STATE_KEY = "fruefrue-spotify-pkce-state-v1";
+const SPOTIFY_REDIRECT_ROUTE_KEY = "fruefrue-spotify-route-v1";
+const SPOTIFY_CLIENT_ID = "dd17d9878f3544dda2b1286c652365cf";
+const SPOTIFY_PLAYLIST_ID = "1ZMxyXU9lfbgHl8x9vv4uE";
+const SPOTIFY_PLAYLIST_URL =
+  "https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32";
+const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 let currentUser = "";
 let currentRole = "";
 let currentFirstName = "";
@@ -384,6 +396,184 @@ function getSpotifySongs() {
 
 function saveSpotifySongs(songs) {
   saveJSON(SPOTIFY_SONGS_KEY, songs);
+}
+
+function getSpotifyAuth() {
+  return loadJSON(SPOTIFY_AUTH_KEY, null);
+}
+
+function saveSpotifyAuth(auth) {
+  saveJSON(SPOTIFY_AUTH_KEY, auth);
+}
+
+function clearSpotifyAuth() {
+  localStorage.removeItem(SPOTIFY_AUTH_KEY);
+}
+
+function getSpotifyRedirectUri() {
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+function randomString(length = 64) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let value = "";
+  const random = crypto.getRandomValues(new Uint8Array(length));
+  for (let i = 0; i < length; i += 1) {
+    value += chars[random[i] % chars.length];
+  }
+  return value;
+}
+
+async function sha256(value) {
+  const buffer = new TextEncoder().encode(value);
+  return crypto.subtle.digest("SHA-256", buffer);
+}
+
+function base64UrlEncode(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function parseSpotifyTrackId(link) {
+  if (!link) {
+    return "";
+  }
+  const uriMatch = link.match(/^spotify:track:([a-zA-Z0-9]+)$/);
+  if (uriMatch) {
+    return uriMatch[1];
+  }
+  const urlMatch = link.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/);
+  return urlMatch ? urlMatch[1] : "";
+}
+
+function spotifyHasValidToken() {
+  const auth = getSpotifyAuth();
+  return Boolean(auth && auth.access_token && auth.expires_at && Date.now() < auth.expires_at - 60_000);
+}
+
+function updateSpotifyAuthUi() {
+  const connected = spotifyHasValidToken();
+  if (spotifyAuthBtn) {
+    spotifyAuthBtn.classList.toggle("hidden", connected);
+  }
+  if (spotifyLogoutBtn) {
+    spotifyLogoutBtn.classList.toggle("hidden", !connected);
+  }
+  if (spotifyAuthStatus) {
+    spotifyAuthStatus.textContent = connected
+      ? "Spotify ist verbunden. Neue Songs gehen direkt in die echte Playlist."
+      : "Verbinde Spotify, damit Songs wirklich in der Playlist landen.";
+  }
+}
+
+async function refreshSpotifyAccessToken(refreshToken) {
+  const body = new URLSearchParams({
+    client_id: SPOTIFY_CLIENT_ID,
+    grant_type: "refresh_token",
+    refresh_token: refreshToken
+  });
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error_description || data.error || "Spotify Refresh fehlgeschlagen.");
+  }
+  const previous = getSpotifyAuth();
+  const nextAuth = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || (previous ? previous.refresh_token : ""),
+    expires_at: Date.now() + Number(data.expires_in || 3600) * 1000
+  };
+  saveSpotifyAuth(nextAuth);
+  updateSpotifyAuthUi();
+  return nextAuth.access_token;
+}
+
+async function ensureSpotifyAccessToken() {
+  const auth = getSpotifyAuth();
+  if (!auth) {
+    throw new Error("Spotify ist nicht verbunden.");
+  }
+  if (spotifyHasValidToken()) {
+    return auth.access_token;
+  }
+  if (!auth.refresh_token) {
+    clearSpotifyAuth();
+    updateSpotifyAuthUi();
+    throw new Error("Spotify Verbindung ist abgelaufen. Bitte neu verbinden.");
+  }
+  return refreshSpotifyAccessToken(auth.refresh_token);
+}
+
+async function spotifyApiFetch(url, options = {}) {
+  const accessToken = await ensureSpotifyAccessToken();
+  const headers = new Headers(options.headers || {});
+  headers.set("Authorization", `Bearer ${accessToken}`);
+  if (options.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  let response = await fetch(url, { ...options, headers });
+  if (response.status === 401) {
+    const auth = getSpotifyAuth();
+    if (!auth || !auth.refresh_token) {
+      clearSpotifyAuth();
+      updateSpotifyAuthUi();
+      throw new Error("Spotify Verbindung ist abgelaufen. Bitte neu verbinden.");
+    }
+    const refreshed = await refreshSpotifyAccessToken(auth.refresh_token);
+    headers.set("Authorization", `Bearer ${refreshed}`);
+    response = await fetch(url, { ...options, headers });
+  }
+
+  if (!response.ok) {
+    let message = "Spotify Anfrage fehlgeschlagen.";
+    try {
+      const error = await response.json();
+      message = error.error?.message || error.error_description || message;
+    } catch {
+      // ignore malformed error response
+    }
+    throw new Error(message);
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+  return response.json();
+}
+
+async function exchangeSpotifyCode(code, verifier) {
+  const body = new URLSearchParams({
+    client_id: SPOTIFY_CLIENT_ID,
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: getSpotifyRedirectUri(),
+    code_verifier: verifier
+  });
+
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error_description || data.error || "Spotify Login fehlgeschlagen.");
+  }
+  saveSpotifyAuth({
+    access_token: data.access_token,
+    refresh_token: data.refresh_token || "",
+    expires_at: Date.now() + Number(data.expires_in || 3600) * 1000
+  });
+  updateSpotifyAuthUi();
 }
 
 function getEventId(event) {
@@ -1478,36 +1668,192 @@ function renderSpotifySongs() {
   });
 }
 
+async function resolveSpotifyTrack(title, artist, link) {
+  const directTrackId = parseSpotifyTrackId(link);
+  if (directTrackId) {
+    return {
+      uri: `spotify:track:${directTrackId}`,
+      external_url: `https://open.spotify.com/track/${directTrackId}`
+    };
+  }
+
+  const query = [`track:${title}`];
+  if (artist) {
+    query.push(`artist:${artist}`);
+  }
+
+  const data = await spotifyApiFetch(
+    `https://api.spotify.com/v1/search?type=track&limit=1&q=${encodeURIComponent(query.join(" "))}`
+  );
+  const track = data && data.tracks && Array.isArray(data.tracks.items) ? data.tracks.items[0] : null;
+  if (!track) {
+    throw new Error("Kein passender Spotify-Track gefunden.");
+  }
+  return {
+    uri: track.uri,
+    external_url: track.external_urls?.spotify || ""
+  };
+}
+
+async function addSpotifyTrackToPlaylist(trackUri) {
+  try {
+    await spotifyApiFetch(`https://api.spotify.com/v1/playlists/${SPOTIFY_PLAYLIST_ID}/tracks`, {
+      method: "POST",
+      body: JSON.stringify({ uris: [trackUri] })
+    });
+  } catch (error) {
+    if (String(error.message || "").includes("Insufficient client scope")) {
+      throw new Error("Spotify Rechte fehlen. Bitte Verbindung neu aufbauen.");
+    }
+    if (String(error.message || "").includes("Forbidden")) {
+      throw new Error("Dieser Spotify-Account darf die FRueFRue Playlist nicht bearbeiten.");
+    }
+    throw error;
+  }
+}
+
+async function startSpotifyAuth() {
+  const verifier = randomString(64);
+  const state = randomString(24);
+  localStorage.setItem(SPOTIFY_PKCE_VERIFIER_KEY, verifier);
+  localStorage.setItem(SPOTIFY_PKCE_STATE_KEY, state);
+  localStorage.setItem(SPOTIFY_REDIRECT_ROUTE_KEY, activePage || "spotify");
+
+  const challenge = base64UrlEncode(await sha256(verifier));
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: SPOTIFY_CLIENT_ID,
+    scope: SPOTIFY_SCOPES.join(" "),
+    redirect_uri: getSpotifyRedirectUri(),
+    state,
+    code_challenge_method: "S256",
+    code_challenge: challenge
+  });
+  window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+}
+
+async function handleSpotifyAuthCallback() {
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  const error = url.searchParams.get("error");
+
+  if (!code && !error) {
+    updateSpotifyAuthUi();
+    return;
+  }
+
+  const expectedState = localStorage.getItem(SPOTIFY_PKCE_STATE_KEY) || "";
+  const verifier = localStorage.getItem(SPOTIFY_PKCE_VERIFIER_KEY) || "";
+  const route = localStorage.getItem(SPOTIFY_REDIRECT_ROUTE_KEY) || "spotify";
+
+  url.searchParams.delete("code");
+  url.searchParams.delete("state");
+  url.searchParams.delete("error");
+  window.history.replaceState({}, document.title, url.toString());
+
+  if (error) {
+    if (spotifyAuthStatus) {
+      spotifyAuthStatus.textContent = "Spotify Login wurde abgebrochen oder verweigert.";
+    }
+    updateSpotifyAuthUi();
+    setPage(route);
+    return;
+  }
+
+  if (!verifier || !expectedState || state !== expectedState) {
+    if (spotifyAuthStatus) {
+      spotifyAuthStatus.textContent = "Spotify Login konnte nicht verifiziert werden. Bitte neu verbinden.";
+    }
+    updateSpotifyAuthUi();
+    setPage("spotify");
+    return;
+  }
+
+  try {
+    await exchangeSpotifyCode(code, verifier);
+    if (spotifyAuthStatus) {
+      spotifyAuthStatus.textContent = "Spotify verbunden. Songs landen jetzt direkt in der echten Playlist.";
+    }
+    setPage(route);
+  } catch (callbackError) {
+    clearSpotifyAuth();
+    if (spotifyAuthStatus) {
+      spotifyAuthStatus.textContent = callbackError.message || "Spotify Login fehlgeschlagen.";
+    }
+  } finally {
+    localStorage.removeItem(SPOTIFY_PKCE_VERIFIER_KEY);
+    localStorage.removeItem(SPOTIFY_PKCE_STATE_KEY);
+    localStorage.removeItem(SPOTIFY_REDIRECT_ROUTE_KEY);
+    updateSpotifyAuthUi();
+  }
+}
+
+function mountSpotifyAuth() {
+  if (spotifyAuthBtn) {
+    spotifyAuthBtn.addEventListener("click", () => {
+      startSpotifyAuth().catch((error) => {
+        if (spotifyAuthStatus) {
+          spotifyAuthStatus.textContent = error.message || "Spotify Verbindung konnte nicht gestartet werden.";
+        }
+      });
+    });
+  }
+  if (spotifyLogoutBtn) {
+    spotifyLogoutBtn.addEventListener("click", () => {
+      clearSpotifyAuth();
+      updateSpotifyAuthUi();
+      if (spotifyAuthStatus) {
+        spotifyAuthStatus.textContent = "Spotify wurde getrennt.";
+      }
+    });
+  }
+  updateSpotifyAuthUi();
+}
+
 function mountSpotifySongForm() {
   if (!spotifySongForm || !spotifySongTitle || !spotifySongArtist || !spotifySongStatus) {
     return;
   }
-  spotifySongForm.addEventListener("submit", (event) => {
+  spotifySongForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const title = spotifySongTitle.value.trim();
     const artist = spotifySongArtist.value.trim();
     const link = spotifySongLink ? spotifySongLink.value.trim() : "";
-    if (!title || !artist) {
-      spotifySongStatus.textContent = "Bitte Songtitel und Artist eintragen.";
+    if (!link && (!title || !artist)) {
+      spotifySongStatus.textContent = "Bitte Spotify Link oder Songtitel plus Artist eintragen.";
       return;
     }
     if (link && !link.startsWith("http")) {
       spotifySongStatus.textContent = "Spotify Link bitte als gueltige URL.";
       return;
     }
-    const songs = getSpotifySongs();
-    songs.unshift({
-      title: title.slice(0, 80),
-      artist: artist.slice(0, 80),
-      link,
-      by: currentUser || "anon",
-      byFirstName: currentFirstName || "Guest",
-      createdAt: new Date().toISOString()
-    });
-    saveSpotifySongs(songs.slice(0, 200));
-    spotifySongForm.reset();
-    spotifySongStatus.textContent = "Track added. Playlist gets hotter.";
-    renderSpotifySongs();
+
+    if (!getSpotifyAuth()) {
+      spotifySongStatus.textContent = "Bitte erst Spotify verbinden.";
+      return;
+    }
+
+    try {
+      const track = await resolveSpotifyTrack(title, artist, link);
+      await addSpotifyTrackToPlaylist(track.uri);
+
+      const songs = getSpotifySongs();
+      songs.unshift({
+        title: title.slice(0, 80),
+        artist: artist.slice(0, 80),
+        link: track.external_url || link,
+        by: currentUser || "anon",
+        byFirstName: currentFirstName || "Guest",
+        createdAt: new Date().toISOString()
+      });
+      saveSpotifySongs(songs.slice(0, 200));
+      spotifySongForm.reset();
+      spotifySongStatus.textContent = "Song ist jetzt wirklich in der offiziellen Playlist.";
+      renderSpotifySongs();
+    } catch (spotifyError) {
+      spotifySongStatus.textContent = spotifyError.message || "Spotify Track konnte nicht hinzugefuegt werden.";
+    }
   });
 }
 
@@ -2102,6 +2448,7 @@ mountPlannedVoting();
 mountCalendarWidget();
 mountReminderActions();
 mountFruefrueAnswerForm();
+mountSpotifyAuth();
 mountSpotifySongForm();
 mountAdminUserActions();
 mountLogout();
@@ -2114,3 +2461,9 @@ renderEventGallery();
 renderPolls();
 renderFacts(false);
 renderSpotifySongs();
+handleSpotifyAuthCallback().catch((error) => {
+  if (spotifyAuthStatus) {
+    spotifyAuthStatus.textContent = error.message || "Spotify Verbindung konnte nicht geladen werden.";
+  }
+  updateSpotifyAuthUi();
+});

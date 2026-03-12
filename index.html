@@ -292,7 +292,7 @@
         <section id="page-spotify" class="page">
           <div class="placeholder-card">
             <h3>Spotify Playlist</h3>
-            <p>Add deinen Track fuer den naechsten FR&uuml;FR&uuml; Vibe.</p>
+            <p>Add deinen Track fuer den naechsten FR&uuml;FR&uuml; Vibe direkt in die echte Playlist.</p>
             <a
               class="drive-link"
               href="https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32"
@@ -300,6 +300,13 @@
               rel="noopener noreferrer"
               >Playlist auf Spotify oeffnen</a
             >
+            <div class="spotify-auth-box">
+              <button id="spotifyAuthBtn" class="cta-primary" type="button">Spotify verbinden</button>
+              <button id="spotifyLogoutBtn" class="cta-secondary hidden" type="button">Spotify trennen</button>
+              <p id="spotifyAuthStatus" class="event-status" aria-live="polite">
+                Verbinde Spotify, damit Songs wirklich in der Playlist landen.
+              </p>
+            </div>
             <form id="spotifySongForm" class="event-form">
               <label for="spotifySongTitle">Songtitel</label>
               <input id="spotifySongTitle" type="text" placeholder="z.B. Tau mich auf" required />
@@ -307,7 +314,7 @@
               <input id="spotifySongArtist" type="text" placeholder="z.B. Zartmann" required />
               <label for="spotifySongLink">Spotify Link (optional)</label>
               <input id="spotifySongLink" type="url" placeholder="https://open.spotify.com/track/..." />
-              <button class="cta-primary" type="submit">Zur Playlist droppen</button>
+              <button class="cta-primary" type="submit">In echte Playlist packen</button>
               <p id="spotifySongStatus" class="event-status" aria-live="polite"></p>
             </form>
             <ul id="spotifySongList" class="spotify-song-list"></ul>
@@ -520,6 +527,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=29"></script>
+    <script src="main.js?v=30"></script>
   </body>
 </html>
