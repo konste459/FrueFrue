@@ -7,7 +7,7 @@
     <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
     <title>FrueFrue | Social Brunch</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=15" />
+    <link rel="stylesheet" href="styles.css?v=16" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -292,21 +292,27 @@
         <section id="page-spotify" class="page">
           <div class="placeholder-card">
             <h3>Spotify Playlist</h3>
-            <p>Add deinen Track fuer den naechsten FR&uuml;FR&uuml; Vibe direkt in die echte Playlist.</p>
+            <p>Hier laeuft die echte FR&uuml;FR&uuml; Playlist. Unten koennen Leute direkt ueber den Invite-Link zur Playlist jumpen.</p>
+            <div class="spotify-embed-shell">
+              <iframe
+                data-testid="embed-iframe"
+                style="border-radius: 18px"
+                src="https://open.spotify.com/embed/playlist/1ZMxyXU9lfbgHl8x9vv4uE?utm_source=generator"
+                width="100%"
+                height="352"
+                frameborder="0"
+                allowfullscreen
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+              ></iframe>
+            </div>
             <a
               class="drive-link"
-              href="https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32"
+              href="https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=75b626b787234803&pt=7ec12060291657600e09d5d00c3c2fdd"
               target="_blank"
               rel="noopener noreferrer"
-              >Playlist auf Spotify oeffnen</a
+              >Invite-Link zum Songs hinzufuegen</a
             >
-            <div class="spotify-auth-box">
-              <button id="spotifyAuthBtn" class="cta-primary" type="button">Spotify verbinden</button>
-              <button id="spotifyLogoutBtn" class="cta-secondary hidden" type="button">Spotify trennen</button>
-              <p id="spotifyAuthStatus" class="event-status" aria-live="polite">
-                Verbinde Spotify, damit Songs wirklich in der Playlist landen.
-              </p>
-            </div>
             <form id="spotifySongForm" class="event-form">
               <label for="spotifySongTitle">Songtitel</label>
               <input id="spotifySongTitle" type="text" placeholder="z.B. Tau mich auf" required />
@@ -314,7 +320,7 @@
               <input id="spotifySongArtist" type="text" placeholder="z.B. Zartmann" required />
               <label for="spotifySongLink">Spotify Link (optional)</label>
               <input id="spotifySongLink" type="url" placeholder="https://open.spotify.com/track/..." />
-              <button class="cta-primary" type="submit">In echte Playlist packen</button>
+              <button class="cta-primary" type="submit">Songwunsch merken</button>
               <p id="spotifySongStatus" class="event-status" aria-live="polite"></p>
             </form>
             <ul id="spotifySongList" class="spotify-song-list"></ul>
@@ -527,6 +533,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=30"></script>
+    <script src="main.js?v=31"></script>
   </body>
 </html>

@@ -1829,31 +1829,19 @@ function mountSpotifySongForm() {
       return;
     }
 
-    if (!getSpotifyAuth()) {
-      spotifySongStatus.textContent = "Bitte erst Spotify verbinden.";
-      return;
-    }
-
-    try {
-      const track = await resolveSpotifyTrack(title, artist, link);
-      await addSpotifyTrackToPlaylist(track.uri);
-
-      const songs = getSpotifySongs();
-      songs.unshift({
-        title: title.slice(0, 80),
-        artist: artist.slice(0, 80),
-        link: track.external_url || link,
-        by: currentUser || "anon",
-        byFirstName: currentFirstName || "Guest",
-        createdAt: new Date().toISOString()
-      });
-      saveSpotifySongs(songs.slice(0, 200));
-      spotifySongForm.reset();
-      spotifySongStatus.textContent = "Song ist jetzt wirklich in der offiziellen Playlist.";
-      renderSpotifySongs();
-    } catch (spotifyError) {
-      spotifySongStatus.textContent = spotifyError.message || "Spotify Track konnte nicht hinzugefuegt werden.";
-    }
+    const songs = getSpotifySongs();
+    songs.unshift({
+      title: title.slice(0, 80),
+      artist: artist.slice(0, 80),
+      link: link,
+      by: currentUser || "anon",
+      byFirstName: currentFirstName || "Guest",
+      createdAt: new Date().toISOString()
+    });
+    saveSpotifySongs(songs.slice(0, 200));
+    spotifySongForm.reset();
+    spotifySongStatus.textContent = "Songwunsch gespeichert. Ueber den Invite-Link koennt ihr ihn direkt in Spotify reinziehen.";
+    renderSpotifySongs();
   });
 }
 
@@ -2448,7 +2436,6 @@ mountPlannedVoting();
 mountCalendarWidget();
 mountReminderActions();
 mountFruefrueAnswerForm();
-mountSpotifyAuth();
 mountSpotifySongForm();
 mountAdminUserActions();
 mountLogout();
@@ -2461,9 +2448,3 @@ renderEventGallery();
 renderPolls();
 renderFacts(false);
 renderSpotifySongs();
-handleSpotifyAuthCallback().catch((error) => {
-  if (spotifyAuthStatus) {
-    spotifyAuthStatus.textContent = error.message || "Spotify Verbindung konnte nicht geladen werden.";
-  }
-  updateSpotifyAuthUi();
-});
