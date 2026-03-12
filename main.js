@@ -103,8 +103,8 @@ const homeFeedMedia = [...fruefrue2Media, ...papaMedia, ...cockogottMedia];
 const loginScreen = document.getElementById("loginScreen");
 const appShell = document.getElementById("appShell");
 const loginForm = document.getElementById("loginForm");
-const loginVideo = document.getElementById("loginVideo");
-const loginFogOverlay = document.getElementById("loginFogOverlay");
+const loginLoopVideo = document.getElementById("loginLoopVideo");
+const loginRevealVideo = document.getElementById("loginRevealVideo");
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
@@ -225,6 +225,9 @@ const SPOTIFY_PLAYLIST_ID = "1ZMxyXU9lfbgHl8x9vv4uE";
 const SPOTIFY_PLAYLIST_URL =
   "https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32";
 const LOGIN_VIDEO_LOOP_END = 1;
+const LOGIN_LOOP_CONTINUE_END = 5;
+const LOGIN_REVEAL_START = 0.75;
+const LOGIN_REVEAL_END = 8;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 let currentUser = "";
 let currentRole = "";
@@ -237,6 +240,7 @@ let quoteTimer = null;
 let loginLoopRaf = null;
 let loginLoopDirection = 1;
 let loginLoopLastTs = 0;
+let loginContinueActive = false;
 
 const archiveEvents = {
   "fruefrue-1": {
@@ -2033,7 +2037,7 @@ function mountLogout() {
     currentUser = "";
     currentRole = "";
     currentFirstName = "";
-    document.body.classList.remove("logged-in", "logging-in", "login-fadeout", "is-admin", "has-ticket");
+    document.body.classList.remove("logged-in", "logging-in", "is-admin", "has-ticket");
     loginScreen.classList.remove("hidden");
     appShell.classList.add("hidden");
     resetLoginVideoState();
@@ -2356,6 +2360,7 @@ function configureMediaSnippet(video, lengthSeconds) {
 
 function resetLoginVideoState() {
   loginRevealActive = false;
+  loginContinueActive = false;
   if (loginLoopRaf) {
     window.cancelAnimationFrame(loginLoopRaf);
     loginLoopRaf = null;
@@ -2366,13 +2371,16 @@ function resetLoginVideoState() {
     window.clearTimeout(loginRevealTimeout);
     loginRevealTimeout = null;
   }
-  document.body.classList.remove("login-fadeout");
-  if (!loginVideo) {
+  if (!loginLoopVideo || !loginRevealVideo) {
     return;
   }
-  loginVideo.pause();
+  loginLoopVideo.pause();
+  loginRevealVideo.pause();
+  loginLoopVideo.classList.remove("hidden-video");
+  loginRevealVideo.classList.add("hidden-video");
   try {
-    loginVideo.currentTime = 0.01;
+    loginLoopVideo.currentTime = 0.01;
+    loginRevealVideo.currentTime = LOGIN_REVEAL_START;
   } catch (error) {
     // Metadata may not be ready yet.
   }
@@ -2382,24 +2390,26 @@ function finalizeLoginTransition() {
   if (!loginScreen || !appShell) {
     return;
   }
+  loginRevealActive = false;
+  loginContinueActive = false;
   if (loginRevealTimeout) {
     window.clearTimeout(loginRevealTimeout);
     loginRevealTimeout = null;
   }
-  document.body.classList.add("login-fadeout");
-  window.setTimeout(() => {
-    document.body.classList.remove("logging-in", "login-fadeout");
-    document.body.classList.add("logged-in");
-    loginScreen.classList.add("hidden");
-  }, 720);
+  if (loginRevealVideo) {
+    loginRevealVideo.pause();
+  }
+  document.body.classList.remove("logging-in");
+  document.body.classList.add("logged-in");
+  loginScreen.classList.add("hidden");
 }
 
 function startLoginVideoLoop() {
-  if (!loginVideo) {
+  if (!loginLoopVideo) {
     return;
   }
   const animateLoop = (timestamp) => {
-    if (loginRevealActive || !loginVideo) {
+    if (loginRevealActive || loginContinueActive || !loginLoopVideo) {
       loginLoopRaf = null;
       return;
     }
@@ -2410,7 +2420,7 @@ function startLoginVideoLoop() {
     loginLoopLastTs = timestamp;
 
     try {
-      let nextTime = loginVideo.currentTime + dt * loginLoopDirection;
+      let nextTime = loginLoopVideo.currentTime + dt * loginLoopDirection;
       if (nextTime >= LOGIN_VIDEO_LOOP_END) {
         nextTime = LOGIN_VIDEO_LOOP_END;
         loginLoopDirection = -1;
@@ -2418,7 +2428,7 @@ function startLoginVideoLoop() {
         nextTime = 0.01;
         loginLoopDirection = 1;
       }
-      loginVideo.currentTime = nextTime;
+      loginLoopVideo.currentTime = nextTime;
     } catch (error) {
       loginLoopRaf = null;
       return;
@@ -2428,9 +2438,10 @@ function startLoginVideoLoop() {
   };
 
   const beginLoop = () => {
-    loginVideo.pause();
+    loginLoopVideo.pause();
+    loginLoopVideo.classList.remove("hidden-video");
     try {
-      loginVideo.currentTime = 0.01;
+      loginLoopVideo.currentTime = 0.01;
     } catch (error) {
       // Ignore initial seek issues.
     }
@@ -2442,47 +2453,65 @@ function startLoginVideoLoop() {
     loginLoopRaf = window.requestAnimationFrame(animateLoop);
   };
 
-  if (loginVideo.readyState >= 1) {
+  if (loginLoopVideo.readyState >= 1) {
     beginLoop();
     return;
   }
 
-  loginVideo.addEventListener("loadedmetadata", beginLoop, { once: true });
+  loginLoopVideo.addEventListener("loadedmetadata", beginLoop, { once: true });
 }
 
 function playLoginRevealVideo() {
-  if (!loginVideo) {
+  if (!loginLoopVideo || !loginRevealVideo) {
     finalizeLoginTransition();
     return;
   }
 
   loginRevealActive = true;
+  loginContinueActive = true;
   if (loginLoopRaf) {
     window.cancelAnimationFrame(loginLoopRaf);
     loginLoopRaf = null;
   }
-  const continuePlayback = () => {
+  try {
+    loginLoopVideo.playbackRate = 1;
+  } catch (error) {
+    // Safari can ignore playbackRate assignments here.
+  }
+  loginLoopVideo.play().catch(() => {
+    startRevealSegment();
+  });
+}
+
+function startRevealSegment() {
+  if (!loginLoopVideo || !loginRevealVideo) {
+    finalizeLoginTransition();
+    return;
+  }
+  loginContinueActive = false;
+  loginLoopVideo.pause();
+  loginLoopVideo.classList.add("hidden-video");
+  loginRevealVideo.classList.remove("hidden-video");
+
+  const playReveal = () => {
     try {
-      const revealStart = Math.min(LOGIN_VIDEO_LOOP_END, Math.max(0.01, loginVideo.duration - 0.2));
-      if (loginVideo.currentTime < LOGIN_VIDEO_LOOP_END - 0.15 || loginVideo.currentTime > LOGIN_VIDEO_LOOP_END + 0.45) {
-        loginVideo.currentTime = revealStart;
-      }
+      loginRevealVideo.currentTime = LOGIN_REVEAL_START;
     } catch (error) {
-      // Ignore seek issues.
+      // Ignore seek issue.
     }
-    loginVideo.play().catch(() => {
+    loginRevealVideo.play().catch(() => {
       finalizeLoginTransition();
     });
-    const remainingMs = Math.max(1200, (Math.max(loginVideo.duration - LOGIN_VIDEO_LOOP_END, 0.7) * 1000) + 250);
-    loginRevealTimeout = window.setTimeout(finalizeLoginTransition, Math.min(5200, remainingMs));
+    const revealMs = Math.max(300, (LOGIN_REVEAL_END - LOGIN_REVEAL_START) * 1000);
+    loginRevealTimeout = window.setTimeout(finalizeLoginTransition, revealMs);
   };
 
-  if (loginVideo.readyState >= 1) {
-    continuePlayback();
+  if (loginRevealVideo.readyState >= 1) {
+    playReveal();
     return;
   }
 
-  loginVideo.addEventListener("loadedmetadata", continuePlayback, { once: true });
+  loginRevealVideo.addEventListener("loadedmetadata", playReveal, { once: true });
 }
 
 function login(username, password) {
@@ -2656,8 +2685,28 @@ if (loginForm) {
   });
 }
 
-if (loginVideo) {
-  loginVideo.addEventListener("ended", () => {
+if (loginLoopVideo) {
+  loginLoopVideo.addEventListener("timeupdate", () => {
+    if (!loginContinueActive) {
+      return;
+    }
+    if (loginLoopVideo.currentTime >= LOGIN_LOOP_CONTINUE_END) {
+      startRevealSegment();
+    }
+  });
+}
+
+if (loginRevealVideo) {
+  loginRevealVideo.addEventListener("timeupdate", () => {
+    if (!loginRevealActive) {
+      return;
+    }
+    if (loginRevealVideo.currentTime >= LOGIN_REVEAL_END) {
+      finalizeLoginTransition();
+    }
+  });
+
+  loginRevealVideo.addEventListener("ended", () => {
     if (loginRevealActive) {
       finalizeLoginTransition();
     }

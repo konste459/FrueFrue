@@ -86,6 +86,11 @@ body.logged-in #loginScreen {
   filter: saturate(0.96) contrast(1.03) brightness(0.9);
 }
 
+.login-video.hidden-video {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .login-video-vignette {
   position: absolute;
   inset: 0;
@@ -93,16 +98,6 @@ body.logged-in #loginScreen {
     radial-gradient(circle at 50% 58%, rgba(255, 255, 255, 0.08), transparent 16%),
     radial-gradient(circle at 50% 60%, rgba(255, 255, 255, 0.04), transparent 24%),
     linear-gradient(180deg, rgba(7, 13, 18, 0.24), rgba(7, 13, 18, 0.02) 34%, rgba(255, 255, 255, 0.04) 100%);
-}
-
-.login-fog-overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 50% 60%, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0));
-  opacity: 0;
-  transition: opacity 900ms ease, background 1200ms ease;
 }
 
 .login-card {
@@ -301,17 +296,6 @@ body.logging-in .login-card {
   opacity: 0;
   transform: translate(-50%, -42%) scale(0.96);
   filter: blur(10px);
-}
-
-body.logging-in .login-fog-overlay {
-  opacity: 1;
-  background:
-    radial-gradient(circle at 50% 60%, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.12) 24%, rgba(255, 255, 255, 0) 52%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.82));
-}
-
-body.login-fadeout #loginScreen {
-  opacity: 0;
 }
 
 .topbar {

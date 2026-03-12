@@ -7,21 +7,28 @@
     <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
     <title>FrueFrue | Social Brunch</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=23" />
+    <link rel="stylesheet" href="styles.css?v=24" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
       <div class="login-video-shell" aria-hidden="true">
         <video
-          id="loginVideo"
+          id="loginLoopVideo"
           class="login-video"
+          src="assets/video/login-coffee-loop.mp4"
+          muted
+          playsinline
+          preload="auto"
+        ></video>
+        <video
+          id="loginRevealVideo"
+          class="login-video hidden-video"
           src="assets/video/login-coffee-pot.mp4"
           muted
           playsinline
           preload="auto"
         ></video>
         <div class="login-video-vignette"></div>
-        <div id="loginFogOverlay" class="login-fog-overlay"></div>
       </div>
 
       <form id="loginForm" class="login-card">
@@ -485,7 +492,7 @@
           <a href="#impressum">Impressum</a>
           <a href="https://www.instagram.com/frue.frue.official/" target="_blank" rel="noopener noreferrer">Insta</a>
           <a
-            href="https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32"
+            href="https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE"
             target="_blank"
             rel="noopener noreferrer"
             >Spotify</a
@@ -524,6 +531,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=41"></script>
+    <script src="main.js?v=42"></script>
   </body>
 </html>
