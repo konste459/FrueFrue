@@ -111,12 +111,12 @@ body.logged-in #loginScreen {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
-  width: min(92vw, 430px);
-  max-height: min(74vh, 700px);
+  width: min(82vw, 280px);
+  max-height: min(62vh, 430px);
   background: rgba(255, 251, 245, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 28px;
-  padding: clamp(24px, 4.2vmin, 34px);
+  border-radius: 20px;
+  padding: 14px 14px 16px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -140,8 +140,8 @@ body.logged-in #loginScreen {
 .login-card::after {
   content: "";
   position: absolute;
-  inset: 12px;
-  border-radius: 20px;
+  inset: 8px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.48);
   pointer-events: none;
 }
@@ -181,23 +181,23 @@ h3 {
 }
 
 .login-card h1 {
-  margin: 0 0 6px;
-  font-size: clamp(1.2rem, 2.6vmin, 1.8rem);
+  margin: 0 0 4px;
+  font-size: clamp(0.92rem, 1.6vmin, 1.16rem);
   text-align: center;
 }
 
 .hint {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   color: var(--muted);
-  font-size: clamp(0.72rem, 1.7vmin, 0.92rem);
+  font-size: clamp(0.58rem, 1.2vmin, 0.7rem);
   text-align: center;
 }
 
 .login-card label {
   display: block;
-  margin: 8px 0 4px;
+  margin: 5px 0 3px;
   font-weight: 700;
-  font-size: clamp(0.75rem, 1.8vmin, 0.9rem);
+  font-size: 0.68rem;
 }
 
 .login-card input {
@@ -205,8 +205,9 @@ h3 {
   border: 1px solid #9ec5ff;
   background: rgba(255, 255, 255, 0.94);
   color: var(--text);
-  border-radius: 16px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 7px 10px;
+  font-size: 0.72rem;
 }
 
 .login-card select {
@@ -214,65 +215,68 @@ h3 {
   border: 1px solid #9ec5ff;
   background: rgba(255, 255, 255, 0.94);
   color: var(--text);
-  border-radius: 16px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 7px 10px;
+  font-size: 0.72rem;
   font-family: inherit;
 }
 
 .cta-primary {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
   border: 0;
   cursor: pointer;
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 8px 10px;
   color: #fff;
   font-weight: 800;
+  font-size: 0.74rem;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
 .error {
   min-height: 20px;
   color: #ff7c7c;
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   text-align: center;
-  font-size: clamp(0.7rem, 1.6vmin, 0.86rem);
+  font-size: 0.64rem;
 }
 
 .register-box {
-  margin-top: 10px;
-  padding-top: 8px;
+  margin-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid rgba(31, 111, 229, 0.2);
   position: relative;
   z-index: 1;
 }
 
 .register-title {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   text-align: center;
   font-weight: 800;
   color: #11458f;
-  font-size: clamp(0.76rem, 1.6vmin, 0.9rem);
+  font-size: 0.7rem;
 }
 
 .cta-secondary {
   width: 100%;
-  margin-top: 8px;
+  margin-top: 6px;
   border: 1px solid rgba(31, 111, 229, 0.28);
   cursor: pointer;
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 8px 10px;
   color: #11458f;
   font-weight: 800;
+  font-size: 0.74rem;
   background: #edf4ff;
 }
 
 .register-status {
   min-height: 18px;
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: #11458f;
   text-align: center;
-  font-size: clamp(0.68rem, 1.5vmin, 0.82rem);
+  font-size: 0.62rem;
 }
 
 .app-shell {
@@ -1378,9 +1382,9 @@ main {
 
   .login-card {
     top: 61%;
-    width: min(92vw, 420px);
-    max-height: 76vh;
-    padding: 24px 20px 28px;
+    width: min(86vw, 290px);
+    max-height: 66vh;
+    padding: 14px 14px 16px;
   }
 
   .planned-calendar {
