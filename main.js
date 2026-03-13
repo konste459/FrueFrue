@@ -358,7 +358,7 @@ function loadJSON(key, fallback) {
   }
   try {
     return JSON.parse(raw);
-  } catch {
+  } catch (_error) {
     return fallback;
   }
 }
@@ -535,7 +535,7 @@ function parseSpotifyTrackId(link) {
 
 function spotifyHasValidToken() {
   const auth = getSpotifyAuth();
-  return Boolean(auth && auth.access_token && auth.expires_at && Date.now() < auth.expires_at - 60_000);
+  return Boolean(auth && auth.access_token && auth.expires_at && Date.now() < auth.expires_at - 60000);
 }
 
 function updateSpotifyAuthUi() {
@@ -620,8 +620,8 @@ async function spotifyApiFetch(url, options = {}) {
     let message = "Spotify Anfrage fehlgeschlagen.";
     try {
       const error = await response.json();
-      message = error.error?.message || error.error_description || message;
-    } catch {
+      message = (error.error && error.error.message) || error.error_description || message;
+    } catch (_error) {
       // ignore malformed error response
     }
     throw new Error(message);
@@ -752,7 +752,7 @@ function loadEvents() {
       saveEvents(parsed);
     }
     return parsed;
-  } catch {
+  } catch (_error) {
     return [];
   }
 }
@@ -766,7 +766,7 @@ function sortEventsByTime(events) {
     const now = new Date();
     const parseEventTime = (event) => {
       if (event.type === "planned") {
-        const month = Number(event.month ?? now.getMonth());
+        const month = Number(event.month != null ? event.month : now.getMonth());
         let year = now.getFullYear();
         if (month < now.getMonth()) {
           year += 1;
@@ -1142,7 +1142,7 @@ function renderPlannedCalendar(event) {
 
   const now = new Date();
   let year = now.getFullYear();
-  const month = Number(event.month ?? now.getMonth());
+  const month = Number(event.month != null ? event.month : now.getMonth());
   if (month < now.getMonth()) {
     year += 1;
   }
@@ -1354,7 +1354,7 @@ function renderPolls() {
       optionTitle.textContent = option.label;
       optionCard.appendChild(optionTitle);
 
-      const previousVote = userVotes[poll.id]?.[optionKey];
+      const previousVote = userVotes[poll.id] ? userVotes[poll.id][optionKey] : undefined;
 
       if (type === "rating" && currentRole !== "admin") {
         const ratingWrap = document.createElement("div");
@@ -1366,7 +1366,7 @@ function renderPolls() {
         tasteInput.type = "range";
         tasteInput.min = "1";
         tasteInput.max = "10";
-        tasteInput.value = String(previousVote?.taste || 7);
+        tasteInput.value = String((previousVote && previousVote.taste) || 7);
 
         const creativityLabel = document.createElement("label");
         creativityLabel.textContent = "Kreativitaet";
@@ -1374,7 +1374,7 @@ function renderPolls() {
         creativityInput.type = "range";
         creativityInput.min = "1";
         creativityInput.max = "10";
-        creativityInput.value = String(previousVote?.creativity || 7);
+        creativityInput.value = String((previousVote && previousVote.creativity) || 7);
 
         ratingWrap.appendChild(tasteLabel);
         ratingWrap.appendChild(tasteInput);
@@ -1389,7 +1389,7 @@ function renderPolls() {
         saveBtn.addEventListener("click", () => {
           const allPolls = getStoredPolls();
           const targetPoll = allPolls.find((item) => item.id === poll.id);
-          const targetOption = targetPoll?.options.find((item) => item.id === optionKey);
+          const targetOption = targetPoll ? targetPoll.options.find((item) => item.id === optionKey) : null;
           if (!targetPoll || !targetOption) {
             return;
           }
@@ -1429,23 +1429,23 @@ function renderPolls() {
         noBtn.className = "poll-choice-btn";
         noBtn.textContent = "Nein";
 
-        if (previousVote?.choice === "yes") {
+        if (previousVote && previousVote.choice === "yes") {
           yesBtn.classList.add("active");
         }
-        if (previousVote?.choice === "no") {
+        if (previousVote && previousVote.choice === "no") {
           noBtn.classList.add("active");
         }
 
         const applyChoice = (choice) => {
           const allPolls = getStoredPolls();
           const targetPoll = allPolls.find((item) => item.id === poll.id);
-          const targetOption = targetPoll?.options.find((item) => item.id === optionKey);
+          const targetOption = targetPoll ? targetPoll.options.find((item) => item.id === optionKey) : null;
           if (!targetPoll || !targetOption) {
             return;
           }
           const voteState = getUserVoteState();
           const pollState = voteState[poll.id] || {};
-          const oldVote = pollState[optionKey]?.choice || "";
+          const oldVote = (pollState[optionKey] && pollState[optionKey].choice) || "";
           if (oldVote === choice) {
             return;
           }
@@ -2078,7 +2078,7 @@ async function resolveSpotifyTrack(title, artist, link) {
   }
   return {
     uri: track.uri,
-    external_url: track.external_urls?.spotify || ""
+    external_url: (track.external_urls && track.external_urls.spotify) || ""
   };
 }
 
@@ -2585,7 +2585,7 @@ function renderArchiveViewer() {
     return;
   }
   const event = archiveEvents[archiveCurrentEvent];
-  const mediaList = event?.media || [];
+  const mediaList = (event && event.media) || [];
   if (!event || !mediaList.length) {
     archiveViewerImage.classList.add("hidden");
     archiveViewerImage.removeAttribute("src");
@@ -2593,7 +2593,7 @@ function renderArchiveViewer() {
     archiveViewerVideo.pause();
     archiveViewerVideo.removeAttribute("src");
     archiveViewerVideo.load();
-    archiveViewerLabel.textContent = `${event?.title || "Event"} - Noch keine Medien hinterlegt.`;
+    archiveViewerLabel.textContent = `${(event && event.title) || "Event"} - Noch keine Medien hinterlegt.`;
     return;
   }
   const index = ((archiveCurrentIndex % mediaList.length) + mediaList.length) % mediaList.length;
