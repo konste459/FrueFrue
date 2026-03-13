@@ -7,7 +7,7 @@
     <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
     <title>FrueFrue | Social Brunch</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=29" />
+    <link rel="stylesheet" href="styles.css?v=30" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -87,6 +87,15 @@
             <option value="9a">9a</option>
             <option value="9b">9b</option>
             <option value="9c">9c</option>
+          </select>
+
+          <label for="regDiet">Ernaehrung</label>
+          <select id="regDiet" name="regDiet">
+            <option value="alles">ich esse alles</option>
+            <option value="vegetarisch">ich esse vegetarisch</option>
+            <option value="vegan">ich esse vegan</option>
+            <option value="lactosefrei">ich esse lactosefrei</option>
+            <option value="glutenfrei">ich esse glutenfrei</option>
           </select>
 
           <button id="registerBtn" type="button" class="cta-secondary">Registrieren</button>
@@ -277,6 +286,16 @@
                 <li><span class="dot divers"></span>divers: <strong id="factsDiversCount">0</strong></li>
               </ul>
             </div>
+            <div class="facts-diet-wrap">
+              <div id="factsDietPie" class="facts-diet-pie" aria-label="Ernaehrungs Verteilung"></div>
+              <ul class="facts-diet-legend">
+                <li><span class="dot diet-all"></span>alles: <strong id="factsDietAllCount">0</strong></li>
+                <li><span class="dot diet-veg"></span>vegetarisch: <strong id="factsDietVegCount">0</strong></li>
+                <li><span class="dot diet-vegan"></span>vegan: <strong id="factsDietVeganCount">0</strong></li>
+                <li><span class="dot diet-lf"></span>lactosefrei: <strong id="factsDietLactoseCount">0</strong></li>
+                <li><span class="dot diet-gf"></span>glutenfrei: <strong id="factsDietGlutenCount">0</strong></li>
+              </ul>
+            </div>
             <p id="factsOutro" class="facts-outro">
               Straight facts only: FR&uuml;FR&uuml; bleibt iconic, cozy und komplett community-driven.
             </p>
@@ -439,7 +458,21 @@
               <p class="event-program-copy">
                 Top-down Flow vom Event. Parallel laufende Sachen droppen als eigene Blobs in derselben Stage.
               </p>
-              <div id="programTimeline" class="program-timeline"></div>
+              <div class="program-view-switch">
+                <button class="program-view-btn active" data-program-view="v1" type="button">Version 1</button>
+                <button class="program-view-btn" data-program-view="v2" type="button">Version 2</button>
+                <button class="program-view-btn" data-program-view="v3" type="button">Version 3</button>
+              </div>
+              <div class="program-layout">
+                <div id="programTimeline" class="program-timeline program-view-v1"></div>
+                <aside id="programInspector" class="program-inspector">
+                  <p id="programInspectorTitle" class="program-inspector-title">Klick auf einen Blob</p>
+                  <p id="programInspectorMeta" class="program-inspector-meta">Titel + Kurzbeschreibung droppen hier auf.</p>
+                  <p id="programInspectorDescription" class="program-inspector-description">
+                    Waehle einen Programmpunkt aus der Timeline, um die Beschreibung zu sehen.
+                  </p>
+                </aside>
+              </div>
               <div class="event-admin-tools" data-admin-only>
                 <label for="programTitle">Programmtitel (Admin)</label>
                 <input id="programTitle" type="text" placeholder="z.B. Coffee Check-in" />
@@ -578,6 +611,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=49"></script>
+    <script src="main.js?v=50"></script>
   </body>
 </html>

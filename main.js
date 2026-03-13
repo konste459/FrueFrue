@@ -1,6 +1,24 @@
 const BASE_USERS = {
-  admin: { password: "1234", role: "admin", firstName: "Admin", lastName: "FrueFrue" },
-  gast: { password: "1234", role: "gast", firstName: "Gast", lastName: "FrueFrue" }
+  admin: {
+    password: "1234",
+    role: "admin",
+    firstName: "Admin",
+    lastName: "FrueFrue",
+    gender: "divers",
+    age: 24,
+    level: "7a",
+    diet: "alles"
+  },
+  gast: {
+    password: "1234",
+    role: "gast",
+    firstName: "Gast",
+    lastName: "FrueFrue",
+    gender: "divers",
+    age: 22,
+    level: "6a",
+    diet: "alles"
+  }
 };
 
 const USER_ADJECTIVES = [
@@ -116,6 +134,7 @@ const regPasswordInput = document.getElementById("regPassword");
 const regGenderInput = document.getElementById("regGender");
 const regAgeInput = document.getElementById("regAge");
 const regLevelInput = document.getElementById("regLevel");
+const regDietInput = document.getElementById("regDiet");
 const registerBtn = document.getElementById("registerBtn");
 const registerStatus = document.getElementById("registerStatus");
 const eventTrack = document.getElementById("eventTrack");
@@ -158,6 +177,10 @@ const programLane = document.getElementById("programLane");
 const programDescription = document.getElementById("programDescription");
 const createProgramBtn = document.getElementById("createProgramBtn");
 const programStatus = document.getElementById("programStatus");
+const programInspector = document.getElementById("programInspector");
+const programInspectorTitle = document.getElementById("programInspectorTitle");
+const programInspectorMeta = document.getElementById("programInspectorMeta");
+const programInspectorDescription = document.getElementById("programInspectorDescription");
 const eventGallery = document.getElementById("eventGallery");
 const eventDriveGuestText = document.getElementById("eventDriveGuestText");
 const eventDriveLink = document.getElementById("eventDriveLink");
@@ -194,6 +217,12 @@ const factsGenderPie = document.getElementById("factsGenderPie");
 const factsFemaleCount = document.getElementById("factsFemaleCount");
 const factsMaleCount = document.getElementById("factsMaleCount");
 const factsDiversCount = document.getElementById("factsDiversCount");
+const factsDietPie = document.getElementById("factsDietPie");
+const factsDietAllCount = document.getElementById("factsDietAllCount");
+const factsDietVegCount = document.getElementById("factsDietVegCount");
+const factsDietVeganCount = document.getElementById("factsDietVeganCount");
+const factsDietLactoseCount = document.getElementById("factsDietLactoseCount");
+const factsDietGlutenCount = document.getElementById("factsDietGlutenCount");
 const fruefrueQuote = document.getElementById("fruefrueQuote");
 const fruefrueQuoteAuthor = document.getElementById("fruefrueQuoteAuthor");
 const fruefrueAnswerForm = document.getElementById("fruefrueAnswerForm");
@@ -208,6 +237,7 @@ const spotifySongArtist = document.getElementById("spotifySongArtist");
 const spotifySongLink = document.getElementById("spotifySongLink");
 const spotifySongStatus = document.getElementById("spotifySongStatus");
 const spotifySongList = document.getElementById("spotifySongList");
+const programViewButtons = document.querySelectorAll(".program-view-btn");
 
 let activePage = "home";
 let loginRevealActive = false;
@@ -218,6 +248,7 @@ const EVENT_IMAGES_KEY = "fruefrue-event-images-v1";
 const EVENT_POLLS_KEY = "fruefrue-event-polls-v1";
 const EVENT_DRIVE_KEY = "fruefrue-event-drive-v1";
 const EVENT_PROGRAM_KEY = "fruefrue-event-program-v1";
+const PROGRAM_VIEW_KEY = "fruefrue-program-view-v1";
 const POLL_VOTES_KEY = "fruefrue-poll-votes-v1";
 const PLANNED_VOTES_KEY = "fruefrue-planned-votes-v1";
 const USERS_STORAGE_KEY = "fruefrue-users-v1";
@@ -241,6 +272,7 @@ const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 let currentUser = "";
 let currentRole = "";
 let currentFirstName = "";
+let currentProgramView = localStorage.getItem(PROGRAM_VIEW_KEY) || "v1";
 let countdownTimer = null;
 let archiveCurrentEvent = "";
 let archiveCurrentIndex = 0;
@@ -248,6 +280,7 @@ let archiveSceneIndex = 0;
 let quoteTimer = null;
 let loginContinueActive = false;
 let loginContinueNeedsWrap = false;
+let activeProgramId = "";
 
 const archiveEvents = {
   "fruefrue-1": {
@@ -1498,11 +1531,22 @@ function renderProgramTimeline(eventData) {
     return;
   }
   programTimeline.innerHTML = "";
+  if (programInspectorTitle) {
+    programInspectorTitle.textContent = "Klick auf einen Blob";
+  }
+  if (programInspectorMeta) {
+    programInspectorMeta.textContent = "Titel + Kurzbeschreibung droppen hier auf.";
+  }
+  if (programInspectorDescription) {
+    programInspectorDescription.textContent =
+      "Die drei Versionen zeigen denselben Ablauf in unterschiedlichen Tree-Layouts.";
+  }
   if (!eventData) {
     const empty = document.createElement("p");
     empty.className = "event-status";
     empty.textContent = "Sobald ein Event aktiv ist, droppt hier der Ablauf.";
     programTimeline.appendChild(empty);
+    activeProgramId = "";
     return;
   }
 
@@ -1519,22 +1563,47 @@ function renderProgramTimeline(eventData) {
     empty.className = "event-status";
     empty.textContent = "Noch kein Programm veroeffentlicht.";
     programTimeline.appendChild(empty);
+    activeProgramId = "";
     return;
   }
 
   const grouped = items.reduce((acc, item) => {
     const slotKey = item.slot || "Open Flow";
     if (!acc[slotKey]) {
-      acc[slotKey] = [];
+      acc[slotKey] = { items: [], sortOrder: item.sortOrder || 0 };
     }
-    acc[slotKey].push(item);
+    acc[slotKey].items.push(item);
+    acc[slotKey].sortOrder = Math.min(acc[slotKey].sortOrder, item.sortOrder || 0);
     return acc;
   }, {});
 
-  Object.entries(grouped).forEach(([slot, slotItems], slotIndex, entries) => {
+  const orderedSlots = Object.entries(grouped).sort((a, b) => a[1].sortOrder - b[1].sortOrder);
+  if (!activeProgramId || !items.some((item) => item.id === activeProgramId)) {
+    activeProgramId = items[0].id;
+  }
+
+  const updateInspector = (item) => {
+    activeProgramId = item.id;
+    if (programInspectorTitle) {
+      programInspectorTitle.textContent = item.title;
+    }
+    if (programInspectorMeta) {
+      programInspectorMeta.textContent = `${item.slot || "Open Flow"} · Spur ${item.lane || 1}`;
+    }
+    if (programInspectorDescription) {
+      programInspectorDescription.textContent = item.description;
+    }
+    programTimeline.querySelectorAll(".program-blob").forEach((node) => {
+      node.classList.toggle("active", node.dataset.programId === item.id);
+    });
+  };
+
+  orderedSlots.forEach(([slot, group], slotIndex) => {
+    const branch = document.createElement("section");
+    branch.className = "program-branch";
+
     const row = document.createElement("div");
     row.className = "program-row";
-
     const slotNode = document.createElement("div");
     slotNode.className = "program-slot";
     slotNode.textContent = slot;
@@ -1542,9 +1611,15 @@ function renderProgramTimeline(eventData) {
 
     const laneWrap = document.createElement("div");
     laneWrap.className = "program-lanes";
-    slotItems
+    const branchNode = document.createElement("div");
+    branchNode.className = "program-branch-node";
+
+    group.items
       .sort((a, b) => (a.lane || 1) - (b.lane || 1))
       .forEach((item) => {
+        const stack = document.createElement("div");
+        stack.className = "program-blob-stack";
+
         const blob = document.createElement("button");
         blob.type = "button";
         blob.className = "program-blob";
@@ -1553,24 +1628,11 @@ function renderProgramTimeline(eventData) {
           item.lane || 1
         }</span>`;
 
-        const detail = document.createElement("div");
-        detail.className = "program-detail hidden";
-        detail.innerHTML = `<p>${item.description}</p>`;
-
         blob.addEventListener("click", () => {
-          const isOpen = !detail.classList.contains("hidden");
-          laneWrap.querySelectorAll(".program-detail").forEach((node) => node.classList.add("hidden"));
-          laneWrap.querySelectorAll(".program-blob").forEach((node) => node.classList.remove("active"));
-          if (!isOpen) {
-            detail.classList.remove("hidden");
-            blob.classList.add("active");
-          }
+          updateInspector(item);
         });
 
-        const stack = document.createElement("div");
-        stack.className = "program-blob-stack";
         stack.appendChild(blob);
-        stack.appendChild(detail);
 
         if (currentRole === "admin") {
           const deleteBtn = document.createElement("button");
@@ -1582,16 +1644,20 @@ function renderProgramTimeline(eventData) {
           stack.appendChild(deleteBtn);
         }
 
-        laneWrap.appendChild(stack);
+        branchNode.appendChild(stack);
       });
+    laneWrap.appendChild(branchNode);
     row.appendChild(laneWrap);
+    branch.appendChild(row);
 
-    if (slotIndex < entries.length - 1) {
-      row.classList.add("with-connector");
+    if (slotIndex < orderedSlots.length - 1) {
+      branch.classList.add("with-connector");
     }
 
-    programTimeline.appendChild(row);
+    programTimeline.appendChild(branch);
   });
+
+  updateInspector(items.find((item) => item.id === activeProgramId) || items[0]);
 }
 
 function updateEventPage(nextEvent, showBoughtMessage) {
@@ -2176,7 +2242,13 @@ function renderFacts(isAnimated) {
     !factsGenderPie ||
     !factsFemaleCount ||
     !factsMaleCount ||
-    !factsDiversCount
+    !factsDiversCount ||
+    !factsDietPie ||
+    !factsDietAllCount ||
+    !factsDietVegCount ||
+    !factsDietVeganCount ||
+    !factsDietLactoseCount ||
+    !factsDietGlutenCount
   ) {
     return;
   }
@@ -2186,6 +2258,11 @@ function renderFacts(isAnimated) {
   const female = users.filter((user) => user.gender === "weiblich").length;
   const male = users.filter((user) => user.gender === "maennlich").length;
   const divers = users.filter((user) => user.gender === "divers").length;
+  const dietAll = users.filter((user) => (user.diet || "alles") === "alles").length;
+  const dietVeg = users.filter((user) => user.diet === "vegetarisch").length;
+  const dietVegan = users.filter((user) => user.diet === "vegan").length;
+  const dietLactose = users.filter((user) => user.diet === "lactosefrei").length;
+  const dietGluten = users.filter((user) => user.diet === "glutenfrei").length;
 
   const ageValues = users.map((user) => Number(user.age)).filter((value) => Number.isFinite(value) && value > 0);
   const avgAge = ageValues.length ? ageValues.reduce((sum, value) => sum + value, 0) / ageValues.length : 0;
@@ -2206,6 +2283,18 @@ function renderFacts(isAnimated) {
   factsGenderPie.style.background = `conic-gradient(#ff9fcc 0% ${femalePct}%, #7fb2ff ${femalePct}% ${
     femalePct + malePct
   }%, #ffd37f ${femalePct + malePct}% 100%)`;
+  const totalDiet = Math.max(1, dietAll + dietVeg + dietVegan + dietLactose + dietGluten);
+  const dietAllPct = (dietAll / totalDiet) * 100;
+  const dietVegPct = (dietVeg / totalDiet) * 100;
+  const dietVeganPct = (dietVegan / totalDiet) * 100;
+  const dietLactosePct = (dietLactose / totalDiet) * 100;
+  factsDietPie.style.background = `conic-gradient(#ffcf8f 0% ${dietAllPct}%, #73c98c ${dietAllPct}% ${
+    dietAllPct + dietVegPct
+  }%, #3ba96d ${dietAllPct + dietVegPct}% ${dietAllPct + dietVegPct + dietVeganPct}%, #92baff ${
+    dietAllPct + dietVegPct + dietVeganPct
+  }% ${dietAllPct + dietVegPct + dietVeganPct + dietLactosePct}%, #d796ff ${
+    dietAllPct + dietVegPct + dietVeganPct + dietLactosePct
+  }% 100%)`;
 
   if (isAnimated) {
     animateNumber(factsUserCount, count, "", 0);
@@ -2213,12 +2302,22 @@ function renderFacts(isAnimated) {
     animateNumber(factsFemaleCount, female, "", 0);
     animateNumber(factsMaleCount, male, "", 0);
     animateNumber(factsDiversCount, divers, "", 0);
+    animateNumber(factsDietAllCount, dietAll, "", 0);
+    animateNumber(factsDietVegCount, dietVeg, "", 0);
+    animateNumber(factsDietVeganCount, dietVegan, "", 0);
+    animateNumber(factsDietLactoseCount, dietLactose, "", 0);
+    animateNumber(factsDietGlutenCount, dietGluten, "", 0);
   } else {
     factsUserCount.textContent = String(count);
     factsAvgAge.textContent = avgAge ? avgAge.toFixed(1) : "0";
     factsFemaleCount.textContent = String(female);
     factsMaleCount.textContent = String(male);
     factsDiversCount.textContent = String(divers);
+    factsDietAllCount.textContent = String(dietAll);
+    factsDietVegCount.textContent = String(dietVeg);
+    factsDietVeganCount.textContent = String(dietVegan);
+    factsDietLactoseCount.textContent = String(dietLactose);
+    factsDietGlutenCount.textContent = String(dietGluten);
   }
 
   factsAgeRange.textContent = minAge && maxAge ? `${minAge} / ${maxAge}` : "- / -";
@@ -2427,6 +2526,32 @@ function mountPollCreator() {
       pollStatus.textContent = "Abstimmung erstellt.";
     }
     renderPolls();
+  });
+}
+
+function setProgramView(view) {
+  const next = ["v1", "v2", "v3"].includes(view) ? view : "v1";
+  currentProgramView = next;
+  localStorage.setItem(PROGRAM_VIEW_KEY, next);
+  if (programTimeline) {
+    programTimeline.classList.remove("program-view-v1", "program-view-v2", "program-view-v3");
+    programTimeline.classList.add(`program-view-${next}`);
+  }
+  programViewButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.programView === next);
+  });
+}
+
+function mountProgramViewSwitch() {
+  if (!programViewButtons.length) {
+    return;
+  }
+  setProgramView(currentProgramView);
+  programViewButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setProgramView(button.dataset.programView || "v1");
+      renderProgramTimeline(getActiveEventForPage());
+    });
   });
 }
 
@@ -2798,6 +2923,7 @@ function handleRegister() {
     !regGenderInput ||
     !regAgeInput ||
     !regLevelInput ||
+    !regDietInput ||
     !registerStatus
   ) {
     return;
@@ -2808,8 +2934,9 @@ function handleRegister() {
   const gender = regGenderInput.value;
   const age = Number(regAgeInput.value);
   const level = regLevelInput.value;
+  const diet = regDietInput.value;
 
-  if (!firstName || !lastName || !password || !gender || !level) {
+  if (!firstName || !lastName || !password || !gender || !level || !diet) {
     registerStatus.textContent = "Bitte alle Felder ausfuellen.";
     return;
   }
@@ -2825,6 +2952,10 @@ function handleRegister() {
     registerStatus.textContent = "Bitte einen gueltigen Klettergrad waehlen.";
     return;
   }
+  if (!["alles", "vegetarisch", "vegan", "lactosefrei", "glutenfrei"].includes(diet)) {
+    registerStatus.textContent = "Bitte eine gueltige Ernaehrung waehlen.";
+    return;
+  }
 
   const users = getAllUsers();
   const username = generateRandomUsername(users);
@@ -2836,7 +2967,8 @@ function handleRegister() {
     lastName,
     gender,
     age,
-    level
+    level,
+    diet
   };
   saveRegisteredUsers(customUsers);
 
@@ -2856,6 +2988,7 @@ function handleRegister() {
   regGenderInput.value = "weiblich";
   regAgeInput.value = "";
   regLevelInput.value = "4a";
+  regDietInput.value = "alles";
   renderFacts(false);
   renderAdminUserList();
 }
@@ -3008,6 +3141,7 @@ mountTicketPurchase();
 mountPlannedVoting();
 mountProgramCreator();
 mountProgramDeletion();
+mountProgramViewSwitch();
 mountCalendarWidget();
 mountReminderActions();
 mountFruefrueAnswerForm();
