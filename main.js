@@ -71,20 +71,20 @@ const cockogottMedia = [
 ];
 
 const fruefrue2Media = [
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0108.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0109.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0110.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0111.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0112.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0113.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0114.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0115.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0117.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0118.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0120.jpg" },
-  { type: "image", src: "./assets/events/fruefrue-2/IMG_0121.jpg" },
-  { type: "video", src: "./assets/events/fruefrue-2/IMG_0107.mp4" },
-  { type: "video", src: "./assets/events/fruefrue-2/IMG_0124.mp4" }
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/0784a84a-744a-4cd9-b4a2-9f45d97871e0.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/0b774d4c-d096-4149-bfd5-12c452508d97.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/1b65b49e-694c-405b-83d1-e9af58e385e0.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/3158cfe7-d120-446f-8c1b-8c76b63adb3a.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/6F9688C8-3C6D-4442-8398-251199777751.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/88f7ecdc-9c7d-4452-9b73-a065fa69b5cc.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/IMG_6408.jpeg" },
+  { type: "video", src: "./assets/events/fruefrue-2-desktop/IMG_6409.mp4" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/IMG_6410.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/a87634f8-3593-4a35-a304-b99c88da7240.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/c90c6be0-c114-4cab-abc5-cb5edb34b8f8.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/d267c78d-7003-498c-94d1-21b7ae831579.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/f2299564-6cc6-4060-973d-4a3fadb1655c.jpeg" },
+  { type: "image", src: "./assets/events/fruefrue-2-desktop/fc8eb039-3034-47d2-897a-c3e5c96f1b2a.jpeg" }
 ];
 
 const papaMedia = [
@@ -101,6 +101,7 @@ const papaMedia = [
 const homeFeedMedia = [...fruefrue2Media, ...papaMedia, ...cockogottMedia];
 
 const loginScreen = document.getElementById("loginScreen");
+const loginVideoShell = document.querySelector(".login-video-shell");
 const appShell = document.getElementById("appShell");
 const loginForm = document.getElementById("loginForm");
 const loginLoopVideo = document.getElementById("loginLoopVideo");
@@ -2379,6 +2380,9 @@ function resetLoginVideoState() {
   loginLoopVideo.pause();
   loginRevealVideo.pause();
   loginLoopVideo.loop = true;
+  if (loginVideoShell) {
+    loginVideoShell.classList.remove("is-switching");
+  }
   loginLoopVideo.classList.remove("hidden-video");
   loginRevealVideo.classList.add("hidden-video");
   try {
@@ -2452,9 +2456,10 @@ function startRevealSegment() {
   }
   loginContinueActive = false;
   loginContinueNeedsWrap = false;
-  loginLoopVideo.pause();
-  loginLoopVideo.classList.add("hidden-video");
   loginRevealVideo.classList.remove("hidden-video");
+  if (loginVideoShell) {
+    loginVideoShell.classList.add("is-switching");
+  }
 
   const playReveal = () => {
     try {
@@ -2465,6 +2470,10 @@ function startRevealSegment() {
     loginRevealVideo.play().catch(() => {
       finalizeLoginTransition();
     });
+    window.setTimeout(() => {
+      loginLoopVideo.pause();
+      loginLoopVideo.classList.add("hidden-video");
+    }, 180);
     const revealMs = Math.max(300, (LOGIN_REVEAL_END - LOGIN_REVEAL_START) * 1000);
     loginRevealTimeout = window.setTimeout(finalizeLoginTransition, revealMs);
   };

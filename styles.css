@@ -103,11 +103,22 @@ body.logged-in #loginScreen {
   object-position: center 44%;
   transform: scale(1.04);
   filter: saturate(0.96) contrast(1.03) brightness(0.9);
+  transition: opacity 220ms linear, visibility 220ms linear;
 }
 
 .login-video.hidden-video {
   opacity: 0;
   visibility: hidden;
+}
+
+.login-video-shell.is-switching #loginLoopVideo {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.login-video-shell.is-switching #loginRevealVideo {
+  opacity: 1;
+  visibility: visible;
 }
 
 .login-video-vignette {
