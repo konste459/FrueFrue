@@ -7,7 +7,7 @@
     <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
     <title>FrueFrue | Social Brunch</title>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=28" />
+    <link rel="stylesheet" href="styles.css?v=29" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -106,6 +106,7 @@
         <button class="menu-link active" data-route="home">Home</button>
         <button class="menu-link" data-route="archiv">Archiv</button>
         <button class="menu-link" data-route="fakten">Fakten</button>
+        <button class="menu-link" data-route="visitenkarte">Digitale Visitenkarte</button>
         <button class="menu-link" data-route="spotify">Spotify</button>
         <button class="menu-link" data-route="zarti">Zarti Pause</button>
         <button class="menu-link" data-route="event-create" data-admin-only>Event erstellen</button>
@@ -433,6 +434,34 @@
               Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.
             </p>
 
+            <div class="event-program">
+              <h4>Programm</h4>
+              <p class="event-program-copy">
+                Top-down Flow vom Event. Parallel laufende Sachen droppen als eigene Blobs in derselben Stage.
+              </p>
+              <div id="programTimeline" class="program-timeline"></div>
+              <div class="event-admin-tools" data-admin-only>
+                <label for="programTitle">Programmtitel (Admin)</label>
+                <input id="programTitle" type="text" placeholder="z.B. Coffee Check-in" />
+                <label for="programSlot">Stage / Zeitpunkt</label>
+                <input id="programSlot" type="text" placeholder="z.B. Start, Brunch Wave, Chill Round" />
+                <label for="programLane">Parallel-Spur</label>
+                <select id="programLane">
+                  <option value="1">Spur 1</option>
+                  <option value="2">Spur 2</option>
+                  <option value="3">Spur 3</option>
+                </select>
+                <label for="programDescription">Kurzbeschreibung</label>
+                <textarea
+                  id="programDescription"
+                  rows="3"
+                  placeholder="Kurzer Vibe, was bei diesem Programmpunkt passiert..."
+                ></textarea>
+                <button id="createProgramBtn" class="cta-primary" type="button">Programmpunkt erstellen</button>
+                <p id="programStatus" class="event-status" aria-live="polite"></p>
+              </div>
+            </div>
+
             <div class="event-media">
               <h4>Event Bilder</h4>
               <div id="eventGallery" class="event-gallery"></div>
@@ -485,6 +514,24 @@
             <button id="logoutBtn" class="cta-primary" type="button">Ausloggen</button>
           </div>
         </section>
+
+        <section id="page-visitenkarte" class="page">
+          <div class="placeholder-card digital-card-page">
+            <div class="digital-card">
+              <img class="digital-card-logo" src="assets/logo/fruefrue-logo.png" alt="FrueFrue Logo" />
+              <p class="digital-card-title">FRueFRue Social Brunch</p>
+              <p class="digital-card-copy">
+                Cozy Brunch, neue Leute, gute Talks und ein bisschen Main Character Sunday Energy.
+              </p>
+              <img
+                class="digital-card-qr"
+                src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=https%3A%2F%2Fkonste459.github.io%2FFrueFrue%2F"
+                alt="QR Code zur FrueFrue Website"
+              />
+              <p class="digital-card-url">konste459.github.io/FrueFrue</p>
+            </div>
+          </div>
+        </section>
       </main>
       <footer class="site-footer">
         <p>FR&uuml;FR&uuml; Social Brunch Club</p>
@@ -531,6 +578,6 @@
         });
       })();
     </script>
-    <script src="main.js?v=48"></script>
+    <script src="main.js?v=49"></script>
   </body>
 </html>
