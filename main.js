@@ -2029,6 +2029,13 @@ function mountProgramCreator() {
       programStatus.textContent = "Programmpunkt erstellt.";
     }
     renderProgramTimeline(eventData);
+    updateEventPage(eventData, false);
+    setPage("event");
+    requestAnimationFrame(() => {
+      if (programTimeline) {
+        programTimeline.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
   });
 }
 
