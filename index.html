@@ -37,7 +37,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=50" />
+    <link rel="stylesheet" href="styles.css?v=51" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -454,6 +454,14 @@
               <p id="ticketDescription" class="ticket-description">
                 Entspannter Brunch mit Community und guten Gespraechen.
               </p>
+              <div class="ticket-payment-box">
+                <p class="ticket-payment-title">Zahlungsoption</p>
+                <label class="ticket-payment-option" for="ticketPaypalMethod">
+                  <input id="ticketPaypalMethod" name="ticketPaymentMethod" type="radio" checked />
+                  <span>PayPal Freunde &amp; Familie an <strong>konstantinleonard@icloud</strong></span>
+                </label>
+                <button id="copyPaypalBtn" class="cta-secondary" type="button">PayPal Adresse kopieren</button>
+              </div>
               <button id="buyTicketBtn" class="cta-primary" type="button">Ticket holen fuer 7,00 EUR</button>
               <p id="ticketStatus" class="event-status" aria-live="polite"></p>
             </div>
@@ -682,6 +690,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=69"></script>
+    <script src="main.js?v=70"></script>
   </body>
 </html>
