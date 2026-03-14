@@ -191,6 +191,14 @@ h3 {
   margin: 0 0 4px;
   font-size: clamp(0.92rem, 1.6vmin, 1.16rem);
   text-align: center;
+  display: inline-flex;
+  align-self: center;
+  justify-content: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.64);
+  box-shadow: 0 10px 24px rgba(23, 70, 143, 0.08);
+  backdrop-filter: blur(6px);
 }
 
 .hint {
@@ -198,13 +206,25 @@ h3 {
   color: var(--muted);
   font-size: clamp(0.58rem, 1.2vmin, 0.7rem);
   text-align: center;
+  align-self: center;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: rgba(255, 252, 247, 0.58);
+  box-shadow: 0 10px 24px rgba(23, 70, 143, 0.06);
+  backdrop-filter: blur(6px);
 }
 
 .login-card label {
-  display: block;
+  display: inline-flex;
+  width: fit-content;
   margin: 5px 0 3px;
   font-weight: 700;
   font-size: 0.68rem;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.58);
+  box-shadow: 0 8px 18px rgba(23, 70, 143, 0.06);
+  backdrop-filter: blur(6px);
 }
 
 .login-card input {
@@ -247,6 +267,11 @@ h3 {
   margin: 6px 0 0;
   text-align: center;
   font-size: 0.64rem;
+  align-self: center;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: rgba(255, 247, 247, 0.56);
+  backdrop-filter: blur(6px);
 }
 
 .register-box {
@@ -263,6 +288,13 @@ h3 {
   font-weight: 800;
   color: #11458f;
   font-size: 0.7rem;
+  display: inline-flex;
+  align-self: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.58);
+  box-shadow: 0 10px 22px rgba(23, 70, 143, 0.06);
+  backdrop-filter: blur(6px);
 }
 
 .cta-secondary {
@@ -284,6 +316,11 @@ h3 {
   color: #11458f;
   text-align: center;
   font-size: 0.62rem;
+  align-self: center;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: rgba(255, 252, 247, 0.54);
+  backdrop-filter: blur(6px);
 }
 
 .app-shell {
