@@ -57,16 +57,16 @@
           initial=${{ opacity: 0, y: 16, scale: 0.95 }}
           animate=${{ opacity: 1, y: 0, scale: 1 }}
           transition=${{ duration: 0.28, ease: "easeOut" }}
-          className="relative flex justify-center pt-7"
+          className="relative flex justify-center pt-8"
         >
           ${showTopConnector
             ? html`<div
                 className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 rounded-full"
                 style=${{
-                  width: isMobile ? "4px" : "5px",
-                  height: isMobile ? "28px" : "32px",
-                  background: "linear-gradient(180deg, rgba(90,148,238,0.98), rgba(63,119,211,0.92))",
-                  boxShadow: "0 0 0 2px rgba(255,255,255,0.18)"
+                  width: isMobile ? "5px" : "6px",
+                  height: isMobile ? "34px" : "38px",
+                  background: "#4c84df",
+                  boxShadow: "none"
                 }}
               ></div>`
             : null}
@@ -137,22 +137,23 @@
             ? html`<div
                 className="mb-1 rounded-full"
                 style=${{
-                  width: isMobile ? "4px" : "5px",
-                  height: isMobile ? "20px" : "24px",
-                  background: "linear-gradient(180deg, rgba(90,148,238,0.98), rgba(63,119,211,0.92))",
-                  boxShadow: "0 0 0 2px rgba(255,255,255,0.18)"
+                  width: isMobile ? "5px" : "6px",
+                  height: isMobile ? "24px" : "28px",
+                  background: "#4c84df",
+                  boxShadow: "none"
                 }}
               ></div>`
             : null}
           <div className="relative w-full max-w-5xl pt-1">
             ${!isMobile && hasParallelNodes
               ? html`<div
-                  className="pointer-events-none absolute left-1/2 top-[18px] hidden -translate-x-1/2 rounded-full md:block"
+                  className="pointer-events-none absolute left-1/2 top-[18px] -translate-x-1/2 rounded-full"
                   style=${{
+                    display: isMobile ? "none" : "block",
                     width: "min(46vw, 23rem)",
-                    height: "4px",
-                    background: "linear-gradient(90deg, rgba(124,170,245,0.88), rgba(63,119,211,0.98), rgba(124,170,245,0.88))",
-                    boxShadow: "0 0 0 2px rgba(255,255,255,0.16)"
+                    height: "6px",
+                    background: "#4c84df",
+                    boxShadow: "none"
                   }}
                 ></div>`
               : null}
