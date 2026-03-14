@@ -1768,19 +1768,48 @@ main {
 
 .digital-card {
   width: min(100%, 420px);
-  padding: 24px;
-  border-radius: 30px;
-  background: linear-gradient(160deg, #fffaf2, #eef5ff);
-  border: 1px solid rgba(31, 111, 229, 0.14);
-  box-shadow: 0 20px 48px rgba(31, 111, 229, 0.12);
+  position: relative;
+  overflow: hidden;
+  padding: 28px 24px 24px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 28%),
+    linear-gradient(160deg, rgba(255, 250, 242, 0.98), rgba(238, 245, 255, 0.96));
+  border: 1px solid rgba(31, 111, 229, 0.16);
+  box-shadow: 0 28px 62px rgba(31, 111, 229, 0.14);
   text-align: center;
+}
+
+.digital-card-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+.digital-card-glow-a {
+  width: 154px;
+  height: 154px;
+  top: -34px;
+  right: -26px;
+  background: radial-gradient(circle, rgba(108, 174, 255, 0.34), rgba(108, 174, 255, 0));
+}
+
+.digital-card-glow-b {
+  width: 178px;
+  height: 178px;
+  bottom: -68px;
+  left: -52px;
+  background: radial-gradient(circle, rgba(246, 227, 207, 0.74), rgba(246, 227, 207, 0));
 }
 
 .digital-card-logo {
   width: min(200px, 62vw);
   display: block;
-  margin: 0 auto 8px;
+  margin: 0 auto 10px;
   mix-blend-mode: multiply;
+  position: relative;
+  z-index: 1;
 }
 
 .digital-card-title {
@@ -1788,10 +1817,25 @@ main {
   font-size: 1.2rem;
   font-weight: 900;
   color: #11458f !important;
+  position: relative;
+  z-index: 1;
+}
+
+.digital-card-subtitle {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(17, 69, 143, 0.72);
+  position: relative;
+  z-index: 1;
 }
 
 .digital-card-copy {
   margin-top: 8px !important;
+  position: relative;
+  z-index: 1;
 }
 
 .digital-card-qr {
@@ -1800,11 +1844,35 @@ main {
   margin: 18px auto 12px;
   border-radius: 18px;
   box-shadow: 0 14px 26px rgba(31, 111, 229, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+.digital-card-link-label {
+  margin: 2px 0 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: rgba(17, 69, 143, 0.82);
+  position: relative;
+  z-index: 1;
 }
 
 .digital-card-url {
+  display: inline-block;
+  max-width: 100%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(31, 111, 229, 0.12);
   font-weight: 800;
   color: #11458f !important;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+  font-size: 0.88rem;
+  position: relative;
+  z-index: 1;
 }
 
 .archive-scene {

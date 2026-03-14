@@ -37,7 +37,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=36" />
+    <link rel="stylesheet" href="styles.css?v=37" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -566,8 +566,11 @@
         <section id="page-visitenkarte" class="page">
           <div class="placeholder-card digital-card-page">
             <div class="digital-card">
+              <div class="digital-card-glow digital-card-glow-a" aria-hidden="true"></div>
+              <div class="digital-card-glow digital-card-glow-b" aria-hidden="true"></div>
               <img class="digital-card-logo" src="assets/logo/fruefrue-logo.png" alt="FrueFrue Logo" />
               <p class="digital-card-title">FRueFRue Social Brunch</p>
+              <p class="digital-card-subtitle">Digitale Visitenkarte fuer die WhatsApp Gruppe</p>
               <p class="digital-card-copy">
                 Cozy Brunch, neue Leute, gute Talks und ein bisschen Main Character Sunday Energy.
               </p>
@@ -576,7 +579,14 @@
                 src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=https%3A%2F%2Fchat.whatsapp.com%2FHXc3XLqo1SJ2wotwvfgIrx%3Fmode%3Dgi_t"
                 alt="QR Code zur FrueFrue WhatsApp Gruppe"
               />
-              <p class="digital-card-url">chat.whatsapp.com/HXc3XLqo1SJ2wotwvfgIrx</p>
+              <p class="digital-card-link-label">WhatsApp Gruppenlink</p>
+              <a
+                class="digital-card-url"
+                href="https://chat.whatsapp.com/HXc3XLqo1SJ2wotwvfgIrx?mode=gi_t"
+                target="_blank"
+                rel="noopener noreferrer"
+                >chat.whatsapp.com/HXc3XLqo1SJ2wotwvfgIrx</a
+              >
             </div>
           </div>
         </section>
