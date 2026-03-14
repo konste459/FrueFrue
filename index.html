@@ -486,33 +486,6 @@
               Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.
             </p>
 
-            <div class="event-program">
-              <h4>Programm</h4>
-              <p class="event-program-copy">
-                Tree-artige Kreisstruktur fuer dein Eventprogramm mit klaren Verbindungen und ohne alte Varianten.
-              </p>
-              <div id="programTimeline" class="program-react-shell"></div>
-              <pre id="programDebug" class="program-debug hidden"></pre>
-              <div class="event-admin-tools" data-admin-only>
-                <label for="programTitle">Programmtitel (Admin)</label>
-                <input id="programTitle" type="text" placeholder="z.B. Coffee Check-in" />
-                <label for="programLevelSelect">Ebene waehlen</label>
-                <select id="programLevelSelect">
-                  <option value="__new__">Neue Ebene</option>
-                </select>
-                <label for="programLevelName">Neue Ebene Name</label>
-                <input id="programLevelName" type="text" placeholder="z.B. Creative Break oder Dessert" />
-                <label for="programDescription">Kurzbeschreibung</label>
-                <textarea
-                  id="programDescription"
-                  rows="3"
-                  placeholder="Kurzer Vibe, was bei diesem Programmpunkt passiert..."
-                ></textarea>
-                <button id="createProgramBtn" class="cta-primary" type="button">Programmpunkt erstellen</button>
-                <p id="programStatus" class="event-status" aria-live="polite"></p>
-              </div>
-            </div>
-
             <div class="event-posts">
               <h4>Event Posts</h4>
               <p class="event-program-copy">
@@ -705,7 +678,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=65"></script>
-    <script src="program-timeline-react.js?v=14"></script>
+    <script src="main.js?v=66"></script>
   </body>
 </html>
