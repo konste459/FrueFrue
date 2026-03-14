@@ -6,6 +6,36 @@
     <meta name="theme-color" content="#0d0d0f" />
     <meta name="description" content="FrueFrue - Deine Social Brunch Community" />
     <title>FrueFrue | Social Brunch</title>
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              frue: {
+                50: "#f5f9ff",
+                100: "#eaf2ff",
+                200: "#d8e7ff",
+                300: "#b8d3ff",
+                400: "#82aff3",
+                500: "#5f97e8",
+                600: "#3f77d3",
+                700: "#295ab5",
+                800: "#1b438c",
+                900: "#132f61"
+              }
+            },
+            boxShadow: {
+              brunch: "0 24px 60px rgba(28, 69, 138, 0.16)"
+            },
+            backdropBlur: {
+              xs: "2px"
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css?v=32" />
   </head>
@@ -456,23 +486,9 @@
             <div class="event-program">
               <h4>Programm</h4>
               <p class="event-program-copy">
-                Drei komplett unterschiedliche Programm-Looks. Klick dich durch und nimm den einen, der wirklich nach FrueFrue aussieht.
+                Editorial brunch flow mit clickbaren Nodes, weichen Verbindungen und kleinen Story-Details pro Programmpunkt.
               </p>
-              <div class="program-view-switch">
-                <button class="program-view-btn active" data-program-view="v1" type="button">Editorial Rail</button>
-                <button class="program-view-btn" data-program-view="v2" type="button">Studio Map</button>
-                <button class="program-view-btn" data-program-view="v3" type="button">Poster Wall</button>
-              </div>
-              <div class="program-layout">
-                <div id="programTimeline" class="program-timeline program-view-v1"></div>
-                <aside id="programInspector" class="program-inspector">
-                  <p id="programInspectorTitle" class="program-inspector-title">Klick auf einen Blob</p>
-                  <p id="programInspectorMeta" class="program-inspector-meta">Titel + Kurzbeschreibung droppen hier auf.</p>
-                  <p id="programInspectorDescription" class="program-inspector-description">
-                    Waehle einen Programmpunkt aus der Timeline, um die Beschreibung zu sehen.
-                  </p>
-                </aside>
-              </div>
+              <div id="programTimeline" class="program-react-shell"></div>
               <div class="event-admin-tools" data-admin-only>
                 <label for="programTitle">Programmtitel (Admin)</label>
                 <input id="programTitle" type="text" placeholder="z.B. Coffee Check-in" />
@@ -613,6 +629,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=53"></script>
+    <script src="main.js?v=54"></script>
+    <script type="module" src="program-timeline-react.js?v=1"></script>
   </body>
 </html>

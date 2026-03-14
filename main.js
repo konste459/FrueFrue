@@ -1723,22 +1723,37 @@ function renderProgramTimeline(eventData) {
   if (!programTimeline) {
     return;
   }
-  programTimeline.innerHTML = "";
-  if (programInspectorTitle) {
-    programInspectorTitle.textContent = "Klick auf einen Blob";
-  }
-  if (programInspectorMeta) {
-    programInspectorMeta.textContent = "Titel + Kurzbeschreibung droppen hier auf.";
-  }
-  if (programInspectorDescription) {
-    programInspectorDescription.textContent =
-      "Jede Ansicht ist jetzt wirklich ein anderer Look und nicht nur dieselbe Timeline mit anderer Rundung.";
-  }
+
+  const getProgramIcon = (item) => {
+    const haystack = `${item.title || ""} ${item.description || ""} ${item.slot || ""}`.toLowerCase();
+    if (haystack.includes("coffee") || haystack.includes("kaffee") || haystack.includes("latte")) {
+      return "coffee";
+    }
+    if (haystack.includes("music") || haystack.includes("dj") || haystack.includes("sound")) {
+      return "music";
+    }
+    if (haystack.includes("photo") || haystack.includes("bild") || haystack.includes("shoot")) {
+      return "camera";
+    }
+    if (haystack.includes("vote") || haystack.includes("abstimm")) {
+      return "spark";
+    }
+    if (haystack.includes("brunch") || haystack.includes("food") || haystack.includes("dish")) {
+      return "plate";
+    }
+    return "sun";
+  };
+
   if (!eventData) {
-    const empty = document.createElement("p");
-    empty.className = "event-status";
-    empty.textContent = "Sobald ein Event aktiv ist, droppt hier der Ablauf.";
-    programTimeline.appendChild(empty);
+    const payload = {
+      eventId: "",
+      eventTitle: "",
+      isAdmin: currentRole === "admin",
+      items: [],
+      emptyMessage: "Sobald ein Event aktiv ist, droppt hier der Ablauf."
+    };
+    window.__FRUEFRUE_PROGRAM_DATA = payload;
+    window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
     activeProgramId = "";
     return;
   }
@@ -1752,154 +1767,37 @@ function renderProgramTimeline(eventData) {
   });
 
   if (!items.length) {
-    const empty = document.createElement("p");
-    empty.className = "event-status";
-    empty.textContent = "Noch kein Programm veroeffentlicht.";
-    programTimeline.appendChild(empty);
+    const payload = {
+      eventId,
+      eventTitle: eventData.title || "Event",
+      isAdmin: currentRole === "admin",
+      items: [],
+      emptyMessage: "Noch kein Programm veroeffentlicht."
+    };
+    window.__FRUEFRUE_PROGRAM_DATA = payload;
+    window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
     activeProgramId = "";
     return;
   }
 
-  const grouped = items.reduce((acc, item) => {
-    const slotKey = item.slot || "Open Flow";
-    if (!acc[slotKey]) {
-      acc[slotKey] = { items: [], sortOrder: item.sortOrder || 0 };
-    }
-    acc[slotKey].items.push(item);
-    acc[slotKey].sortOrder = Math.min(acc[slotKey].sortOrder, item.sortOrder || 0);
-    return acc;
-  }, {});
-
-  const orderedSlots = Object.entries(grouped).sort((a, b) => a[1].sortOrder - b[1].sortOrder);
-  if (!activeProgramId || !items.some((item) => item.id === activeProgramId)) {
-    activeProgramId = items[0].id;
-  }
-
-  const updateInspector = (item) => {
-    activeProgramId = item.id;
-    if (programInspectorTitle) {
-      programInspectorTitle.textContent = item.title;
-    }
-    if (programInspectorMeta) {
-      programInspectorMeta.textContent = `${item.slot || "Open Flow"} · Spur ${item.lane || 1}`;
-    }
-    if (programInspectorDescription) {
-      programInspectorDescription.textContent = item.description;
-    }
-    programTimeline.querySelectorAll(".program-blob").forEach((node) => {
-      node.classList.toggle("active", node.dataset.programId === item.id);
-    });
+  const payload = {
+    eventId,
+    eventTitle: eventData.title || "Event",
+    isAdmin: currentRole === "admin",
+    emptyMessage: "",
+    items: items.map((item, index) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      time: item.slot || "Open Flow",
+      lane: Number(item.lane || 1),
+      order: Number(item.sortOrder || index),
+      icon: getProgramIcon(item)
+    }))
   };
-
-  const createBlob = (item, extraClass = "") => {
-    const stack = document.createElement("div");
-    stack.className = "program-blob-stack";
-
-    const blob = document.createElement("button");
-    blob.type = "button";
-    blob.className = `program-blob ${extraClass}`.trim();
-    blob.dataset.programId = item.id;
-    blob.innerHTML = `<span class="program-blob-title">${item.title}</span><span class="program-blob-lane">${
-      item.slot || "Open Flow"
-    } · Spur ${item.lane || 1}</span>`;
-    blob.addEventListener("click", () => updateInspector(item));
-    stack.appendChild(blob);
-
-    if (currentRole === "admin") {
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.className = "program-delete-btn";
-      deleteBtn.dataset.programId = item.id;
-      deleteBtn.dataset.eventId = eventId;
-      deleteBtn.textContent = "Loeschen";
-      stack.appendChild(deleteBtn);
-    }
-
-    return stack;
-  };
-
-  if (currentProgramView === "v1") {
-    orderedSlots.forEach(([slot, group], slotIndex) => {
-      const section = document.createElement("section");
-      section.className = "program-editorial-step";
-      if (slotIndex < orderedSlots.length - 1) {
-        section.classList.add("with-connector");
-      }
-
-      const marker = document.createElement("div");
-      marker.className = "program-step-marker";
-      marker.innerHTML = `<span class="program-step-count">${String(slotIndex + 1).padStart(2, "0")}</span><span class="program-step-label">${slot}</span>`;
-      section.appendChild(marker);
-
-      const grid = document.createElement("div");
-      grid.className = "program-editorial-grid";
-      group.items
-        .sort((a, b) => (a.lane || 1) - (b.lane || 1))
-        .forEach((item, index) => {
-          grid.appendChild(createBlob(item, index % 2 === 0 ? "program-blob-editorial" : "program-blob-editorial-alt"));
-        });
-      section.appendChild(grid);
-      programTimeline.appendChild(section);
-    });
-  } else if (currentProgramView === "v2") {
-    const lanes = [1, 2, 3];
-    const metro = document.createElement("div");
-    metro.className = "program-metro-board";
-
-    lanes.forEach((lane) => {
-      const laneColumn = document.createElement("section");
-      laneColumn.className = "program-metro-lane";
-      laneColumn.innerHTML = `<div class="program-metro-head">Spur ${lane}</div>`;
-
-      orderedSlots.forEach(([slot, group]) => {
-        const laneItems = group.items.filter((item) => Number(item.lane || 1) === lane);
-        const stop = document.createElement("div");
-        stop.className = "program-metro-stop";
-        stop.innerHTML = `<div class="program-metro-slot">${slot}</div>`;
-        if (laneItems.length) {
-          laneItems.forEach((item) => {
-            stop.appendChild(createBlob(item, "program-blob-metro"));
-          });
-        } else {
-          const ghost = document.createElement("div");
-          ghost.className = "program-metro-ghost";
-          ghost.textContent = "keine Session";
-          stop.appendChild(ghost);
-        }
-        laneColumn.appendChild(stop);
-      });
-
-      metro.appendChild(laneColumn);
-    });
-
-    programTimeline.appendChild(metro);
-  } else {
-    const posterWall = document.createElement("div");
-    posterWall.className = "program-poster-wall";
-
-    orderedSlots.forEach(([slot, group], slotIndex) => {
-      const cluster = document.createElement("section");
-      cluster.className = "program-poster-cluster";
-      cluster.innerHTML = `<div class="program-poster-head"><span class="program-poster-kicker">Cluster ${String(
-        slotIndex + 1
-      ).padStart(2, "0")}</span><h5>${slot}</h5></div>`;
-
-      const body = document.createElement("div");
-      body.className = "program-poster-body";
-      group.items
-        .sort((a, b) => (a.lane || 1) - (b.lane || 1))
-        .forEach((item, index) => {
-          const styleClass = ["program-blob-poster-a", "program-blob-poster-b", "program-blob-poster-c"][index % 3];
-          body.appendChild(createBlob(item, styleClass));
-        });
-      cluster.appendChild(body);
-      posterWall.appendChild(cluster);
-    });
-
-    programTimeline.appendChild(posterWall);
-  }
-
-  updateInspector(items.find((item) => item.id === activeProgramId) || items[0]);
+  activeProgramId = payload.items[0].id;
+  window.__FRUEFRUE_PROGRAM_DATA = payload;
+  window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
 }
 
 function updateEventPage(nextEvent, showBoughtMessage) {
