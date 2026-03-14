@@ -45,7 +45,10 @@
       const onToggle = props.onToggle;
       const isAdmin = props.isAdmin;
       const eventId = props.eventId;
+      const isMobile = props.isMobile;
       const icon = ICON_MAP[node.icon] || ICON_MAP.sun;
+      const inactiveSize = isMobile ? 124 : 148;
+      const activeSize = isMobile ? 176 : 208;
 
       return html`
         <${motion.div}
@@ -62,16 +65,16 @@
             whileHover=${{ y: -3, scale: 1.02 }}
             whileTap=${{ scale: 0.985 }}
             animate=${{
-              width: active ? 240 : 182,
-              height: active ? 240 : 182,
-              paddingTop: active ? 24 : 20,
-              paddingRight: active ? 20 : 16,
-              paddingBottom: active ? 24 : 20,
-              paddingLeft: active ? 20 : 16
+              width: active ? activeSize : inactiveSize,
+              height: active ? activeSize : inactiveSize,
+              paddingTop: active ? (isMobile ? 14 : 18) : (isMobile ? 10 : 14),
+              paddingRight: active ? (isMobile ? 12 : 16) : (isMobile ? 9 : 12),
+              paddingBottom: active ? (isMobile ? 14 : 18) : (isMobile ? 10 : 14),
+              paddingLeft: active ? (isMobile ? 12 : 16) : (isMobile ? 9 : 12)
             }}
             transition=${{ duration: 0.28, ease: "easeOut" }}
             className="relative flex flex-col items-center justify-start overflow-hidden rounded-full border border-[#4c84df] bg-[#3f77d3] text-center shadow-[0_22px_46px_rgba(31,111,229,0.22)]"
-            style=${{ minWidth: "182px", minHeight: "182px" }}
+            style=${{ minWidth: inactiveSize + "px", minHeight: inactiveSize + "px" }}
           >
             <div className="absolute inset-[9%] rounded-full border border-white/18"></div>
             <div className="absolute inset-[16%] rounded-full border border-white/10"></div>
@@ -80,9 +83,9 @@
                 <span className="text-base">${icon}</span>
               </div>
               <div className="px-2">
-                <h5 className=${"font-semibold leading-tight text-white " + (active ? "text-[1.18rem]" : "text-[1rem]")}>${node.title}</h5>
+                <h5 className=${"font-semibold leading-tight text-white " + (active ? (isMobile ? "text-[0.9rem]" : "text-[1rem]") : (isMobile ? "text-[0.8rem]" : "text-[0.9rem]"))}>${node.title}</h5>
                 ${active
-                  ? html`<p className="mt-3 text-[0.92rem] leading-5 text-white">${node.description}</p>`
+                  ? html`<p className=${"mt-2 text-white " + (isMobile ? "text-[0.68rem] leading-3.5" : "text-[0.78rem] leading-4")}>${node.description}</p>`
                   : null}
               </div>
               <div className="flex min-h-[28px] items-center justify-center">
@@ -91,14 +94,14 @@
                       <button
                         type="button"
                         onClick=${function (event) { event.stopPropagation(); }}
-                        className="program-delete-btn rounded-full border border-white/22 bg-white/14 px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white"
+                        className=${"program-delete-btn rounded-full border border-white/22 bg-white/14 font-semibold uppercase tracking-[0.16em] text-white " + (isMobile ? "px-2.5 py-1 text-[0.52rem]" : "px-3 py-1.5 text-[0.6rem]")}
                         data-program-id=${node.id}
                         data-event-id=${eventId}
                         data-template-id=${node.templateId || ""}
                       >
                         Loeschen
                       </button>`
-                  : html`<span className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white">${node.time || ""}</span>`}
+                  : html`<span className=${"font-semibold uppercase tracking-[0.16em] text-white " + (isMobile ? "text-[0.48rem]" : "text-[0.56rem]")}>${node.time || ""}</span>`}
               </div>
             </div>
           <//>
@@ -113,17 +116,18 @@
       const setActiveId = props.setActiveId;
       const isAdmin = props.isAdmin;
       const eventId = props.eventId;
+      const isMobile = props.isMobile;
 
       return html`
         <div className="relative flex flex-col items-center">
           ${levelIndex > 0
-            ? html`<div className="mb-4 h-12 w-[3px] rounded-full bg-[linear-gradient(180deg,rgba(143,183,244,0.15),rgba(99,148,227,0.95))]"></div>`
+            ? html`<div className="mb-3 h-10 w-[3px] rounded-full bg-[linear-gradient(180deg,rgba(143,183,244,0.15),rgba(99,148,227,0.95))]"></div>`
             : null}
           <div className="relative w-full max-w-5xl">
-            ${level.nodes && level.nodes.length > 1
-              ? html`<div className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[3px] w-[min(62vw,34rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,rgba(148,184,243,0.24),rgba(63,119,211,0.95),rgba(148,184,243,0.24))] md:block"></div>`
+            ${!isMobile && level.nodes && level.nodes.length > 1
+              ? html`<div className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[3px] w-[min(52vw,26rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,rgba(148,184,243,0.24),rgba(63,119,211,0.95),rgba(148,184,243,0.24))] md:block"></div>`
               : null}
-            <div className="relative grid justify-center gap-6 sm:gap-8 ${level.nodes && level.nodes.length > 1 ? "md:grid-flow-col md:auto-cols-max" : ""}">
+            <div className="relative grid justify-center gap-4 sm:gap-5 ${!isMobile && level.nodes && level.nodes.length > 1 ? "md:grid-flow-col md:auto-cols-max" : ""}">
               ${(level.nodes || []).map(function (node) {
                 return html`<${TreeNode}
                   key=${node.id}
@@ -132,6 +136,7 @@
                   onToggle=${function () { setActiveId(activeId === node.id ? "" : node.id); }}
                   isAdmin=${isAdmin}
                   eventId=${eventId}
+                  isMobile=${isMobile}
                 />`;
               })}
             </div>
@@ -147,6 +152,7 @@
     function ProgramTimelineApp() {
       const [data, setData] = useState(window.__FRUEFRUE_PROGRAM_DATA || { treeLevels: [], items: [], emptyMessage: "" });
       const [activeId, setActiveId] = useState("");
+      const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth < 640 : false);
 
       useEffect(function () {
         const handler = function (event) {
@@ -166,13 +172,23 @@
         };
       }, []);
 
+      useEffect(function () {
+        const resizeHandler = function () {
+          setIsMobile(window.innerWidth < 640);
+        };
+        window.addEventListener("resize", resizeHandler);
+        return function () {
+          window.removeEventListener("resize", resizeHandler);
+        };
+      }, []);
+
       const levels = useMemo(function () {
         return data.treeLevels || [];
       }, [data.treeLevels]);
 
       return html`
         <div
-          className="relative overflow-hidden rounded-[36px] border border-frue-100/70 p-4 shadow-[0_30px_120px_rgba(39,79,151,0.14)] md:p-6"
+          className="relative overflow-hidden rounded-[32px] border border-frue-100/70 p-3 shadow-[0_24px_90px_rgba(39,79,151,0.14)] md:p-5"
           style=${{
             backgroundImage:
               "linear-gradient(180deg, rgba(255,255,255,0.82), rgba(234,244,255,0.78)), url('assets/backgrounds/trippy.png')",
@@ -183,16 +199,16 @@
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.72),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(135,188,255,0.14),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(184,216,255,0.16),transparent_26%)]"></div>
           <div className="relative">
-            <div className="mb-6 flex flex-col gap-3 border-b border-white/50 pb-5 md:flex-row md:items-end md:justify-between">
+            <div className="mb-5 flex flex-col gap-3 border-b border-white/50 pb-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <span className="inline-flex rounded-full border border-frue-100 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-frue-700">fruefrue program</span>
-                <h4 className="mt-3 text-2xl font-semibold tracking-tight text-frue-900 md:text-[2rem]">Tree Flow</h4>
-                <p className="mt-2 max-w-2xl text-sm leading-7 text-frue-800/75 md:text-[15px]">Parallele Punkte liegen auf derselben Ebene. Erst beim Klick vergroessert sich die Bubble und zeigt mehr vom Ablauf.</p>
+                <h4 className="mt-3 text-[1.45rem] font-semibold tracking-tight text-frue-900 md:text-[1.75rem]">Tree Flow</h4>
+                <p className="mt-2 max-w-xl text-[0.82rem] leading-6 text-frue-800/75 md:text-[0.92rem]">Parallele Punkte liegen auf derselben Ebene. Erst beim Klick vergroessert sich die Bubble und zeigt mehr vom Ablauf.</p>
               </div>
-              ${data.eventTitle ? html`<div className="rounded-full border border-frue-100 bg-white/70 px-4 py-2 text-sm font-medium text-frue-700 shadow-[0_14px_30px_rgba(31,111,229,0.08)]">${data.eventTitle}</div>` : null}
+              ${data.eventTitle ? html`<div className="rounded-full border border-frue-100 bg-white/70 px-4 py-2 text-[0.8rem] font-medium text-frue-700 shadow-[0_14px_30px_rgba(31,111,229,0.08)]">${data.eventTitle}</div>` : null}
             </div>
             ${levels.length
-              ? html`<div className="relative mx-auto flex max-w-6xl flex-col items-center gap-2 py-2">
+              ? html`<div className="relative mx-auto flex max-w-5xl flex-col items-center gap-1.5 py-1.5">
                   ${levels.map(function (level, index) {
                     return html`<${LevelRow}
                       key=${level.id}
@@ -202,6 +218,7 @@
                       setActiveId=${setActiveId}
                       isAdmin=${Boolean(data.isAdmin)}
                       eventId=${data.eventId}
+                      isMobile=${isMobile}
                     />`;
                   })}
                 </div>`
