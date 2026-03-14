@@ -194,29 +194,70 @@ function RibbonVariant({ activeId, onSelect }: { activeId: string; onSelect: (id
   return (
     <div className="space-y-6">
       <div className="overflow-x-auto pb-2">
-        <div className="flex min-w-max gap-5 pr-3">
+        <div className="flex min-w-max items-center gap-8 pr-6">
           {brunchProgram.map((entry, index) => (
-            <motion.div
-              key={entry.id}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.32, delay: index * 0.05 }}
-              className="relative w-[290px] shrink-0 first:ml-1"
-            >
-              {index < brunchProgram.length - 1 && (
-                <div className="absolute right-[-18px] top-1/2 z-0 h-px w-9 -translate-y-1/2 bg-gradient-to-r from-[#7da8ea] to-[#d7e6ff]" />
-              )}
-              <MagicCard
-                mode="gradient"
-                className="rounded-[30px] bg-white/80 p-[1px]"
-                gradientColor="rgba(112, 163, 237, 0.18)"
-                gradientFrom="#7bafff"
-                gradientTo="#f5d4b6"
-              >
-                <ProgramNode entry={entry} activeId={activeId} onSelect={onSelect} className="min-h-[240px] border-none bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,250,255,0.86))]" />
-              </MagicCard>
-            </motion.div>
+            (() => {
+              const Icon = iconMap[entry.icon as keyof typeof iconMap] ?? Coffee
+
+              return (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.32, delay: index * 0.05 }}
+                  className="relative w-[240px] shrink-0 first:ml-1"
+                >
+                  {index < brunchProgram.length - 1 && (
+                    <div className="absolute right-[-42px] top-1/2 z-0 h-[14px] w-[58px] -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,#d8c1a3_0%,#d9cab4_45%,#76a4ec_100%)] opacity-75 blur-[0.4px]" />
+                  )}
+                  <MagicCard
+                    mode="gradient"
+                    className="rounded-full bg-transparent p-[1px]"
+                    gradientColor="rgba(135, 176, 236, 0.14)"
+                    gradientFrom="#88afe8"
+                    gradientTo="#ead0b1"
+                  >
+                    <motion.button
+                      type="button"
+                      onClick={() => onSelect(entry.id)}
+                      whileHover={{ y: -5, scale: 1.02 }}
+                      whileTap={{ scale: 0.985 }}
+                      className={cn(
+                        "relative flex aspect-square w-full flex-col justify-between overflow-hidden rounded-full border p-6 text-left shadow-[0_20px_60px_rgba(117,88,53,0.14)] transition-all duration-300",
+                        activeId === entry.id
+                          ? "border-[#6f9fe5] bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.95),rgba(244,233,217,0.96)_48%,rgba(233,243,255,0.95)_100%)] shadow-[0_26px_76px_rgba(77,113,184,0.18)]"
+                          : "border-[#dbcab8] bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.94),rgba(244,233,217,0.94)_54%,rgba(236,229,219,0.96)_100%)]"
+                      )}
+                    >
+                      <div className="absolute inset-[8%] rounded-full border border-white/60" />
+                      <div className="absolute inset-[14%] rounded-full border border-[#eadbc9]/90" />
+                      <div className="relative z-10 flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.28em] text-[#9d815f]">{entry.timeLabel}</p>
+                          <h3 className="mt-3 max-w-[11rem] text-xl font-semibold leading-tight text-[#25509c]">{entry.title}</h3>
+                        </div>
+                        <span className="rounded-full bg-white/70 p-2 text-[#3a72c6] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                          <Icon className="size-4" />
+                        </span>
+                      </div>
+                      <div className="relative z-10 space-y-4">
+                        <p className="line-clamp-4 text-sm leading-6 text-[#6a625c]">{entry.description}</p>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="inline-flex items-center gap-2 text-xs font-medium text-[#8b7458]">
+                            <MapPin className="size-3.5 text-[#6c98da]" />
+                            {entry.stage}
+                          </span>
+                          <Badge className="border-[#d9c9b6] bg-white/62 text-[#5d8bd3]" variant="outline">
+                            {entry.cluster}
+                          </Badge>
+                        </div>
+                      </div>
+                    </motion.button>
+                  </MagicCard>
+                </motion.div>
+              )
+            })()
           ))}
         </div>
       </div>
