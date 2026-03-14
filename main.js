@@ -1806,15 +1806,14 @@ function buildBaseProgramTree(eventData, eventId) {
     {
       id: `${eventId}-level-start`,
       label: "Start",
+      order: 0,
       nodes: [
         {
           id: `${eventId}-base-start`,
           templateId: "base-start",
           title: "Start",
           description: `Start um ${startTime}.`,
-          icon: "spark",
           deletable: true,
-          slot: "Start",
           isTemplate: true
         }
       ]
@@ -1822,15 +1821,14 @@ function buildBaseProgramTree(eventData, eventId) {
     {
       id: `${eventId}-level-arrival`,
       label: "Arrival",
+      order: 1,
       nodes: [
         {
           id: `${eventId}-base-secco`,
           templateId: "base-secco",
           title: "Secco",
           description: "Erster Drink, kurzes Ankommen und locker reinstarten.",
-          icon: "spark",
           deletable: true,
-          slot: "Arrival",
           isTemplate: true
         },
         {
@@ -1838,9 +1836,7 @@ function buildBaseProgramTree(eventData, eventId) {
           templateId: "base-arrive",
           title: "Arrive at your pace",
           description: "Drop rein, finde deinen Spot und komm entspannt in den Vibe.",
-          icon: "sun",
           deletable: true,
-          slot: "Arrival",
           isTemplate: true
         }
       ]
@@ -1848,15 +1844,14 @@ function buildBaseProgramTree(eventData, eventId) {
     {
       id: `${eventId}-level-brunch`,
       label: "Brunch",
+      order: 2,
       nodes: [
         {
           id: `${eventId}-base-brunch`,
           templateId: "base-brunch",
           title: "Brunch",
           description: "Food, Talks und cozy Sunday Energy am Tisch.",
-          icon: "plate",
           deletable: true,
-          slot: "Brunch",
           isTemplate: true
         },
         {
@@ -1864,9 +1859,7 @@ function buildBaseProgramTree(eventData, eventId) {
           templateId: "base-print",
           title: "Siebdrucken",
           description: "Parallel kreativ werden, Motive testen und gemeinsam was machen.",
-          icon: "camera",
           deletable: true,
-          slot: "Brunch",
           isTemplate: true
         }
       ]
@@ -1874,15 +1867,14 @@ function buildBaseProgramTree(eventData, eventId) {
     {
       id: `${eventId}-level-open-end`,
       label: "Open End",
+      order: 3,
       nodes: [
         {
           id: `${eventId}-base-open-end`,
           templateId: "base-open-end",
           title: "Open End",
           description: "Leave at your pace.",
-          icon: "music",
           deletable: true,
-          slot: "Open End",
           isTemplate: true
         }
       ]
@@ -1890,24 +1882,11 @@ function buildBaseProgramTree(eventData, eventId) {
   ];
 }
 
-function getProgramIcon(item) {
-  const haystack = `${item.title || ""} ${item.description || ""} ${item.slot || ""}`.toLowerCase();
-  if (haystack.includes("coffee") || haystack.includes("kaffee") || haystack.includes("latte")) {
-    return "coffee";
-  }
-  if (haystack.includes("music") || haystack.includes("dj") || haystack.includes("sound")) {
-    return "music";
-  }
-  if (haystack.includes("photo") || haystack.includes("bild") || haystack.includes("shoot")) {
-    return "camera";
-  }
-  if (haystack.includes("vote") || haystack.includes("abstimm")) {
-    return "spark";
-  }
-  if (haystack.includes("brunch") || haystack.includes("food") || haystack.includes("dish")) {
-    return "plate";
-  }
-  return "sun";
+function normalizeProgramLevelName(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
 }
 
 function getVisibleBaseProgramTree(eventData, eventId) {
@@ -1918,47 +1897,57 @@ function getVisibleBaseProgramTree(eventData, eventId) {
     .map((level) => ({
       id: level.id,
       label: level.label,
+      order: level.order,
       nodes: (level.nodes || []).filter((node) => !deletedTemplateIds.includes(node.templateId))
     }))
     .filter((level) => level.nodes.length);
 }
 
 function mergeCustomProgramTree(baseLevels, items) {
+  const mergedLevels = (baseLevels || []).map((level, index) => ({
+    ...level,
+    order: typeof level.order === "number" ? level.order : index,
+    nodes: [...(level.nodes || [])]
+  }));
+
   if (!Array.isArray(items) || !items.length) {
-    return baseLevels;
+    return mergedLevels;
   }
 
-  const customLevels = items.reduce((acc, item, index) => {
+  items.forEach((item, index) => {
     const slot = (item.slot || "Open Flow").trim() || "Open Flow";
-    const key = slot.toLowerCase();
-    if (!acc[key]) {
-      acc[key] = {
-        id: `custom-level-${index}-${key.replace(/[^a-z0-9]+/g, "-")}`,
+    const key = normalizeProgramLevelName(slot);
+    let targetLevel = mergedLevels.find((level) => normalizeProgramLevelName(level.label) === key);
+
+    if (!targetLevel) {
+      targetLevel = {
+        id: item.levelId || `custom-level-${index}-${key.replace(/[^a-z0-9]+/g, "-")}`,
         label: slot,
+        order:
+          typeof item.levelOrder === "number"
+            ? item.levelOrder
+            : mergedLevels.length,
         nodes: []
       };
+      mergedLevels.push(targetLevel);
     }
-    acc[key].nodes.push({
+
+    targetLevel.nodes.push({
       id: item.id,
       title: item.title,
       description: item.description,
-      icon: getProgramIcon(item),
       deletable: true,
-      order: Number(item.sortOrder || index),
-      time: slot
+      order: typeof item.sortOrder === "number" ? item.sortOrder : index
     });
-    return acc;
-  }, {});
+  });
 
-  return baseLevels.concat(
-    Object.values(customLevels).map((level) => ({
-      id: level.id,
-      label: level.label,
-      nodes: level.nodes.sort((a, b) => {
-        return (a.order || 0) - (b.order || 0);
-      })
+  return mergedLevels
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+    .map((level) => ({
+      ...level,
+      nodes: (level.nodes || []).sort((a, b) => (a.order || 0) - (b.order || 0))
     }))
-  );
+    .filter((level) => (level.nodes || []).length);
 }
 
 function flattenTreeLevels(levels) {
@@ -1988,7 +1977,6 @@ function renderProgramTimeline(eventData) {
           <section class="content-block" style="margin-top:${levelIndex === 0 ? 0 : 12}px;">
             <div style="display:flex;justify-content:center;margin-bottom:14px;">
               ${levelIndex > 0 ? '<div style="position:absolute;transform:translateY(-34px);width:2px;height:34px;background:#9abcf6;border-radius:999px;"></div>' : ""}
-              <p class="facts-label" style="margin-bottom:0;">${level.label}</p>
             </div>
             <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:18px;">
               ${(level.nodes || [])
@@ -2000,7 +1988,7 @@ function renderProgramTimeline(eventData) {
                       </div>
                       <p style="margin:12px 0 0;font-size:.92rem;line-height:1.45;color:rgba(255,255,255,.9);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;">${item.description}</p>
                       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                        <span style="font-size:.76rem;font-weight:800;color:rgba(255,255,255,.92);">${item.base ? "Base Node" : item.time || "Custom"}</span>
+                        <span></span>
                         ${
                           item.deletable
                             ? `<button type="button" class="program-delete-btn" data-program-id="${item.id}" data-event-id="${payload.eventId}" style="border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;">Loeschen</button>`
@@ -2050,7 +2038,7 @@ function renderProgramTimeline(eventData) {
     treeLevels,
     items: flattenTreeLevels(treeLevels)
   };
-  activeProgramId = payload.items[0].id;
+  activeProgramId = payload.items[0] ? payload.items[0].id : "";
   if (shouldUseFallbackTimeline) {
     renderFallbackTimeline(payload);
   }
@@ -2063,11 +2051,9 @@ function getProgramLevelOptions(eventData) {
     return [];
   }
   const eventId = getEventId(eventData);
-  const baseLevels = getVisibleBaseProgramTree(eventData, eventId).map((level) => level.label);
-  const customLevels = getProgramItemsForEvent(eventId)
-    .map((item) => (item.slot || "").trim())
-    .filter(Boolean);
-  return Array.from(new Set(baseLevels.concat(customLevels)));
+  return mergeCustomProgramTree(getVisibleBaseProgramTree(eventData, eventId), getProgramItemsForEvent(eventId)).map(
+    (level) => level.label
+  );
 }
 
 function updateProgramLevelControls(eventData) {
@@ -2310,11 +2296,19 @@ function mountProgramCreator() {
     const eventId = getEventId(eventData);
     const allPrograms = getStoredPrograms();
     const items = Array.isArray(allPrograms[eventId]) ? allPrograms[eventId] : [];
+    const existingLevels = mergeCustomProgramTree(getVisibleBaseProgramTree(eventData, eventId), items);
+    const normalizedSlot = normalizeProgramLevelName(slot);
+    const matchedLevel = existingLevels.find((level) => normalizeProgramLevelName(level.label) === normalizedSlot);
+    const levelOrder =
+      matchedLevel && typeof matchedLevel.order === "number"
+        ? matchedLevel.order
+        : existingLevels.length;
     items.push({
       id: `prg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       title,
-      slot,
+      slot: matchedLevel ? matchedLevel.label : slot,
       description,
+      levelOrder,
       sortOrder: items.length,
       createdBy: currentUser || "admin"
     });
