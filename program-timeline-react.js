@@ -49,6 +49,7 @@
       const icon = ICON_MAP[node.icon] || ICON_MAP.sun;
       const inactiveSize = isMobile ? 124 : 148;
       const activeSize = isMobile ? 176 : 208;
+      const showTopConnector = props.showTopConnector;
 
       return html`
         <${motion.div}
@@ -56,8 +57,19 @@
           initial=${{ opacity: 0, y: 16, scale: 0.95 }}
           animate=${{ opacity: 1, y: 0, scale: 1 }}
           transition=${{ duration: 0.28, ease: "easeOut" }}
-          className="flex justify-center"
+          className="relative flex justify-center pt-7"
         >
+          ${showTopConnector
+            ? html`<div
+                className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 rounded-full"
+                style=${{
+                  width: isMobile ? "4px" : "5px",
+                  height: isMobile ? "28px" : "32px",
+                  background: "linear-gradient(180deg, rgba(90,148,238,0.98), rgba(63,119,211,0.92))",
+                  boxShadow: "0 0 0 2px rgba(255,255,255,0.18)"
+                }}
+              ></div>`
+            : null}
           <${motion.button}
             layout
             type="button"
@@ -117,17 +129,34 @@
       const isAdmin = props.isAdmin;
       const eventId = props.eventId;
       const isMobile = props.isMobile;
+      const hasParallelNodes = level.nodes && level.nodes.length > 1;
 
       return html`
         <div className="relative flex flex-col items-center">
           ${levelIndex > 0
-            ? html`<div className="mb-3 h-10 w-[3px] rounded-full bg-[linear-gradient(180deg,rgba(143,183,244,0.15),rgba(99,148,227,0.95))]"></div>`
+            ? html`<div
+                className="mb-1 rounded-full"
+                style=${{
+                  width: isMobile ? "4px" : "5px",
+                  height: isMobile ? "26px" : "32px",
+                  background: "linear-gradient(180deg, rgba(90,148,238,0.98), rgba(63,119,211,0.92))",
+                  boxShadow: "0 0 0 2px rgba(255,255,255,0.18)"
+                }}
+              ></div>`
             : null}
-          <div className="relative w-full max-w-5xl">
-            ${!isMobile && level.nodes && level.nodes.length > 1
-              ? html`<div className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[3px] w-[min(52vw,26rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,rgba(148,184,243,0.24),rgba(63,119,211,0.95),rgba(148,184,243,0.24))] md:block"></div>`
+          <div className="relative w-full max-w-5xl pt-1">
+            ${!isMobile && hasParallelNodes
+              ? html`<div
+                  className="pointer-events-none absolute left-1/2 top-[18px] hidden -translate-x-1/2 rounded-full md:block"
+                  style=${{
+                    width: "min(54vw, 28rem)",
+                    height: "5px",
+                    background: "linear-gradient(90deg, rgba(124,170,245,0.88), rgba(63,119,211,0.98), rgba(124,170,245,0.88))",
+                    boxShadow: "0 0 0 2px rgba(255,255,255,0.16)"
+                  }}
+                ></div>`
               : null}
-            <div className="relative grid justify-center gap-4 sm:gap-5 ${!isMobile && level.nodes && level.nodes.length > 1 ? "md:grid-flow-col md:auto-cols-max" : ""}">
+            <div className="relative grid justify-center gap-4 sm:gap-5 ${!isMobile && hasParallelNodes ? "md:grid-flow-col md:auto-cols-max" : ""}">
               ${(level.nodes || []).map(function (node) {
                 return html`<${TreeNode}
                   key=${node.id}
@@ -137,6 +166,7 @@
                   isAdmin=${isAdmin}
                   eventId=${eventId}
                   isMobile=${isMobile}
+                  showTopConnector=${levelIndex > 0}
                 />`;
               })}
             </div>
@@ -202,8 +232,6 @@
             <div className="mb-5 flex flex-col gap-3 border-b border-white/50 pb-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <span className="inline-flex rounded-full border border-frue-100 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-frue-700">fruefrue program</span>
-                <h4 className="mt-3 text-[1.45rem] font-semibold tracking-tight text-frue-900 md:text-[1.75rem]">Tree Flow</h4>
-                <p className="mt-2 max-w-xl text-[0.82rem] leading-6 text-frue-800/75 md:text-[0.92rem]">Parallele Punkte liegen auf derselben Ebene. Erst beim Klick vergroessert sich die Bubble und zeigt mehr vom Ablauf.</p>
               </div>
               ${data.eventTitle ? html`<div className="rounded-full border border-frue-100 bg-white/70 px-4 py-2 text-[0.8rem] font-medium text-frue-700 shadow-[0_14px_30px_rgba(31,111,229,0.08)]">${data.eventTitle}</div>` : null}
             </div>
