@@ -1379,6 +1379,10 @@ main {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.poll-option-grid-single {
+  grid-template-columns: minmax(220px, 420px);
+}
+
 .poll-option-card {
   border-radius: 18px;
   padding: 12px;

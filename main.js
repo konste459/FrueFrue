@@ -204,6 +204,7 @@ const eventPostStatus = document.getElementById("eventPostStatus");
 const pollList = document.getElementById("pollList");
 const pollQuestion = document.getElementById("pollQuestion");
 const pollType = document.getElementById("pollType");
+const pollOptionsLabel = document.getElementById("pollOptionsLabel");
 const pollOptions = document.getElementById("pollOptions");
 const createPollBtn = document.getElementById("createPollBtn");
 const pollStatus = document.getElementById("pollStatus");
@@ -1801,7 +1802,7 @@ function renderPolls() {
     card.appendChild(question);
 
     const optionsWrap = document.createElement("div");
-    optionsWrap.className = "poll-option-grid";
+    optionsWrap.className = type === "yesno" ? "poll-option-grid poll-option-grid-single" : "poll-option-grid";
 
     poll.options.forEach((option) => {
       const optionKey = option.id;
@@ -1876,7 +1877,7 @@ function renderPolls() {
         optionCard.appendChild(saveBtn);
       }
 
-      if (type === "choice" && currentRole !== "admin") {
+      if ((type === "choice" || type === "yesno") && currentRole !== "admin") {
         const choiceWrap = document.createElement("div");
         choiceWrap.className = "poll-choice-actions";
         const yesBtn = document.createElement("button");
@@ -1922,7 +1923,7 @@ function renderPolls() {
           } else {
             targetOption.noVotes += 1;
           }
-          pollState[optionKey] = { type: "choice", choice };
+          pollState[optionKey] = { type, choice };
           voteState[poll.id] = pollState;
           saveStoredPolls(allPolls);
           saveUserVoteState(voteState);
@@ -1940,7 +1941,7 @@ function renderPolls() {
       resultRow.className = "poll-result-row";
       const pie = document.createElement("div");
       pie.className = "poll-pie";
-      if (type === "choice") {
+      if (type === "choice" || type === "yesno") {
         const totalChoiceVotes = option.yesVotes + option.noVotes;
         const yesPct = totalChoiceVotes > 0 ? (option.yesVotes / totalChoiceVotes) * 100 : 50;
         pie.style.background = `conic-gradient(#1f6fe5 0 ${yesPct}%, #ffd8d8 ${yesPct}% 100%)`;
@@ -1955,7 +1956,7 @@ function renderPolls() {
 
       const statWrap = document.createElement("div");
       statWrap.className = "poll-option-stats";
-      if (type === "choice") {
+      if (type === "choice" || type === "yesno") {
         statWrap.innerHTML = `<p>Ja: <strong>${option.yesVotes}</strong></p><p>Nein: <strong>${option.noVotes}</strong></p><p>Teilnahmen: <strong>${option.votes}</strong></p>`;
       } else {
         const tasteAvg = option.votes > 0 ? (option.tasteTotal / option.votes).toFixed(1) : "-";
@@ -3341,6 +3342,26 @@ function mountPollCreator() {
     return;
   }
 
+  const syncPollCreatorUi = () => {
+    const type = pollType.value;
+    const needsOptions = type !== "yesno";
+    if (pollOptionsLabel) {
+      pollOptionsLabel.textContent =
+        type === "choice" ? "Optionen (Komma getrennt)" : "Gerichte (Komma getrennt)";
+    }
+    pollOptions.disabled = !needsOptions;
+    pollOptions.placeholder =
+      type === "choice"
+        ? "z.B. Ja zur Playlist, Mottoparty, Outdoor Brunch"
+        : "z.B. Pancakes, Avocado Toast, Eggs Benedict";
+    if (!needsOptions) {
+      pollOptions.value = "";
+    }
+  };
+
+  pollType.addEventListener("change", syncPollCreatorUi);
+  syncPollCreatorUi();
+
   createPollBtn.addEventListener("click", () => {
     if (currentRole !== "admin") {
       if (pollStatus) {
@@ -3349,15 +3370,18 @@ function mountPollCreator() {
       return;
     }
     const question = pollQuestion.value.trim();
-    const type = pollType.value === "choice" ? "choice" : "rating";
+    const type = ["choice", "yesno"].includes(pollType.value) ? pollType.value : "rating";
     const options = pollOptions.value
       .split(",")
       .map((option) => option.trim())
       .filter(Boolean);
 
-    if (!question || options.length < 2) {
+    if (!question || ((type === "rating" || type === "choice") && options.length < 2)) {
       if (pollStatus) {
-        pollStatus.textContent = "Bitte Frage und mindestens 2 Optionen angeben.";
+        pollStatus.textContent =
+          type === "yesno"
+            ? "Bitte eine Frage fuer die Ja/Nein Abstimmung angeben."
+            : "Bitte Frage und mindestens 2 Optionen angeben.";
       }
       return;
     }
@@ -3367,7 +3391,7 @@ function mountPollCreator() {
       id: `${Date.now()}`,
       type,
       question,
-      options: options.map((label, index) => ({
+      options: (type === "yesno" ? ["Antwort"] : options).map((label, index) => ({
         id: `opt-${Date.now()}-${index}`,
         label,
         votes: 0,
@@ -3382,6 +3406,7 @@ function mountPollCreator() {
     pollQuestion.value = "";
     pollOptions.value = "";
     pollType.value = "rating";
+    syncPollCreatorUi();
     if (pollStatus) {
       pollStatus.textContent = "Abstimmung erstellt.";
     }
