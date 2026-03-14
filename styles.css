@@ -2083,32 +2083,32 @@ main {
 
 .archive-plate-single {
   left: 50%;
-  top: 48.4%;
+  top: 46.9%;
 }
 
 .archive-play {
   position: absolute;
   inset: 17%;
   border: 0;
-  border-radius: 50%;
+  border-radius: 0;
   display: grid;
   place-content: center;
   gap: 8px;
   padding: 14px;
-  background: rgba(37, 87, 176, 0.2);
+  background: transparent;
   color: #fff;
   font-weight: 800;
   cursor: pointer;
   box-shadow: none;
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, opacity 180ms ease;
-  opacity: 0.92;
+  opacity: 1;
 }
 
 .archive-play:hover,
 .archive-play:focus-visible {
   transform: scale(1.04);
   box-shadow: none;
-  background: rgba(37, 87, 176, 0.34);
+  background: transparent;
   opacity: 1;
 }
 
@@ -2239,6 +2239,10 @@ main {
   .archive-plate {
     width: clamp(108px, 30vw, 138px);
     height: clamp(108px, 30vw, 138px);
+  }
+
+  .archive-plate-single {
+    top: 45.6%;
   }
 
   .archive-play {
