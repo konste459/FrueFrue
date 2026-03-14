@@ -1,0 +1,42 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tableTop" x1="800" y1="70" x2="800" y2="720" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FDFCF8"/>
+      <stop offset="0.42" stop-color="#F7F1E8"/>
+      <stop offset="1" stop-color="#E9DCCC"/>
+    </linearGradient>
+    <linearGradient id="tableEdge" x1="800" y1="720" x2="800" y2="842" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2A76DE"/>
+      <stop offset="1" stop-color="#0D4EA8"/>
+    </linearGradient>
+    <radialGradient id="glowLeft" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(360 270) rotate(90) scale(280 360)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowRight" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1240 260) rotate(90) scale(280 360)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="80" y="40" width="1440" height="860" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="30" stdDeviation="32" flood-color="#4872B1" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <path d="M180 170C180 114.772 224.772 70 280 70H1320C1375.23 70 1420 114.772 1420 170V692C1420 747.228 1375.23 792 1320 792H280C224.772 792 180 747.228 180 692V170Z" fill="url(#tableTop)"/>
+    <rect x="180" y="720" width="1240" height="122" rx="38" fill="url(#tableEdge)"/>
+    <path d="M180 692H1420V720H180V692Z" fill="#1F64C6" fill-opacity="0.92"/>
+  </g>
+
+  <path d="M274 178H1326" stroke="#2A76DE" stroke-opacity="0.18" stroke-width="8" stroke-linecap="round"/>
+  <path d="M256 264C356 220 532 202 800 202C1068 202 1244 220 1344 264" stroke="#2A76DE" stroke-opacity="0.1" stroke-width="7" stroke-linecap="round"/>
+  <path d="M260 640C384 674 564 692 800 692C1036 692 1216 674 1340 640" stroke="#2A76DE" stroke-opacity="0.12" stroke-width="8" stroke-linecap="round"/>
+
+  <ellipse cx="800" cy="388" rx="458" ry="232" fill="#FFFFFF" fill-opacity="0.32"/>
+  <ellipse cx="800" cy="392" rx="420" ry="205" fill="#FFFFFF" fill-opacity="0.14"/>
+  <ellipse cx="382" cy="290" rx="220" ry="170" fill="url(#glowLeft)"/>
+  <ellipse cx="1218" cy="286" rx="220" ry="170" fill="url(#glowRight)"/>
+
+  <path d="M434 250C534 224 656 210 800 210C944 210 1066 224 1166 250" stroke="#2A76DE" stroke-opacity="0.11" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 18"/>
+  <path d="M456 604C568 632 682 646 800 646C918 646 1032 632 1144 604" stroke="#2A76DE" stroke-opacity="0.08" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 18"/>
+</svg>

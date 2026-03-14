@@ -1,0 +1,34 @@
+<svg width="680" height="520" viewBox="0 0 680 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="plateShadow" x="84" y="48" width="512" height="424" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#0F4EA8" flood-opacity="0.18"/>
+    </filter>
+    <radialGradient id="plateRim" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(340 232) rotate(90) scale(178 188)">
+      <stop stop-color="#FFFDF9"/>
+      <stop offset="0.72" stop-color="#F4EEE6"/>
+      <stop offset="1" stop-color="#E0D6CA"/>
+    </radialGradient>
+    <radialGradient id="plateInner" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(340 228) rotate(90) scale(126 132)">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F6F2EC"/>
+    </radialGradient>
+    <linearGradient id="cutlery" x1="340" y1="72" x2="340" y2="438" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2A76DE"/>
+      <stop offset="1" stop-color="#0E4FA9"/>
+    </linearGradient>
+  </defs>
+
+  <g opacity="0.98">
+    <path d="M114 96C133 74 166 68 191 82C208 92 217 110 217 130V384C217 413 193 437 164 437C135 437 111 413 111 384V230H90C72 230 58 216 58 198C58 180 72 166 90 166H111V130C111 117 115 105 122 96H114Z" fill="url(#cutlery)"/>
+    <path d="M176 86C194 86 208 100 208 118V189H144V118C144 100 158 86 176 86Z" fill="#77AFFF" fill-opacity="0.35"/>
+    <rect x="462" y="80" width="60" height="360" rx="30" fill="url(#cutlery)"/>
+    <path d="M430 86C470 58 525 64 558 100C591 136 593 192 562 230L522 278V120C522 101 513 89 496 84C476 77 451 78 430 86Z" fill="url(#cutlery)"/>
+  </g>
+
+  <g filter="url(#plateShadow)">
+    <ellipse cx="340" cy="250" rx="184" ry="150" fill="url(#plateRim)"/>
+    <ellipse cx="340" cy="250" rx="132" ry="108" fill="url(#plateInner)"/>
+    <ellipse cx="340" cy="246" rx="156" ry="128" stroke="#FFFFFF" stroke-opacity="0.68" stroke-width="10"/>
+    <ellipse cx="340" cy="250" rx="98" ry="80" stroke="#2A76DE" stroke-opacity="0.1" stroke-width="4" stroke-dasharray="8 16"/>
+  </g>
+</svg>
