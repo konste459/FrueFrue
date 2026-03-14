@@ -2207,14 +2207,43 @@ main {
 }
 
 .impressum-section {
-  max-width: 960px;
-  margin: 28px auto 0;
-  padding: 0 16px;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: none;
+  place-items: center;
+  padding: 24px 16px;
+  background: rgba(10, 33, 74, 0.38);
+  backdrop-filter: blur(12px);
   scroll-margin-top: 110px;
 }
 
+.impressum-section:target {
+  display: grid;
+}
+
 .impressum-card {
+  width: min(100%, 960px);
+  max-height: min(82vh, 860px);
+  overflow: auto;
+  position: relative;
   padding: 22px 22px 24px;
+}
+
+.impressum-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  margin-left: auto;
+  margin-bottom: 8px;
+  border: 1px solid rgba(72, 127, 206, 0.18);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #11458f;
+  text-decoration: none;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(31, 111, 229, 0.1);
 }
 
 .impressum-copy {
