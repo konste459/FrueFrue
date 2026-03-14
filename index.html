@@ -37,7 +37,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=52" />
+    <link rel="stylesheet" href="styles.css?v=53" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -149,7 +149,7 @@
         <button class="menu-link" data-route="spotify">Spotify</button>
         <button class="menu-link" data-route="zarti">Zarti Pause</button>
         <button class="menu-link" data-route="event-create" data-admin-only>Event erstellen</button>
-        <button class="menu-link" data-route="event" data-ticket-only>Event</button>
+        <button class="menu-link" data-route="event">Event</button>
       </nav>
 
       <main>
@@ -158,7 +158,7 @@
             Termin steht fest fuer das Event.
           </button>
           <button id="ticketReminder" class="ticket-reminder hidden" type="button">
-            <span id="ticketReminderText">Du hast ein Ticket.</span>
+            <span id="ticketReminderText">Naechstes Event.</span>
             <span id="ticketCountdown">Countdown: --:--:--</span>
           </button>
 
@@ -206,7 +206,7 @@
               <span id="calMonth" class="cal-month">MAERZ</span>
               <span id="calDay" class="cal-day">02</span>
               <span id="calTitle" class="cal-title">Sunday Brunch Circle</span>
-              <span id="calMeta" class="cal-meta">02.03. · 11:00 · Tippen fuer Ticket</span>
+              <span id="calMeta" class="cal-meta">02.03. · 11:00 · Tippen fuer Event</span>
             </button>
           </section>
         </section>
@@ -700,6 +700,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=72"></script>
+    <script src="main.js?v=73"></script>
   </body>
 </html>

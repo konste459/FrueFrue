@@ -1092,9 +1092,9 @@ function updateTicketReminder() {
     return;
   }
   const next = getNextEvent();
-  const hasTicket = hasTicketForEvent(next);
-  setTicketVisibility(hasTicket);
-  if (!next || !hasTicket) {
+  const showReminder = Boolean(next && next.type !== "planned");
+  setTicketVisibility(showReminder);
+  if (!showReminder) {
     ticketReminder.classList.add("hidden");
     if (countdownTimer) {
       clearInterval(countdownTimer);
@@ -1104,7 +1104,7 @@ function updateTicketReminder() {
   }
 
   ticketReminder.classList.remove("hidden");
-  ticketReminderText.textContent = `Du hast ein Ticket fuer ${next.title}.`;
+  ticketReminderText.textContent = `Naechstes Event: ${next.title}.`;
   const target = new Date(`${next.date}T${next.time}`).getTime();
 
   const tick = () => {
@@ -1183,7 +1183,7 @@ function updateCalendarCard() {
   calMonth.textContent = month;
   calDay.textContent = day;
   calTitle.textContent = next.title;
-  calMeta.textContent = `${dateLabel} · ${time} · Tippen fuer Ticket`;
+  calMeta.textContent = `${dateLabel} · ${time} · Tippen fuer Event`;
   updateTicketView(next);
   updateEventPage(next, false);
   updateTicketReminder();
@@ -2717,11 +2717,14 @@ function mountCalendarWidget() {
   }
   calendarWidget.addEventListener("click", () => {
     const next = getNextEvent();
-    if (hasTicketForEvent(next)) {
-      setPage("event");
+    if (!next) {
       return;
     }
-    setPage("ticket");
+    if (next.type === "planned") {
+      setPage("ticket");
+      return;
+    }
+    setPage("event");
   });
 }
 
