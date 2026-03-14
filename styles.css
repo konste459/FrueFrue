@@ -1228,7 +1228,9 @@ main {
 .event-post-card {
   border-radius: 22px;
   padding: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 255, 0.96));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 249, 255, 0.94)),
+    url("./assets/backgrounds/trippy.png") center / cover no-repeat;
   border: 1px solid rgba(31, 111, 229, 0.12);
   box-shadow: 0 14px 30px rgba(17, 69, 143, 0.08);
 }
