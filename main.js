@@ -1795,6 +1795,8 @@ function renderProgramTimeline(eventData) {
     return;
   }
 
+  const shouldUseFallbackTimeline = !window.__FRUEFRUE_PROGRAM_REACT_READY;
+
   const renderFallbackTimeline = (payload) => {
     if (!programTimeline) {
       return;
@@ -1871,7 +1873,9 @@ function renderProgramTimeline(eventData) {
       items: [],
       emptyMessage: "Sobald ein Event aktiv ist, droppt hier der Ablauf."
     };
-    renderFallbackTimeline(payload);
+    if (shouldUseFallbackTimeline) {
+      renderFallbackTimeline(payload);
+    }
     window.__FRUEFRUE_PROGRAM_DATA = payload;
     window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
     activeProgramId = "";
@@ -1894,7 +1898,9 @@ function renderProgramTimeline(eventData) {
       items: [],
       emptyMessage: "Noch kein Programm veroeffentlicht."
     };
-    renderFallbackTimeline(payload);
+    if (shouldUseFallbackTimeline) {
+      renderFallbackTimeline(payload);
+    }
     window.__FRUEFRUE_PROGRAM_DATA = payload;
     window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
     activeProgramId = "";
@@ -1917,7 +1923,9 @@ function renderProgramTimeline(eventData) {
     }))
   };
   activeProgramId = payload.items[0].id;
-  renderFallbackTimeline(payload);
+  if (shouldUseFallbackTimeline) {
+    renderFallbackTimeline(payload);
+  }
   window.__FRUEFRUE_PROGRAM_DATA = payload;
   window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
 }
