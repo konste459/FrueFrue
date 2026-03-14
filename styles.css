@@ -2065,6 +2065,11 @@ main {
   filter: drop-shadow(0 24px 28px rgba(42, 118, 222, 0.12));
 }
 
+.archive-panel-left .archive-table-piece {
+  width: 94%;
+  left: 3%;
+}
+
 .archive-plate {
   position: absolute;
   transform: translate(-50%, -50%);
