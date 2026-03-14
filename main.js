@@ -192,6 +192,7 @@ const eventPostTitle = document.getElementById("eventPostTitle");
 const eventPostText = document.getElementById("eventPostText");
 const eventPostImage = document.getElementById("eventPostImage");
 const createEventPostBtn = document.getElementById("createEventPostBtn");
+const cancelEventPostEditBtn = document.getElementById("cancelEventPostEditBtn");
 const eventPostStatus = document.getElementById("eventPostStatus");
 const pollList = document.getElementById("pollList");
 const pollQuestion = document.getElementById("pollQuestion");
@@ -312,6 +313,8 @@ let quoteTimer = null;
 let loginContinueActive = false;
 let loginContinueNeedsWrap = false;
 let activeProgramId = "";
+let editingEventPostId = "";
+let editingEventPostImage = "";
 let supabaseClient = null;
 let supabaseChannel = null;
 const storageCache = {};
@@ -1628,6 +1631,12 @@ function renderEventPosts(eventData) {
     if (currentRole === "admin") {
       const actions = document.createElement("div");
       actions.className = "event-post-actions";
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "event-post-edit-btn";
+      edit.dataset.postId = post.id;
+      edit.textContent = "Post bearbeiten";
+      actions.appendChild(edit);
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "poll-delete-btn event-post-delete-btn";
@@ -1639,6 +1648,29 @@ function renderEventPosts(eventData) {
 
     eventPostsList.appendChild(article);
   });
+}
+
+function resetEventPostComposer(message) {
+  editingEventPostId = "";
+  editingEventPostImage = "";
+  if (eventPostTitle) {
+    eventPostTitle.value = "";
+  }
+  if (eventPostText) {
+    eventPostText.value = "";
+  }
+  if (eventPostImage) {
+    eventPostImage.value = "";
+  }
+  if (createEventPostBtn) {
+    createEventPostBtn.textContent = "Post veroeffentlichen";
+  }
+  if (cancelEventPostEditBtn) {
+    cancelEventPostEditBtn.classList.add("hidden");
+  }
+  if (eventPostStatus && typeof message === "string") {
+    eventPostStatus.textContent = message;
+  }
 }
 
 function getUserVoteState() {
@@ -2537,7 +2569,7 @@ function mountEventPosts() {
       return;
     }
 
-    let image = "";
+    let image = editingEventPostImage || "";
     const file = eventPostImage.files && eventPostImage.files[0] ? eventPostImage.files[0] : null;
     if (file) {
       try {
@@ -2554,31 +2586,45 @@ function mountEventPosts() {
     const eventId = getEventId(eventData);
     const allPosts = getStoredEventPosts();
     const posts = Array.isArray(allPosts[eventId]) ? allPosts[eventId] : [];
-    posts.push({
-      id: `post-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
-      title,
-      text,
-      image,
-      author: currentUser || "admin",
-      authorName: currentFirstName || "Admin",
-      createdAt: new Date().toISOString()
-    });
+    if (editingEventPostId) {
+      const index = posts.findIndex((post) => post.id === editingEventPostId);
+      if (index >= 0) {
+        posts[index] = {
+          ...posts[index],
+          title,
+          text,
+          image,
+          updatedAt: new Date().toISOString()
+        };
+      }
+    } else {
+      posts.push({
+        id: `post-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        title,
+        text,
+        image,
+        author: currentUser || "admin",
+        authorName: currentFirstName || "Admin",
+        createdAt: new Date().toISOString()
+      });
+    }
     allPosts[eventId] = posts;
     saveStoredEventPosts(allPosts);
 
-    eventPostTitle.value = "";
-    eventPostText.value = "";
-    eventPostImage.value = "";
-    if (eventPostStatus) {
-      eventPostStatus.textContent = "Post veroeffentlicht.";
-    }
+    resetEventPostComposer(editingEventPostId ? "Post aktualisiert." : "Post veroeffentlicht.");
     renderEventPosts(eventData);
   });
+
+  if (cancelEventPostEditBtn) {
+    cancelEventPostEditBtn.addEventListener("click", () => {
+      resetEventPostComposer("Bearbeitung abgebrochen.");
+    });
+  }
 
   if (eventPostsList) {
     eventPostsList.addEventListener("click", (event) => {
       const target = event.target;
-      if (!(target instanceof HTMLElement) || !target.classList.contains("event-post-delete-btn")) {
+      if (!(target instanceof HTMLElement)) {
         return;
       }
       if (currentRole !== "admin") {
@@ -2593,10 +2639,45 @@ function mountEventPosts() {
       if (!postId) {
         return;
       }
+      const posts = getEventPosts(eventId);
+      if (target.classList.contains("event-post-edit-btn")) {
+        const post = posts.find((entry) => entry.id === postId);
+        if (!post) {
+          return;
+        }
+        editingEventPostId = post.id;
+        editingEventPostImage = post.image || "";
+        if (eventPostTitle) {
+          eventPostTitle.value = post.title || "";
+        }
+        if (eventPostText) {
+          eventPostText.value = post.text || "";
+        }
+        if (eventPostImage) {
+          eventPostImage.value = "";
+        }
+        if (createEventPostBtn) {
+          createEventPostBtn.textContent = "Post speichern";
+        }
+        if (cancelEventPostEditBtn) {
+          cancelEventPostEditBtn.classList.remove("hidden");
+        }
+        if (eventPostStatus) {
+          eventPostStatus.textContent = post.image
+            ? "Bearbeite Post. Ohne neues Bild bleibt das bisherige Bild erhalten."
+            : "Bearbeite Post.";
+        }
+        return;
+      }
+      if (!target.classList.contains("event-post-delete-btn")) {
+        return;
+      }
       const allPosts = getStoredEventPosts();
-      allPosts[eventId] = getEventPosts(eventId).filter((post) => post.id !== postId);
+      allPosts[eventId] = posts.filter((post) => post.id !== postId);
       saveStoredEventPosts(allPosts);
-      if (eventPostStatus) {
+      if (editingEventPostId === postId) {
+        resetEventPostComposer("Post geloescht.");
+      } else if (eventPostStatus) {
         eventPostStatus.textContent = "Post geloescht.";
       }
       renderEventPosts(eventData);

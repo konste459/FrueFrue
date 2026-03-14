@@ -504,7 +504,10 @@
                 ></textarea>
                 <label for="eventPostImage">Bild hochladen (Admin)</label>
                 <input id="eventPostImage" type="file" accept="image/*" />
-                <button id="createEventPostBtn" class="cta-primary" type="button">Post veroeffentlichen</button>
+                <div class="event-post-form-actions">
+                  <button id="createEventPostBtn" class="cta-primary" type="button">Post veroeffentlichen</button>
+                  <button id="cancelEventPostEditBtn" class="cta-secondary hidden" type="button">Bearbeitung abbrechen</button>
+                </div>
                 <p id="eventPostStatus" class="event-status" aria-live="polite"></p>
               </div>
             </div>
@@ -679,6 +682,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=67"></script>
+    <script src="main.js?v=68"></script>
   </body>
 </html>
