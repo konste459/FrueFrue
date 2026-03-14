@@ -78,11 +78,11 @@
           >
             <div className="absolute inset-[9%] rounded-full border border-white/18"></div>
             <div className="absolute inset-[16%] rounded-full border border-white/10"></div>
-            <div className="relative z-10 flex h-full w-full flex-col items-center justify-between">
-              <div className="flex w-full items-center justify-center gap-2 text-white">
+            <div className="relative z-10 flex h-full w-full flex-col items-center justify-between" style=${{ color: "#ffffff" }}>
+              <div className="flex w-full items-center justify-center gap-2 text-white" style=${{ color: "#ffffff" }}>
                 <span className="text-base">${icon}</span>
               </div>
-              <div className="px-2">
+              <div className="px-2" style=${{ color: "#ffffff" }}>
                 <h5 className=${"font-semibold leading-tight text-white " + (active ? (isMobile ? "text-[0.9rem]" : "text-[1rem]") : (isMobile ? "text-[0.8rem]" : "text-[0.9rem]"))}>${node.title}</h5>
                 ${active
                   ? html`<p className=${"mt-2 text-white " + (isMobile ? "text-[0.68rem] leading-3.5" : "text-[0.78rem] leading-4")}>${node.description}</p>`
