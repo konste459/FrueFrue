@@ -171,8 +171,17 @@
       }, [data.treeLevels]);
 
       return html`
-        <div className="relative overflow-hidden rounded-[36px] border border-frue-100/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(234,244,255,0.7))] p-4 shadow-[0_30px_120px_rgba(39,79,151,0.14)] md:p-6">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.82),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(135,188,255,0.18),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(184,216,255,0.18),transparent_26%)]"></div>
+        <div
+          className="relative overflow-hidden rounded-[36px] border border-frue-100/70 p-4 shadow-[0_30px_120px_rgba(39,79,151,0.14)] md:p-6"
+          style=${{
+            backgroundImage:
+              "linear-gradient(180deg, rgba(255,255,255,0.82), rgba(234,244,255,0.78)), url('assets/backgrounds/trippy.png')",
+            backgroundSize: "cover, cover",
+            backgroundPosition: "center center, center center",
+            backgroundRepeat: "no-repeat, no-repeat"
+          }}
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.72),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(135,188,255,0.14),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(184,216,255,0.16),transparent_26%)]"></div>
           <div className="relative">
             <div className="mb-6 flex flex-col gap-3 border-b border-white/50 pb-5 md:flex-row md:items-end md:justify-between">
               <div>
