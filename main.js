@@ -172,6 +172,10 @@ const ticketSuccessText = document.getElementById("ticketSuccessText");
 const goToEventBtn = document.getElementById("goToEventBtn");
 const eventPageTitle = document.getElementById("eventPageTitle");
 const eventInfoText = document.getElementById("eventInfoText");
+const eventPaypalBox = document.getElementById("eventPaypalBox");
+const eventPaypalInfo = document.getElementById("eventPaypalInfo");
+const eventPaypalBtn = document.getElementById("eventPaypalBtn");
+const copyEventPaypalBtn = document.getElementById("copyEventPaypalBtn");
 const programTimeline = document.getElementById("programTimeline");
 const programTitle = document.getElementById("programTitle");
 const programLevelSelect = document.getElementById("programLevelSelect");
@@ -2253,6 +2257,9 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     eventPageTitle.textContent = "Event";
     eventInfoText.textContent =
       "Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.";
+    if (eventPaypalBox) {
+      eventPaypalBox.classList.add("hidden");
+    }
     renderProgramTimeline(null);
     updateProgramLevelControls(null);
     renderEventPosts(null);
@@ -2263,6 +2270,9 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     eventPageTitle.textContent = `${nextEvent.title} (Planned)`;
     eventInfoText.textContent =
       "Dieses Planned Event hat noch kein fixes Datum. Stimme im Kalender auf der Ticketseite fuer passende Wochenendtermine ab.";
+    if (eventPaypalBox) {
+      eventPaypalBox.classList.add("hidden");
+    }
     renderProgramTimeline(nextEvent);
     updateProgramLevelControls(nextEvent);
     renderEventPosts(nextEvent);
@@ -2281,12 +2291,32 @@ function updateEventPage(nextEvent, showBoughtMessage) {
   } else {
     eventInfoText.textContent = `Eventstart: ${when}. Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.`;
   }
+  const price = typeof nextEvent.price === "number" ? nextEvent.price : 7;
+  if (eventPaypalBox && eventPaypalBtn && eventPaypalInfo) {
+    eventPaypalBox.classList.remove("hidden");
+    eventPaypalBtn.href = `${PAYPAL_ME_BASE}/${String(price).replace(",", ".")}`;
+    eventPaypalInfo.textContent = `Bezahle ${formatEuro(price)} direkt per PayPal.Me an KonstantinM2001.`;
+  }
   renderProgramTimeline(nextEvent);
   updateProgramLevelControls(nextEvent);
   renderEventPosts(nextEvent);
 }
 
 function mountTicketPurchase() {
+  if (copyEventPaypalBtn) {
+    copyEventPaypalBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText("konstantinleonard@icloud.de");
+        if (eventPaypalInfo) {
+          eventPaypalInfo.textContent = "PayPal Adresse kopiert: konstantinleonard@icloud.de";
+        }
+      } catch (_error) {
+        if (eventPaypalInfo) {
+          eventPaypalInfo.textContent = "PayPal Adresse: konstantinleonard@icloud.de";
+        }
+      }
+    });
+  }
   if (copyPaypalBtn) {
     copyPaypalBtn.addEventListener("click", async () => {
       try {
