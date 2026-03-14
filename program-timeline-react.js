@@ -47,8 +47,8 @@
       const eventId = props.eventId;
       const isMobile = props.isMobile;
       const icon = ICON_MAP[node.icon] || ICON_MAP.sun;
-      const inactiveSize = isMobile ? 124 : 148;
-      const activeSize = isMobile ? 176 : 208;
+      const inactiveSize = isMobile ? 110 : 132;
+      const activeSize = isMobile ? 156 : 184;
       const showTopConnector = props.showTopConnector;
 
       return html`
@@ -79,10 +79,10 @@
             animate=${{
               width: active ? activeSize : inactiveSize,
               height: active ? activeSize : inactiveSize,
-              paddingTop: active ? (isMobile ? 14 : 18) : (isMobile ? 10 : 14),
-              paddingRight: active ? (isMobile ? 12 : 16) : (isMobile ? 9 : 12),
-              paddingBottom: active ? (isMobile ? 14 : 18) : (isMobile ? 10 : 14),
-              paddingLeft: active ? (isMobile ? 12 : 16) : (isMobile ? 9 : 12)
+              paddingTop: active ? (isMobile ? 12 : 15) : (isMobile ? 8 : 11),
+              paddingRight: active ? (isMobile ? 10 : 13) : (isMobile ? 8 : 10),
+              paddingBottom: active ? (isMobile ? 12 : 15) : (isMobile ? 8 : 11),
+              paddingLeft: active ? (isMobile ? 10 : 13) : (isMobile ? 8 : 10)
             }}
             transition=${{ duration: 0.28, ease: "easeOut" }}
             className="relative flex flex-col items-center justify-start overflow-hidden rounded-full border border-[#4c84df] bg-[#3f77d3] text-center shadow-[0_22px_46px_rgba(31,111,229,0.22)]"
@@ -92,28 +92,28 @@
             <div className="absolute inset-[16%] rounded-full border border-white/10"></div>
             <div className="relative z-10 flex h-full w-full flex-col items-center justify-between" style=${{ color: "#ffffff" }}>
               <div className="flex w-full items-center justify-center gap-2 text-white" style=${{ color: "#ffffff" }}>
-                <span className="text-base">${icon}</span>
+                <span className=${isMobile ? "text-[0.86rem]" : "text-[0.95rem]"}>${icon}</span>
               </div>
               <div className="px-2" style=${{ color: "#ffffff" }}>
-                <h5 className=${"font-semibold leading-tight text-white " + (active ? (isMobile ? "text-[0.9rem]" : "text-[1rem]") : (isMobile ? "text-[0.8rem]" : "text-[0.9rem]"))}>${node.title}</h5>
+                <h5 className=${"font-semibold leading-tight text-white " + (active ? (isMobile ? "text-[0.8rem]" : "text-[0.92rem]") : (isMobile ? "text-[0.72rem]" : "text-[0.82rem]"))}>${node.title}</h5>
                 ${active
-                  ? html`<p className=${"mt-2 text-white " + (isMobile ? "text-[0.68rem] leading-3.5" : "text-[0.78rem] leading-4")}>${node.description}</p>`
+                  ? html`<p className=${"mt-1.5 text-white " + (isMobile ? "text-[0.62rem] leading-3.5" : "text-[0.7rem] leading-4")}>${node.description}</p>`
                   : null}
               </div>
-              <div className="flex min-h-[28px] items-center justify-center">
+              <div className="flex min-h-[22px] items-center justify-center">
                 ${active && isAdmin && node.deletable
                   ? html`
                       <button
                         type="button"
                         onClick=${function (event) { event.stopPropagation(); }}
-                        className=${"program-delete-btn rounded-full border border-white/22 bg-white/14 font-semibold uppercase tracking-[0.16em] text-white " + (isMobile ? "px-2.5 py-1 text-[0.52rem]" : "px-3 py-1.5 text-[0.6rem]")}
+                        className=${"program-delete-btn rounded-full border border-white/22 bg-white/14 font-semibold uppercase tracking-[0.16em] text-white " + (isMobile ? "px-2 py-1 text-[0.48rem]" : "px-2.5 py-1 text-[0.55rem]")}
                         data-program-id=${node.id}
                         data-event-id=${eventId}
                         data-template-id=${node.templateId || ""}
                       >
                         Loeschen
                       </button>`
-                  : html`<span className=${"font-semibold uppercase tracking-[0.16em] text-white " + (isMobile ? "text-[0.48rem]" : "text-[0.56rem]")}>${node.time || ""}</span>`}
+                  : html`<span className=${"font-semibold uppercase tracking-[0.16em] text-white " + (isMobile ? "text-[0.44rem]" : "text-[0.5rem]")}>${node.time || ""}</span>`}
               </div>
             </div>
           <//>
@@ -138,7 +138,7 @@
                 className="mb-1 rounded-full"
                 style=${{
                   width: isMobile ? "4px" : "5px",
-                  height: isMobile ? "26px" : "32px",
+                  height: isMobile ? "20px" : "24px",
                   background: "linear-gradient(180deg, rgba(90,148,238,0.98), rgba(63,119,211,0.92))",
                   boxShadow: "0 0 0 2px rgba(255,255,255,0.18)"
                 }}
@@ -149,14 +149,14 @@
               ? html`<div
                   className="pointer-events-none absolute left-1/2 top-[18px] hidden -translate-x-1/2 rounded-full md:block"
                   style=${{
-                    width: "min(54vw, 28rem)",
-                    height: "5px",
+                    width: "min(46vw, 23rem)",
+                    height: "4px",
                     background: "linear-gradient(90deg, rgba(124,170,245,0.88), rgba(63,119,211,0.98), rgba(124,170,245,0.88))",
                     boxShadow: "0 0 0 2px rgba(255,255,255,0.16)"
                   }}
                 ></div>`
               : null}
-            <div className="relative grid justify-center gap-4 sm:gap-5 ${!isMobile && hasParallelNodes ? "md:grid-flow-col md:auto-cols-max" : ""}">
+            <div className="relative grid justify-center gap-3 sm:gap-4 ${!isMobile && hasParallelNodes ? "md:grid-flow-col md:auto-cols-max" : ""}">
               ${(level.nodes || []).map(function (node) {
                 return html`<${TreeNode}
                   key=${node.id}
@@ -218,7 +218,7 @@
 
       return html`
         <div
-          className="relative overflow-hidden rounded-[32px] border border-frue-100/70 p-3 shadow-[0_24px_90px_rgba(39,79,151,0.14)] md:p-5"
+          className="relative overflow-hidden rounded-[28px] border border-frue-100/70 p-2.5 shadow-[0_18px_64px_rgba(39,79,151,0.14)] md:p-4"
           style=${{
             backgroundImage:
               "linear-gradient(180deg, rgba(255,255,255,0.82), rgba(234,244,255,0.78)), url('assets/backgrounds/trippy.png')",
@@ -229,14 +229,14 @@
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.72),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(135,188,255,0.14),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(184,216,255,0.16),transparent_26%)]"></div>
           <div className="relative">
-            <div className="mb-5 flex flex-col gap-3 border-b border-white/50 pb-4 md:flex-row md:items-end md:justify-between">
+            <div className="mb-4 flex flex-col gap-2 border-b border-white/50 pb-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <span className="inline-flex rounded-full border border-frue-100 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-frue-700">fruefrue program</span>
               </div>
-              ${data.eventTitle ? html`<div className="rounded-full border border-frue-100 bg-white/70 px-4 py-2 text-[0.8rem] font-medium text-frue-700 shadow-[0_14px_30px_rgba(31,111,229,0.08)]">${data.eventTitle}</div>` : null}
+              ${data.eventTitle ? html`<div className="rounded-full border border-frue-100 bg-white/70 px-3 py-1.5 text-[0.72rem] font-medium text-frue-700 shadow-[0_10px_20px_rgba(31,111,229,0.08)]">${data.eventTitle}</div>` : null}
             </div>
             ${levels.length
-              ? html`<div className="relative mx-auto flex max-w-5xl flex-col items-center gap-1.5 py-1.5">
+              ? html`<div className="relative mx-auto flex max-w-4xl flex-col items-center gap-1 py-1">
                   ${levels.map(function (level, index) {
                     return html`<${LevelRow}
                       key=${level.id}
