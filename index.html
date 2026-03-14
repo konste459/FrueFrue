@@ -37,7 +37,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=43" />
+    <link rel="stylesheet" href="styles.css?v=44" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -513,6 +513,28 @@
               </div>
             </div>
 
+            <div class="event-posts">
+              <h4>Event Posts</h4>
+              <p class="event-program-copy">
+                Poste hier Updates, Programm-Flyer, Bild-Announcements oder kleine Blogposts direkt fuer das Event.
+              </p>
+              <div id="eventPostsList" class="event-posts-list"></div>
+              <div class="event-admin-tools" data-admin-only>
+                <label for="eventPostTitle">Post Titel (Admin)</label>
+                <input id="eventPostTitle" type="text" placeholder="z.B. Programm" />
+                <label for="eventPostText">Post Text (Admin)</label>
+                <textarea
+                  id="eventPostText"
+                  rows="4"
+                  placeholder="z.B. Hier ist der Flyer zum Programm und die wichtigsten Infos fuer den Sonntag."
+                ></textarea>
+                <label for="eventPostImage">Bild hochladen (Admin)</label>
+                <input id="eventPostImage" type="file" accept="image/*" />
+                <button id="createEventPostBtn" class="cta-primary" type="button">Post veroeffentlichen</button>
+                <p id="eventPostStatus" class="event-status" aria-live="polite"></p>
+              </div>
+            </div>
+
             <div class="event-media">
               <h4>Event Bilder</h4>
               <div id="eventGallery" class="event-gallery"></div>
@@ -683,7 +705,7 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=64"></script>
+    <script src="main.js?v=65"></script>
     <script src="program-timeline-react.js?v=14"></script>
   </body>
 </html>

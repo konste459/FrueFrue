@@ -1207,6 +1207,77 @@ main {
   font-family: inherit;
 }
 
+.event-admin-tools textarea,
+.event-admin-tools select {
+  width: 100%;
+  border: 1px solid #9ec5ff;
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: inherit;
+}
+
+.event-admin-tools input[type="file"] {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.event-posts {
+  margin-top: 18px;
+}
+
+.event-posts-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 14px;
+}
+
+.event-post-card {
+  border-radius: 22px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 255, 0.96));
+  border: 1px solid rgba(31, 111, 229, 0.12);
+  box-shadow: 0 14px 30px rgba(17, 69, 143, 0.08);
+}
+
+.event-post-meta {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5d82bf;
+}
+
+.event-post-title {
+  margin: 0 0 8px;
+  color: #11458f;
+  font-size: clamp(1.05rem, 2.1vw, 1.35rem);
+}
+
+.event-post-text {
+  margin: 0;
+  color: #33598f;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.event-post-image {
+  margin-top: 14px;
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(17, 69, 143, 0.14);
+}
+
+.event-post-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .drive-link {
   display: inline-block;
   margin-top: 8px;

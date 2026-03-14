@@ -187,6 +187,12 @@ const eventDriveLink = document.getElementById("eventDriveLink");
 const eventDriveInput = document.getElementById("eventDriveInput");
 const publishDriveBtn = document.getElementById("publishDriveBtn");
 const eventImageStatus = document.getElementById("eventImageStatus");
+const eventPostsList = document.getElementById("eventPostsList");
+const eventPostTitle = document.getElementById("eventPostTitle");
+const eventPostText = document.getElementById("eventPostText");
+const eventPostImage = document.getElementById("eventPostImage");
+const createEventPostBtn = document.getElementById("createEventPostBtn");
+const eventPostStatus = document.getElementById("eventPostStatus");
 const pollList = document.getElementById("pollList");
 const pollQuestion = document.getElementById("pollQuestion");
 const pollType = document.getElementById("pollType");
@@ -247,6 +253,7 @@ const TICKET_STORAGE_KEY = "fruefrue-ticket-v1";
 const EVENT_IMAGES_KEY = "fruefrue-event-images-v1";
 const EVENT_POLLS_KEY = "fruefrue-event-polls-v1";
 const EVENT_DRIVE_KEY = "fruefrue-event-drive-v1";
+const EVENT_POSTS_KEY = "fruefrue-event-posts-v1";
 const EVENT_PROGRAM_KEY = "fruefrue-event-program-v1";
 const EVENT_PROGRAM_META_KEY = "fruefrue-event-program-meta-v1";
 const PROGRAM_VIEW_KEY = "fruefrue-program-view-v1";
@@ -1516,6 +1523,124 @@ function saveEventDriveLink(link) {
   saveJSON(EVENT_DRIVE_KEY, link);
 }
 
+function getStoredEventPosts() {
+  return loadJSON(EVENT_POSTS_KEY, {});
+}
+
+function saveStoredEventPosts(posts) {
+  saveJSON(EVENT_POSTS_KEY, posts);
+}
+
+function getEventPosts(eventId) {
+  const all = getStoredEventPosts();
+  return Array.isArray(all[eventId]) ? all[eventId] : [];
+}
+
+function readImageAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Bild konnte nicht gelesen werden."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function resizeImageDataUrl(dataUrl, maxSide) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const ratio = Math.min(1, maxSide / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * ratio));
+      const height = Math.max(1, Math.round(image.height * ratio));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Bild konnte nicht verarbeitet werden."));
+        return;
+      }
+      context.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    image.onerror = () => reject(new Error("Bild konnte nicht verarbeitet werden."));
+    image.src = dataUrl;
+  });
+}
+
+function renderEventPosts(eventData) {
+  if (!eventPostsList) {
+    return;
+  }
+  eventPostsList.innerHTML = "";
+
+  if (!eventData || eventData.type === "planned") {
+    const empty = document.createElement("p");
+    empty.className = "event-status";
+    empty.textContent = "Posts erscheinen hier, sobald ein fixes Event aktiv ist.";
+    eventPostsList.appendChild(empty);
+    return;
+  }
+
+  const eventId = getEventId(eventData);
+  const posts = getEventPosts(eventId)
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+  if (!posts.length) {
+    const empty = document.createElement("p");
+    empty.className = "event-status";
+    empty.textContent = "Noch keine Posts veroeffentlicht.";
+    eventPostsList.appendChild(empty);
+    return;
+  }
+
+  posts.forEach((post) => {
+    const article = document.createElement("article");
+    article.className = "event-post-card";
+
+    const meta = document.createElement("div");
+    meta.className = "event-post-meta";
+    const author = post.authorName || "FrüFrü";
+    const createdAt = post.createdAt ? new Date(post.createdAt) : null;
+    const timeText = createdAt && !Number.isNaN(createdAt.getTime()) ? createdAt.toLocaleString("de-DE") : "Gerade eben";
+    meta.textContent = `${author} · ${timeText}`;
+    article.appendChild(meta);
+
+    const title = document.createElement("h5");
+    title.className = "event-post-title";
+    title.textContent = post.title || "Post";
+    article.appendChild(title);
+
+    const text = document.createElement("p");
+    text.className = "event-post-text";
+    text.textContent = post.text || "";
+    article.appendChild(text);
+
+    if (post.image) {
+      const image = document.createElement("img");
+      image.className = "event-post-image";
+      image.src = post.image;
+      image.alt = post.title || "Event Post Bild";
+      article.appendChild(image);
+    }
+
+    if (currentRole === "admin") {
+      const actions = document.createElement("div");
+      actions.className = "event-post-actions";
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "poll-delete-btn event-post-delete-btn";
+      remove.dataset.postId = post.id;
+      remove.textContent = "Post loeschen";
+      actions.appendChild(remove);
+      article.appendChild(actions);
+    }
+
+    eventPostsList.appendChild(article);
+  });
+}
+
 function getUserVoteState() {
   const key = `${POLL_VOTES_KEY}:${currentUser || "anon"}`;
   return loadJSON(key, {});
@@ -2088,6 +2213,7 @@ function updateEventPage(nextEvent, showBoughtMessage) {
       "Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.";
     renderProgramTimeline(null);
     updateProgramLevelControls(null);
+    renderEventPosts(null);
     return;
   }
 
@@ -2097,6 +2223,7 @@ function updateEventPage(nextEvent, showBoughtMessage) {
       "Dieses Planned Event hat noch kein fixes Datum. Stimme im Kalender auf der Ticketseite fuer passende Wochenendtermine ab.";
     renderProgramTimeline(nextEvent);
     updateProgramLevelControls(nextEvent);
+    renderEventPosts(nextEvent);
     return;
   }
 
@@ -2114,6 +2241,7 @@ function updateEventPage(nextEvent, showBoughtMessage) {
   }
   renderProgramTimeline(nextEvent);
   updateProgramLevelControls(nextEvent);
+  renderEventPosts(nextEvent);
 }
 
 function mountTicketPurchase() {
@@ -2377,6 +2505,103 @@ function mountProgramDeletion() {
     renderProgramTimeline(activeEvent);
     updateProgramLevelControls(activeEvent);
   });
+}
+
+function mountEventPosts() {
+  if (!createEventPostBtn || !eventPostTitle || !eventPostText || !eventPostImage) {
+    return;
+  }
+
+  createEventPostBtn.addEventListener("click", async () => {
+    if (currentRole !== "admin") {
+      if (eventPostStatus) {
+        eventPostStatus.textContent = "Nur Admin kann Event Posts erstellen.";
+      }
+      return;
+    }
+
+    const eventData = getActiveEventForPage();
+    if (!eventData || eventData.type === "planned") {
+      if (eventPostStatus) {
+        eventPostStatus.textContent = "Posts gehen erst bei einem fixen Event.";
+      }
+      return;
+    }
+
+    const title = eventPostTitle.value.trim();
+    const text = eventPostText.value.trim();
+    if (!title || !text) {
+      if (eventPostStatus) {
+        eventPostStatus.textContent = "Bitte Titel und Text fuer den Post angeben.";
+      }
+      return;
+    }
+
+    let image = "";
+    const file = eventPostImage.files && eventPostImage.files[0] ? eventPostImage.files[0] : null;
+    if (file) {
+      try {
+        const dataUrl = await readImageAsDataUrl(file);
+        image = await resizeImageDataUrl(dataUrl, 1400);
+      } catch (error) {
+        if (eventPostStatus) {
+          eventPostStatus.textContent = "Bild konnte nicht verarbeitet werden.";
+        }
+        return;
+      }
+    }
+
+    const eventId = getEventId(eventData);
+    const allPosts = getStoredEventPosts();
+    const posts = Array.isArray(allPosts[eventId]) ? allPosts[eventId] : [];
+    posts.push({
+      id: `post-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      title,
+      text,
+      image,
+      author: currentUser || "admin",
+      authorName: currentFirstName || "Admin",
+      createdAt: new Date().toISOString()
+    });
+    allPosts[eventId] = posts;
+    saveStoredEventPosts(allPosts);
+
+    eventPostTitle.value = "";
+    eventPostText.value = "";
+    eventPostImage.value = "";
+    if (eventPostStatus) {
+      eventPostStatus.textContent = "Post veroeffentlicht.";
+    }
+    renderEventPosts(eventData);
+  });
+
+  if (eventPostsList) {
+    eventPostsList.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement) || !target.classList.contains("event-post-delete-btn")) {
+        return;
+      }
+      if (currentRole !== "admin") {
+        return;
+      }
+      const eventData = getActiveEventForPage();
+      if (!eventData) {
+        return;
+      }
+      const eventId = getEventId(eventData);
+      const postId = target.dataset.postId || "";
+      if (!postId) {
+        return;
+      }
+      const allPosts = getStoredEventPosts();
+      allPosts[eventId] = getEventPosts(eventId).filter((post) => post.id !== postId);
+      saveStoredEventPosts(allPosts);
+      if (eventPostStatus) {
+        eventPostStatus.textContent = "Post geloescht.";
+      }
+      renderEventPosts(eventData);
+    });
+  }
 }
 
 function mountCalendarWidget() {
@@ -3605,6 +3830,7 @@ async function initializeApp() {
   mountProgramViewSwitch();
   mountCalendarWidget();
   mountReminderActions();
+  mountEventPosts();
   mountFruefrueAnswerForm();
   mountSpotifySongForm();
   mountAdminUserActions();
