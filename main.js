@@ -1795,6 +1795,48 @@ function renderProgramTimeline(eventData) {
     return;
   }
 
+  const renderFallbackTimeline = (payload) => {
+    if (!programTimeline) {
+      return;
+    }
+    if (!payload.items || !payload.items.length) {
+      programTimeline.innerHTML = `<div class="placeholder-card"><p class="event-status">${
+        payload.emptyMessage || "Noch kein Programm veroeffentlicht."
+      }</p></div>`;
+      return;
+    }
+    const grouped = payload.items.reduce((acc, item) => {
+      const key = item.time || "Open Flow";
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+    programTimeline.innerHTML = Object.entries(grouped)
+      .map(
+        ([time, items]) => `
+          <section class="content-block" style="margin-top:12px;">
+            <p class="facts-label" style="margin-bottom:10px;">${time}</p>
+            <div style="display:grid;gap:10px;">
+              ${items
+                .map(
+                  (item) => `
+                    <article style="border:1px solid rgba(31,111,229,.14);border-radius:22px;padding:14px 16px;background:linear-gradient(145deg,#fffaf3,#eef5ff);box-shadow:0 10px 24px rgba(31,111,229,.08);">
+                      <p style="margin:0 0 6px;font-weight:800;color:#11458f;">${item.title}</p>
+                      <p style="margin:0;font-size:.82rem;color:#4f73a9;">Track ${item.lane}</p>
+                      <p style="margin:8px 0 0;color:#4f73a9;">${item.description}</p>
+                    </article>
+                  `
+                )
+                .join("")}
+            </div>
+          </section>
+        `
+      )
+      .join("");
+  };
+
   const getProgramIcon = (item) => {
     const haystack = `${item.title || ""} ${item.description || ""} ${item.slot || ""}`.toLowerCase();
     if (haystack.includes("coffee") || haystack.includes("kaffee") || haystack.includes("latte")) {
@@ -1823,6 +1865,7 @@ function renderProgramTimeline(eventData) {
       items: [],
       emptyMessage: "Sobald ein Event aktiv ist, droppt hier der Ablauf."
     };
+    renderFallbackTimeline(payload);
     window.__FRUEFRUE_PROGRAM_DATA = payload;
     window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
     activeProgramId = "";
@@ -1845,6 +1888,7 @@ function renderProgramTimeline(eventData) {
       items: [],
       emptyMessage: "Noch kein Programm veroeffentlicht."
     };
+    renderFallbackTimeline(payload);
     window.__FRUEFRUE_PROGRAM_DATA = payload;
     window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
     activeProgramId = "";
@@ -1867,6 +1911,7 @@ function renderProgramTimeline(eventData) {
     }))
   };
   activeProgramId = payload.items[0].id;
+  renderFallbackTimeline(payload);
   window.__FRUEFRUE_PROGRAM_DATA = payload;
   window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
 }
