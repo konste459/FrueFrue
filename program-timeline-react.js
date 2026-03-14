@@ -61,12 +61,17 @@
             onClick=${onToggle}
             whileHover=${{ y: -3, scale: 1.02 }}
             whileTap=${{ scale: 0.985 }}
-            className=${
-              "relative flex flex-col items-center justify-start overflow-hidden rounded-full border border-[#4c84df] bg-[#3f77d3] text-center shadow-[0_22px_46px_rgba(31,111,229,0.22)] transition-all duration-300 " +
-              (active
-                ? "h-[230px] w-[230px] px-5 py-6 sm:h-[248px] sm:w-[248px]"
-                : "h-[164px] w-[164px] px-4 py-5 sm:h-[182px] sm:w-[182px]")
-            }
+            animate=${{
+              width: active ? 240 : 182,
+              height: active ? 240 : 182,
+              paddingTop: active ? 24 : 20,
+              paddingRight: active ? 20 : 16,
+              paddingBottom: active ? 24 : 20,
+              paddingLeft: active ? 20 : 16
+            }}
+            transition=${{ duration: 0.28, ease: "easeOut" }}
+            className="relative flex flex-col items-center justify-start overflow-hidden rounded-full border border-[#4c84df] bg-[#3f77d3] text-center shadow-[0_22px_46px_rgba(31,111,229,0.22)]"
+            style=${{ minWidth: "182px", minHeight: "182px" }}
           >
             <div className="absolute inset-[9%] rounded-full border border-white/18"></div>
             <div className="absolute inset-[16%] rounded-full border border-white/10"></div>
@@ -76,7 +81,9 @@
               </div>
               <div className="px-2">
                 <h5 className=${"font-semibold leading-tight text-white " + (active ? "text-[1.18rem]" : "text-[1rem]")}>${node.title}</h5>
-                <p className=${"mt-3 text-white/92 transition-all duration-300 " + (active ? "text-[0.92rem] leading-5" : "line-clamp-2 text-[0.76rem] leading-4")}>${node.description}</p>
+                ${active
+                  ? html`<p className="mt-3 text-[0.92rem] leading-5 text-white/92">${node.description}</p>`
+                  : null}
               </div>
               <div className="flex min-h-[28px] items-center justify-center">
                 ${active && isAdmin && node.deletable
