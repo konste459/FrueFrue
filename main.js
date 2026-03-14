@@ -1817,15 +1817,21 @@ function renderProgramTimeline(eventData) {
       .map(
         ([time, items]) => `
           <section class="content-block" style="margin-top:12px;">
-            <p class="facts-label" style="margin-bottom:10px;">${time}</p>
-            <div style="display:grid;gap:10px;">
+            <p class="facts-label" style="margin-bottom:14px;">${time}</p>
+            <div style="display:flex;flex-wrap:wrap;gap:18px;">
               ${items
                 .map(
                   (item) => `
-                    <article style="border:1px solid rgba(31,111,229,.14);border-radius:22px;padding:14px 16px;background:linear-gradient(145deg,#fffaf3,#eef5ff);box-shadow:0 10px 24px rgba(31,111,229,.08);">
-                      <p style="margin:0 0 6px;font-weight:800;color:#11458f;">${item.title}</p>
-                      <p style="margin:0;font-size:.82rem;color:#4f73a9;">Track ${item.lane}</p>
-                      <p style="margin:8px 0 0;color:#4f73a9;">${item.description}</p>
+                    <article style="width:220px;height:220px;border-radius:999px;padding:22px;background:#3f77d3;border:1px solid #5f97e8;box-shadow:0 18px 34px rgba(31,111,229,.18);display:flex;flex-direction:column;justify-content:space-between;color:#fff;">
+                      <div>
+                        <p style="margin:0 0 8px;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:800;">${item.time}</p>
+                        <p style="margin:0;font-weight:800;font-size:1.05rem;line-height:1.2;color:#fff;">${item.title}</p>
+                      </div>
+                      <p style="margin:12px 0 0;font-size:.92rem;line-height:1.45;color:rgba(255,255,255,.9);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">${item.description}</p>
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                        <span style="font-size:.76rem;font-weight:800;color:rgba(255,255,255,.92);">Track ${item.lane}</span>
+                        <span style="border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;">Stop</span>
+                      </div>
                     </article>
                   `
                 )
