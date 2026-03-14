@@ -2168,6 +2168,52 @@ main {
   border-bottom: 2px solid #11458f;
 }
 
+.impressum-section {
+  max-width: 960px;
+  margin: 28px auto 0;
+  padding: 0 16px;
+  scroll-margin-top: 110px;
+}
+
+.impressum-card {
+  padding: 22px 22px 24px;
+}
+
+.impressum-copy {
+  margin: 10px 0 0;
+  max-width: 680px;
+  color: #2c5ea9;
+  line-height: 1.7;
+}
+
+.impressum-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.impressum-block {
+  padding: 16px 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(72, 127, 206, 0.14);
+  box-shadow: 0 18px 38px rgba(39, 79, 151, 0.08);
+}
+
+.impressum-block h4 {
+  margin: 0 0 8px;
+  color: #11458f;
+  font-size: 0.95rem;
+}
+
+.impressum-block p {
+  margin: 4px 0;
+  color: #2c5ea9;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
 @media (max-width: 720px) {
   body.logged-in,
   body.logging-in,
@@ -2186,6 +2232,10 @@ main {
 
   .brand-display {
     letter-spacing: 0.01em;
+  }
+
+  .impressum-grid {
+    grid-template-columns: 1fr;
   }
 
   .login-card {
