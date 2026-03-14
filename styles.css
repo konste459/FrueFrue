@@ -1110,6 +1110,12 @@ main {
   margin-top: 3px;
 }
 
+.ticket-payment-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .planned-calendar {
   margin-top: 12px;
   display: grid;

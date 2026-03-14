@@ -2282,13 +2282,13 @@ function mountTicketPurchase() {
   if (copyPaypalBtn) {
     copyPaypalBtn.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText("konstantinleonard@icloud");
+        await navigator.clipboard.writeText("konstantinleonard@icloud.de");
         if (ticketStatus) {
-          ticketStatus.textContent = "PayPal Adresse kopiert: konstantinleonard@icloud";
+          ticketStatus.textContent = "PayPal Adresse kopiert: konstantinleonard@icloud.de";
         }
       } catch (_error) {
         if (ticketStatus) {
-          ticketStatus.textContent = "PayPal Adresse: konstantinleonard@icloud";
+          ticketStatus.textContent = "PayPal Adresse: konstantinleonard@icloud.de";
         }
       }
     });
@@ -2316,7 +2316,7 @@ function mountTicketPurchase() {
       time: next.time,
       price,
       paymentMethod: "paypal_friends_family",
-      paymentTarget: "konstantinleonard@icloud",
+      paymentTarget: "konstantinleonard@icloud.de",
       boughtAt: new Date().toISOString()
     });
     updateTicketReminder();
@@ -2325,7 +2325,7 @@ function mountTicketPurchase() {
       ticketSuccessText.textContent = `Du hast dir ein Ticket gekauft fuer das Event "${next.title}".`;
     }
     if (ticketStatus) {
-      ticketStatus.textContent = `Ticket reserviert fuer ${formatEuro(price)}. Bitte per PayPal Freunde & Familie an konstantinleonard@icloud zahlen.`;
+      ticketStatus.textContent = `Ticket reserviert fuer ${formatEuro(price)}. Bitte per PayPal Freunde & Familie an konstantinleonard@icloud.de zahlen.`;
     }
     setPage("ticket-success");
     window.setTimeout(() => {
