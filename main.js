@@ -1790,6 +1790,124 @@ function renderPolls() {
   });
 }
 
+function buildBaseProgramTree(eventData, eventId) {
+  const startTime = eventData && eventData.time ? eventData.time : "tbd";
+  return [
+    {
+      id: `${eventId}-level-start`,
+      label: "Ebene 1",
+      nodes: [
+        {
+          id: `${eventId}-base-start`,
+          title: "Start",
+          description: `Start um ${startTime}.`,
+          icon: "spark",
+          base: true
+        }
+      ]
+    },
+    {
+      id: `${eventId}-level-arrival`,
+      label: "Ebene 2",
+      nodes: [
+        {
+          id: `${eventId}-base-secco`,
+          title: "Secco",
+          description: "Erster Drink, kurzes Ankommen und locker reinstarten.",
+          icon: "spark",
+          base: true
+        },
+        {
+          id: `${eventId}-base-arrive`,
+          title: "Arrive at your pace",
+          description: "Drop rein, finde deinen Spot und komm entspannt in den Vibe.",
+          icon: "sun",
+          base: true
+        }
+      ]
+    },
+    {
+      id: `${eventId}-level-brunch`,
+      label: "Ebene 3",
+      nodes: [
+        {
+          id: `${eventId}-base-brunch`,
+          title: "Brunch",
+          description: "Food, Talks und cozy Sunday Energy am Tisch.",
+          icon: "plate",
+          base: true
+        },
+        {
+          id: `${eventId}-base-print`,
+          title: "Siebdrucken",
+          description: "Parallel kreativ werden, Motive testen und gemeinsam was machen.",
+          icon: "camera",
+          base: true
+        }
+      ]
+    },
+    {
+      id: `${eventId}-level-open-end`,
+      label: "Ebene 4",
+      nodes: [
+        {
+          id: `${eventId}-base-open-end`,
+          title: "Open End",
+          description: "Leave at your pace.",
+          icon: "music",
+          base: true
+        }
+      ]
+    }
+  ];
+}
+
+function mergeCustomProgramTree(baseLevels, items) {
+  if (!Array.isArray(items) || !items.length) {
+    return baseLevels;
+  }
+
+  const customLevels = items.reduce((acc, item, index) => {
+    const slot = (item.slot || "Open Flow").trim() || "Open Flow";
+    const key = slot.toLowerCase();
+    if (!acc[key]) {
+      acc[key] = {
+        id: `custom-level-${index}-${key.replace(/[^a-z0-9]+/g, "-")}`,
+        label: slot,
+        nodes: []
+      };
+    }
+    acc[key].nodes.push({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      icon: getProgramIcon(item),
+      deletable: true,
+      lane: Number(item.lane || 1),
+      order: Number(item.sortOrder || index),
+      time: slot
+    });
+    return acc;
+  }, {});
+
+  return baseLevels.concat(
+    Object.values(customLevels).map((level) => ({
+      id: level.id,
+      label: level.label,
+      nodes: level.nodes.sort((a, b) => {
+        if ((a.order || 0) !== (b.order || 0)) {
+          return (a.order || 0) - (b.order || 0);
+        }
+        return (a.lane || 1) - (b.lane || 1);
+      })
+    }))
+  );
+}
+
+function flattenTreeLevels(levels) {
+  return (levels || []).reduce((acc, level) => acc.concat(level.nodes || []), []);
+}
+
 function renderProgramTimeline(eventData) {
   if (!programTimeline) {
     return;
@@ -1801,38 +1919,36 @@ function renderProgramTimeline(eventData) {
     if (!programTimeline) {
       return;
     }
-    if (!payload.items || !payload.items.length) {
+    if (!payload.treeLevels || !payload.treeLevels.length) {
       programTimeline.innerHTML = `<div class="placeholder-card"><p class="event-status">${
         payload.emptyMessage || "Noch kein Programm veroeffentlicht."
       }</p></div>`;
       return;
     }
-    const grouped = payload.items.reduce((acc, item) => {
-      const key = item.time || "Open Flow";
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(item);
-      return acc;
-    }, {});
-    programTimeline.innerHTML = Object.entries(grouped)
+    programTimeline.innerHTML = payload.treeLevels
       .map(
-        ([time, items]) => `
-          <section class="content-block" style="margin-top:12px;">
-            <p class="facts-label" style="margin-bottom:14px;">${time}</p>
-            <div style="display:flex;flex-wrap:wrap;gap:18px;">
-              ${items
+        (level, levelIndex) => `
+          <section class="content-block" style="margin-top:${levelIndex === 0 ? 0 : 12}px;">
+            <div style="display:flex;justify-content:center;margin-bottom:14px;">
+              ${levelIndex > 0 ? '<div style="position:absolute;transform:translateY(-34px);width:2px;height:34px;background:#9abcf6;border-radius:999px;"></div>' : ""}
+              <p class="facts-label" style="margin-bottom:0;">${level.label}</p>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:18px;">
+              ${(level.nodes || [])
                 .map(
                   (item) => `
-                    <article style="width:220px;height:220px;border-radius:999px;padding:22px;background:#3f77d3;border:1px solid #5f97e8;box-shadow:0 18px 34px rgba(31,111,229,.18);display:flex;flex-direction:column;justify-content:space-between;color:#fff;">
+                    <article style="width:220px;height:220px;border-radius:999px;padding:22px;background:#3f77d3;border:1px solid #5f97e8;box-shadow:0 18px 34px rgba(31,111,229,.18);display:flex;flex-direction:column;justify-content:space-between;color:#fff;text-align:center;">
                       <div>
-                        <p style="margin:0 0 8px;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:800;">${item.time}</p>
                         <p style="margin:0;font-weight:800;font-size:1.05rem;line-height:1.2;color:#fff;">${item.title}</p>
                       </div>
-                      <p style="margin:12px 0 0;font-size:.92rem;line-height:1.45;color:rgba(255,255,255,.9);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">${item.description}</p>
+                      <p style="margin:12px 0 0;font-size:.92rem;line-height:1.45;color:rgba(255,255,255,.9);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;">${item.description}</p>
                       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                        <span style="font-size:.76rem;font-weight:800;color:rgba(255,255,255,.92);">Track ${item.lane}</span>
-                        <span style="border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;">Stop</span>
+                        <span style="font-size:.76rem;font-weight:800;color:rgba(255,255,255,.92);">${item.base ? "Base Node" : item.time || "Custom"}</span>
+                        ${
+                          item.deletable
+                            ? `<button type="button" class="program-delete-btn" data-program-id="${item.id}" data-event-id="${payload.eventId}" style="border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;">Loeschen</button>`
+                            : `<span style="border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;">Node</span>`
+                        }
                       </div>
                     </article>
                   `
@@ -1870,6 +1986,7 @@ function renderProgramTimeline(eventData) {
       eventId: "",
       eventTitle: "",
       isAdmin: currentRole === "admin",
+      treeLevels: [],
       items: [],
       emptyMessage: "Sobald ein Event aktiv ist, droppt hier der Ablauf."
     };
@@ -1890,37 +2007,14 @@ function renderProgramTimeline(eventData) {
     return (a.lane || 1) - (b.lane || 1);
   });
 
-  if (!items.length) {
-    const payload = {
-      eventId,
-      eventTitle: eventData.title || "Event",
-      isAdmin: currentRole === "admin",
-      items: [],
-      emptyMessage: "Noch kein Programm veroeffentlicht."
-    };
-    if (shouldUseFallbackTimeline) {
-      renderFallbackTimeline(payload);
-    }
-    window.__FRUEFRUE_PROGRAM_DATA = payload;
-    window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
-    activeProgramId = "";
-    return;
-  }
-
+  const treeLevels = mergeCustomProgramTree(buildBaseProgramTree(eventData, eventId), items);
   const payload = {
     eventId,
     eventTitle: eventData.title || "Event",
     isAdmin: currentRole === "admin",
     emptyMessage: "",
-    items: items.map((item, index) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      time: item.slot || "Open Flow",
-      lane: Number(item.lane || 1),
-      order: Number(item.sortOrder || index),
-      icon: getProgramIcon(item)
-    }))
+    treeLevels,
+    items: flattenTreeLevels(treeLevels)
   };
   activeProgramId = payload.items[0].id;
   if (shouldUseFallbackTimeline) {
