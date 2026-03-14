@@ -3144,9 +3144,12 @@ function mountArchiveCarousel() {
   if (!archiveTrack || !archiveNextScene) {
     return;
   }
+  archiveSceneIndex = 0;
+  archiveTrack.style.transform = "translateX(0)";
   archiveNextScene.addEventListener("click", () => {
-    archiveSceneIndex = archiveSceneIndex === 0 ? 1 : 0;
-    archiveTrack.classList.toggle("shifted", archiveSceneIndex === 1);
+    const sceneCount = archiveTrack.children.length || 1;
+    archiveSceneIndex = (archiveSceneIndex + 1) % sceneCount;
+    archiveTrack.style.transform = `translateX(-${archiveSceneIndex * 25}%)`;
   });
 }
 

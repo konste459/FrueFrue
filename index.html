@@ -37,7 +37,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=41" />
+    <link rel="stylesheet" href="styles.css?v=42" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -216,41 +216,44 @@
             <h3 class="archive-headline">Vergangene Events</h3>
             <div class="archive-carousel">
               <div id="archiveTrack" class="archive-track">
-                <div class="archive-panel">
-                  <img class="archive-table" src="assets/archive/fruefrue-archive-table.svg" alt="Archiv Tisch" />
-                  <div class="archive-plate archive-plate-a">
-                    <img class="archive-place-setting" src="assets/archive/fruefrue-archive-place.svg" alt="Teller mit Besteck" />
-                    <div class="archive-plate-content">
-                      <p class="archive-title">Fr&uuml;Fr&uuml; 1.0</p>
-                      <button class="archive-play" data-archive-event="fruefrue-1" type="button">&#9658;</button>
-                    </div>
-                  </div>
-                  <div class="archive-plate archive-plate-b">
-                    <img class="archive-place-setting" src="assets/archive/fruefrue-archive-place.svg" alt="Teller mit Besteck" />
-                    <div class="archive-plate-content">
-                      <p class="archive-title">Fr&uuml;Fr&uuml; 2.0</p>
-                      <button class="archive-play" data-archive-event="fruefrue-2" type="button">&#9658;</button>
-                    </div>
+                <div class="archive-panel archive-panel-left">
+                  <img class="archive-table-piece" src="assets/archive-v2/leftarchivtisch.png" alt="Archiv Tisch Anfang" />
+                  <div class="archive-plate archive-plate-single">
+                    <img class="archive-place-setting" src="assets/archive-v2/tellerasset-transparent.png" alt="Archiv Teller" />
+                    <button class="archive-play" data-archive-event="fruefrue-1" type="button" aria-label="FrüFrü 1.0 ansehen">
+                      <span class="archive-play-label">Fr&uuml;Fr&uuml; 1.0</span>
+                      <span class="archive-play-icon">&#9658;</span>
+                    </button>
                   </div>
                 </div>
-
-                <div class="archive-panel">
-                  <img class="archive-table" src="assets/archive/fruefrue-archive-table.svg" alt="Archiv Tisch" />
-                  <div class="archive-plate archive-plate-a">
-                    <img class="archive-place-setting" src="assets/archive/fruefrue-archive-place.svg" alt="Teller mit Besteck" />
-                    <div class="archive-plate-content">
-                      <p class="archive-title">PaPa x Fr&uuml;Fr&uuml;</p>
-                      <button class="archive-play" data-archive-event="papa-x-fruefrue" type="button">&#9658;</button>
-                    </div>
+                <div class="archive-panel archive-panel-middle">
+                  <img class="archive-table-piece" src="assets/archive-v2/middlearchivtisch.png" alt="Archiv Tisch Mitte" />
+                  <div class="archive-plate archive-plate-single">
+                    <img class="archive-place-setting" src="assets/archive-v2/tellerasset-transparent.png" alt="Archiv Teller" />
+                    <button class="archive-play" data-archive-event="fruefrue-2" type="button" aria-label="FrüFrü 2.0 ansehen">
+                      <span class="archive-play-label">Fr&uuml;Fr&uuml; 2.0</span>
+                      <span class="archive-play-icon">&#9658;</span>
+                    </button>
                   </div>
-                  <div class="archive-plate archive-plate-b">
-                    <img class="archive-place-setting" src="assets/archive/fruefrue-archive-place.svg" alt="Teller mit Besteck" />
-                    <div class="archive-plate-content">
-                      <p class="archive-title">CockOGott x Fr&uuml;Fr&uuml;</p>
-                      <button class="archive-play" data-archive-event="cockogott-x-fruefrue" type="button">
-                        &#9658;
-                      </button>
-                    </div>
+                </div>
+                <div class="archive-panel archive-panel-middle">
+                  <img class="archive-table-piece" src="assets/archive-v2/middlearchivtisch.png" alt="Archiv Tisch Mitte" />
+                  <div class="archive-plate archive-plate-single">
+                    <img class="archive-place-setting" src="assets/archive-v2/tellerasset-transparent.png" alt="Archiv Teller" />
+                    <button class="archive-play" data-archive-event="papa-x-fruefrue" type="button" aria-label="PaPa x FrüFrü ansehen">
+                      <span class="archive-play-label">PaPa x Fr&uuml;Fr&uuml;</span>
+                      <span class="archive-play-icon">&#9658;</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="archive-panel archive-panel-right">
+                  <img class="archive-table-piece" src="assets/archive-v2/rightarchivtisch.png" alt="Archiv Tisch Ende" />
+                  <div class="archive-plate archive-plate-single">
+                    <img class="archive-place-setting" src="assets/archive-v2/tellerasset-transparent.png" alt="Archiv Teller" />
+                    <button class="archive-play" data-archive-event="cockogott-x-fruefrue" type="button" aria-label="CockOGott x FrüFrü ansehen">
+                      <span class="archive-play-label">CockOGott x Fr&uuml;Fr&uuml;</span>
+                      <span class="archive-play-icon">&#9658;</span>
+                    </button>
                   </div>
                 </div>
               </div>
