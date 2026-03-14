@@ -90,12 +90,8 @@ export const brunchProgram: ProgramEntry[] = [
 ]
 
 export const variantDescriptions = {
-  editorial:
-    "Vertical editorial bubble rail with warmer beige notes and blue accents.",
-  salon:
-    "Branched salon bubble map for parallel brunch moments and side conversations.",
-  ribbon:
-    "Sideways bubble ribbon with cozy filled shapes instead of app-like cards.",
-  studio:
-    "Loose studio collage with mixed blobs and softer, hand-placed energy.",
+  orbit: "Vertical orbit spine with large blue circles floating left and right.",
+  constellation: "Structured circular constellation grid for parallel moments and stages.",
+  ribbon: "Sideways blue circle ribbon with a clean front-facing flow.",
+  scatter: "Free circular field with a more playful art-direction and pinned detail panel.",
 } as const
