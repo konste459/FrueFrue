@@ -1177,7 +1177,9 @@ main {
   height: auto;
   max-height: 240px;
   object-fit: contain;
-  background: rgba(255, 255, 255, 0.9);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(245, 249, 255, 0.92)),
+    url("./assets/backgrounds/trippy.png") center / cover no-repeat;
   padding: 8px;
   border-radius: 12px;
   box-shadow: 0 8px 18px rgba(31, 111, 229, 0.16);
@@ -1264,7 +1266,9 @@ main {
   max-height: 420px;
   height: auto;
   object-fit: contain;
-  background: rgba(255, 255, 255, 0.94);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(245, 249, 255, 0.92)),
+    url("./assets/backgrounds/trippy.png") center / cover no-repeat;
   padding: 10px;
   border-radius: 18px;
   box-shadow: 0 10px 24px rgba(17, 69, 143, 0.14);
