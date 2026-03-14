@@ -3,7 +3,7 @@ const BASE_USERS = {
     password: "1234",
     role: "admin",
     firstName: "Admin",
-    lastName: "FrueFrue",
+    lastName: "FrüFrü",
     gender: "divers",
     age: 24,
     level: "7a",
@@ -13,7 +13,7 @@ const BASE_USERS = {
     password: "1234",
     role: "gast",
     firstName: "Gast",
-    lastName: "FrueFrue",
+    lastName: "FrüFrü",
     gender: "divers",
     age: 22,
     level: "6a",
@@ -311,19 +311,19 @@ const storageCache = {};
 
 const archiveEvents = {
   "fruefrue-1": {
-    title: "FrueFrue 1.0",
+    title: "FrüFrü 1.0",
     media: []
   },
   "fruefrue-2": {
-    title: "FrueFrue 2.0",
+    title: "FrüFrü 2.0",
     media: [...fruefrue2Media]
   },
   "papa-x-fruefrue": {
-    title: "PaPa x FrueFrue",
+    title: "PaPa x FrüFrü",
     media: [...papaMedia]
   },
   "cockogott-x-fruefrue": {
-    title: "CockOGott x FrueFrue",
+    title: "CockOGott x FrüFrü",
     media: [...cockogottMedia]
   }
 };
@@ -2431,7 +2431,7 @@ function mountReminderActions() {
 
 function getDefaultFruefrueAnswers() {
   return [
-    { text: "FRueFRue ist mein Sunday-Moodboard in echt.", firstName: "Leni" },
+    { text: "FrüFrü ist mein Sunday-Moodboard in echt.", firstName: "Leni" },
     { text: "Hier trifft guter Coffee auf gute People, no cap.", firstName: "Mio" },
     { text: "Ein safe space fuer Brunch, Talks und neue Connections.", firstName: "Nika" }
   ];
@@ -2558,7 +2558,7 @@ async function addSpotifyTrackToPlaylist(trackUri) {
       throw new Error("Spotify Rechte fehlen. Bitte Verbindung neu aufbauen.");
     }
     if (String(error.message || "").includes("Forbidden")) {
-      throw new Error("Dieser Spotify-Account darf die FRueFRue Playlist nicht bearbeiten.");
+      throw new Error("Dieser Spotify-Account darf die FrüFrü Playlist nicht bearbeiten.");
     }
     throw error;
   }
