@@ -76,13 +76,13 @@
             <div className="absolute inset-[9%] rounded-full border border-white/18"></div>
             <div className="absolute inset-[16%] rounded-full border border-white/10"></div>
             <div className="relative z-10 flex h-full w-full flex-col items-center justify-between">
-              <div className="flex w-full items-center justify-center gap-2 text-white/80">
+              <div className="flex w-full items-center justify-center gap-2 text-white">
                 <span className="text-base">${icon}</span>
               </div>
               <div className="px-2">
                 <h5 className=${"font-semibold leading-tight text-white " + (active ? "text-[1.18rem]" : "text-[1rem]")}>${node.title}</h5>
                 ${active
-                  ? html`<p className="mt-3 text-[0.92rem] leading-5 text-white/92">${node.description}</p>`
+                  ? html`<p className="mt-3 text-[0.92rem] leading-5 text-white">${node.description}</p>`
                   : null}
               </div>
               <div className="flex min-h-[28px] items-center justify-center">
@@ -98,7 +98,7 @@
                       >
                         Loeschen
                       </button>`
-                  : html`<span className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/68">${node.time || ""}</span>`}
+                  : html`<span className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white">${node.time || ""}</span>`}
               </div>
             </div>
           <//>
