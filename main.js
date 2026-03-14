@@ -269,10 +269,29 @@ const LOGIN_LOOP_CONTINUE_END = 5;
 const LOGIN_REVEAL_START = 0.75;
 const LOGIN_REVEAL_END = 7;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
+const SUPABASE_SETTINGS =
+  window.FRUEFRUE_CONFIG && window.FRUEFRUE_CONFIG.supabase ? window.FRUEFRUE_CONFIG.supabase : {};
+const SUPABASE_URL = SUPABASE_SETTINGS.url || "";
+const SUPABASE_ANON_KEY = SUPABASE_SETTINGS.anonKey || "";
+const SUPABASE_TABLE = SUPABASE_SETTINGS.table || "fruefrue_state";
+const REMOTE_SYNC_PREFIXES = [
+  STORAGE_KEY,
+  EVENT_IMAGES_KEY,
+  EVENT_POLLS_KEY,
+  EVENT_DRIVE_KEY,
+  EVENT_PROGRAM_KEY,
+  PLANNED_VOTES_KEY,
+  USERS_STORAGE_KEY,
+  DELETED_USERS_KEY,
+  FIXED_NOTICE_KEY,
+  FRUEFRUE_ANSWERS_KEY,
+  SPOTIFY_SONGS_KEY,
+  `${TICKET_STORAGE_KEY}:`
+];
 let currentUser = "";
 let currentRole = "";
 let currentFirstName = "";
-let currentProgramView = localStorage.getItem(PROGRAM_VIEW_KEY) || "v1";
+let currentProgramView = "v1";
 let countdownTimer = null;
 let archiveCurrentEvent = "";
 let archiveCurrentIndex = 0;
@@ -281,6 +300,9 @@ let quoteTimer = null;
 let loginContinueActive = false;
 let loginContinueNeedsWrap = false;
 let activeProgramId = "";
+let supabaseClient = null;
+let supabaseChannel = null;
+const storageCache = {};
 
 const archiveEvents = {
   "fruefrue-1": {
@@ -351,20 +373,195 @@ function setTicketVisibility(hasTicket) {
   document.body.classList.toggle("has-ticket", hasTicket);
 }
 
-function loadJSON(key, fallback) {
+function hasSupabaseConfig() {
+  return Boolean(
+    SUPABASE_URL &&
+      SUPABASE_ANON_KEY &&
+      window.supabase &&
+      typeof window.supabase.createClient === "function"
+  );
+}
+
+function shouldSyncRemotely(key) {
+  return REMOTE_SYNC_PREFIXES.some((prefix) => key === prefix || key.startsWith(prefix));
+}
+
+function readLocalValue(key) {
   const raw = localStorage.getItem(key);
-  if (!raw) {
-    return fallback;
+  if (raw === null) {
+    return undefined;
   }
   try {
     return JSON.parse(raw);
   } catch (_error) {
-    return fallback;
+    return raw;
   }
 }
 
-function saveJSON(key, value) {
+function writeLocalValue(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+function getStoredValue(key, fallback) {
+  if (Object.prototype.hasOwnProperty.call(storageCache, key)) {
+    const cached = storageCache[key];
+    return cached === undefined ? fallback : cached;
+  }
+  const localValue = readLocalValue(key);
+  if (localValue === undefined) {
+    return fallback;
+  }
+  storageCache[key] = localValue;
+  return localValue;
+}
+
+async function syncRemoteValue(key, value) {
+  if (!supabaseClient || !shouldSyncRemotely(key)) {
+    return;
+  }
+  const { error } = await supabaseClient.from(SUPABASE_TABLE).upsert(
+    {
+      key,
+      value,
+      updated_at: new Date().toISOString()
+    },
+    { onConflict: "key" }
+  );
+  if (error) {
+    console.error("Supabase upsert failed", key, error.message);
+  }
+}
+
+async function deleteRemoteValue(key) {
+  if (!supabaseClient || !shouldSyncRemotely(key)) {
+    return;
+  }
+  const { error } = await supabaseClient.from(SUPABASE_TABLE).delete().eq("key", key);
+  if (error) {
+    console.error("Supabase delete failed", key, error.message);
+  }
+}
+
+function setStoredValue(key, value, options = {}) {
+  storageCache[key] = value;
+  writeLocalValue(key, value);
+  if (!options.skipRemote) {
+    syncRemoteValue(key, value);
+  }
+}
+
+function removeStoredValue(key, options = {}) {
+  delete storageCache[key];
+  localStorage.removeItem(key);
+  if (!options.skipRemote) {
+    deleteRemoteValue(key);
+  }
+}
+
+function loadJSON(key, fallback) {
+  return getStoredValue(key, fallback);
+}
+
+function saveJSON(key, value) {
+  setStoredValue(key, value);
+}
+
+function updateCurrentUserProfile() {
+  if (!currentUser) {
+    return;
+  }
+  const user = getAllUsers()[currentUser];
+  if (!user) {
+    currentUser = "";
+    currentRole = "";
+    currentFirstName = "";
+    document.body.classList.remove("logged-in", "logging-in", "is-admin", "has-ticket");
+    if (loginScreen) {
+      loginScreen.classList.remove("hidden");
+    }
+    if (appShell) {
+      appShell.classList.add("hidden");
+    }
+    setPage("home");
+    return;
+  }
+  currentRole = user.role;
+  currentFirstName = user.firstName || currentUser;
+  if (welcomeUser) {
+    welcomeUser.textContent = currentFirstName;
+  }
+  if (profileUsername) {
+    profileUsername.textContent = `${currentUser} (${currentFirstName} ${user.lastName || ""})`;
+  }
+  if (profileRole) {
+    profileRole.textContent = currentRole;
+  }
+  setAdminVisibility(currentRole === "admin");
+}
+
+function refreshAppState(options = {}) {
+  updateCurrentUserProfile();
+  renderEventList();
+  updateCalendarCard();
+  renderPolls();
+  renderEventGallery();
+  renderFacts(Boolean(options.animateFacts));
+  renderSpotifySongs();
+  renderAdminUserList();
+  renderRandomFruefrueQuote();
+  if (activePage === "event") {
+    updateEventPage(getActiveEventForPage(), false);
+  }
+}
+
+function handleRemoteStateChange() {
+  refreshAppState({ animateFacts: activePage === "fakten" });
+}
+
+async function initSupabaseState() {
+  currentProgramView = String(getStoredValue(PROGRAM_VIEW_KEY, "v1") || "v1");
+  if (!hasSupabaseConfig()) {
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+
+  const { data, error } = await supabaseClient.from(SUPABASE_TABLE).select("key,value");
+  if (error) {
+    console.error("Supabase initial load failed", error.message);
+    return;
+  }
+
+  (data || []).forEach((row) => {
+    storageCache[row.key] = row.value;
+    writeLocalValue(row.key, row.value);
+  });
+
+  currentProgramView = String(getStoredValue(PROGRAM_VIEW_KEY, "v1") || "v1");
+
+  supabaseChannel = supabaseClient
+    .channel("fruefrue-state-sync")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: SUPABASE_TABLE },
+      (payload) => {
+        if (payload.eventType === "DELETE") {
+          const deletedKey = payload.old && payload.old.key;
+          if (deletedKey) {
+            removeStoredValue(deletedKey, { skipRemote: true });
+          }
+        } else {
+          const nextKey = payload.new && payload.new.key;
+          if (nextKey) {
+            setStoredValue(nextKey, payload.new.value, { skipRemote: true });
+          }
+        }
+        handleRemoteStateChange();
+      }
+    )
+    .subscribe();
 }
 
 function getRegisteredUsers() {
@@ -462,7 +659,7 @@ function saveFixedNotice(notice) {
 }
 
 function clearFixedNotice() {
-  localStorage.removeItem(FIXED_NOTICE_KEY);
+  removeStoredValue(FIXED_NOTICE_KEY);
 }
 
 function getFruefrueAnswers() {
@@ -490,7 +687,7 @@ function saveSpotifyAuth(auth) {
 }
 
 function clearSpotifyAuth() {
-  localStorage.removeItem(SPOTIFY_AUTH_KEY);
+  removeStoredValue(SPOTIFY_AUTH_KEY);
 }
 
 function getSpotifyRedirectUri() {
@@ -681,7 +878,7 @@ function saveTicketPurchase(ticket) {
 
 function clearTicketPurchase() {
   const key = `${TICKET_STORAGE_KEY}:${currentUser || "anon"}`;
-  localStorage.removeItem(key);
+  removeStoredValue(key);
 }
 
 function hasTicketForEvent(event) {
@@ -732,12 +929,8 @@ function getWeekendTerms(year, monthIndex) {
 }
 
 function loadEvents() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return [];
-  }
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = loadJSON(STORAGE_KEY, []);
     if (!Array.isArray(parsed)) {
       return [];
     }
@@ -758,7 +951,7 @@ function loadEvents() {
 }
 
 function saveEvents(events) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  saveJSON(STORAGE_KEY, events);
 }
 
 function sortEventsByTime(events) {
@@ -2151,9 +2344,9 @@ async function addSpotifyTrackToPlaylist(trackUri) {
 async function startSpotifyAuth() {
   const verifier = randomString(64);
   const state = randomString(24);
-  localStorage.setItem(SPOTIFY_PKCE_VERIFIER_KEY, verifier);
-  localStorage.setItem(SPOTIFY_PKCE_STATE_KEY, state);
-  localStorage.setItem(SPOTIFY_REDIRECT_ROUTE_KEY, activePage || "spotify");
+  setStoredValue(SPOTIFY_PKCE_VERIFIER_KEY, verifier);
+  setStoredValue(SPOTIFY_PKCE_STATE_KEY, state);
+  setStoredValue(SPOTIFY_REDIRECT_ROUTE_KEY, activePage || "spotify");
 
   const challenge = base64UrlEncode(await sha256(verifier));
   const params = new URLSearchParams({
@@ -2179,9 +2372,9 @@ async function handleSpotifyAuthCallback() {
     return;
   }
 
-  const expectedState = localStorage.getItem(SPOTIFY_PKCE_STATE_KEY) || "";
-  const verifier = localStorage.getItem(SPOTIFY_PKCE_VERIFIER_KEY) || "";
-  const route = localStorage.getItem(SPOTIFY_REDIRECT_ROUTE_KEY) || "spotify";
+  const expectedState = String(getStoredValue(SPOTIFY_PKCE_STATE_KEY, "") || "");
+  const verifier = String(getStoredValue(SPOTIFY_PKCE_VERIFIER_KEY, "") || "");
+  const route = String(getStoredValue(SPOTIFY_REDIRECT_ROUTE_KEY, "spotify") || "spotify");
 
   url.searchParams.delete("code");
   url.searchParams.delete("state");
@@ -2218,9 +2411,9 @@ async function handleSpotifyAuthCallback() {
       spotifyAuthStatus.textContent = callbackError.message || "Spotify Login fehlgeschlagen.";
     }
   } finally {
-    localStorage.removeItem(SPOTIFY_PKCE_VERIFIER_KEY);
-    localStorage.removeItem(SPOTIFY_PKCE_STATE_KEY);
-    localStorage.removeItem(SPOTIFY_REDIRECT_ROUTE_KEY);
+    removeStoredValue(SPOTIFY_PKCE_VERIFIER_KEY);
+    removeStoredValue(SPOTIFY_PKCE_STATE_KEY);
+    removeStoredValue(SPOTIFY_REDIRECT_ROUTE_KEY);
     updateSpotifyAuthUi();
   }
 }
@@ -2581,7 +2774,7 @@ function mountPollCreator() {
 function setProgramView(view) {
   const next = ["v1", "v2", "v3"].includes(view) ? view : "v1";
   currentProgramView = next;
-  localStorage.setItem(PROGRAM_VIEW_KEY, next);
+  setStoredValue(PROGRAM_VIEW_KEY, next);
   if (programTimeline) {
     programTimeline.classList.remove("program-view-v1", "program-view-v2", "program-view-v3");
     programTimeline.classList.add(`program-view-${next}`);
@@ -3181,30 +3374,44 @@ if (loginRevealVideo) {
   });
 }
 
-mountMenuLinks();
-normalizeLogos();
-mountEventTypeToggle();
-mountEventForm();
-mountEventDelete();
-mountTicketPurchase();
-mountPlannedVoting();
-mountProgramCreator();
-mountProgramDeletion();
-mountProgramViewSwitch();
-mountCalendarWidget();
-mountReminderActions();
-mountFruefrueAnswerForm();
-mountSpotifySongForm();
-mountAdminUserActions();
-mountLogout();
-mountEventUploads();
-mountPollCreator();
-mountPollDeletion();
-mountArchiveViewer();
-mountArchiveCarousel();
-renderEventGallery();
-renderPolls();
-renderFacts(false);
-renderSpotifySongs();
-resetLoginVideoState();
-startLoginVideoLoop();
+window.addEventListener("storage", (event) => {
+  if (!event.key) {
+    return;
+  }
+  delete storageCache[event.key];
+  handleRemoteStateChange();
+});
+
+async function initializeApp() {
+  await initSupabaseState();
+  mountMenuLinks();
+  normalizeLogos();
+  mountEventTypeToggle();
+  mountEventForm();
+  mountEventDelete();
+  mountTicketPurchase();
+  mountPlannedVoting();
+  mountProgramCreator();
+  mountProgramDeletion();
+  mountProgramViewSwitch();
+  mountCalendarWidget();
+  mountReminderActions();
+  mountFruefrueAnswerForm();
+  mountSpotifySongForm();
+  mountAdminUserActions();
+  mountLogout();
+  mountEventUploads();
+  mountPollCreator();
+  mountPollDeletion();
+  mountArchiveViewer();
+  mountArchiveCarousel();
+  refreshAppState();
+  resetLoginVideoState();
+  startLoginVideoLoop();
+}
+
+initializeApp().catch((error) => {
+  console.error("FrueFrue initialization failed", error);
+  resetLoginVideoState();
+  startLoginVideoLoop();
+});
