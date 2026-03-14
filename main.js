@@ -256,6 +256,8 @@ const DELETED_USERS_KEY = "fruefrue-deleted-users-v1";
 const FIXED_NOTICE_KEY = "fruefrue-fixed-notice-v1";
 const FRUEFRUE_ANSWERS_KEY = "fruefrue-answers-v1";
 const SPOTIFY_SONGS_KEY = "fruefrue-spotify-songs-v1";
+const SESSION_STORAGE_KEY = "fruefrue-session-v1";
+const LAST_ROUTE_STORAGE_KEY = "fruefrue-last-route-v1";
 const SPOTIFY_AUTH_KEY = "fruefrue-spotify-auth-v1";
 const SPOTIFY_PKCE_VERIFIER_KEY = "fruefrue-spotify-pkce-verifier-v1";
 const SPOTIFY_PKCE_STATE_KEY = "fruefrue-spotify-pkce-state-v1";
@@ -269,6 +271,7 @@ const LOGIN_LOOP_CONTINUE_END = 5;
 const LOGIN_REVEAL_START = 0.75;
 const LOGIN_REVEAL_END = 7;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
+const SESSION_MAX_AGE_MS = 60 * 60 * 1000;
 const SUPABASE_SETTINGS =
   window.FRUEFRUE_CONFIG && window.FRUEFRUE_CONFIG.supabase ? window.FRUEFRUE_CONFIG.supabase : {};
 const SUPABASE_URL = SUPABASE_SETTINGS.url || "";
@@ -464,6 +467,74 @@ function loadJSON(key, fallback) {
 
 function saveJSON(key, value) {
   setStoredValue(key, value);
+}
+
+function getSessionData() {
+  return loadJSON(SESSION_STORAGE_KEY, null);
+}
+
+function saveSessionData(username) {
+  saveJSON(SESSION_STORAGE_KEY, {
+    username,
+    lastLoginAt: Date.now()
+  });
+}
+
+function clearSessionData() {
+  removeStoredValue(SESSION_STORAGE_KEY);
+}
+
+function getLastRoute() {
+  return String(loadJSON(LAST_ROUTE_STORAGE_KEY, "home") || "home");
+}
+
+function saveLastRoute(route) {
+  saveJSON(LAST_ROUTE_STORAGE_KEY, route || "home");
+}
+
+function getValidSessionUser() {
+  const session = getSessionData();
+  if (!session || !session.username || !session.lastLoginAt) {
+    return null;
+  }
+  if (Date.now() - Number(session.lastLoginAt) > SESSION_MAX_AGE_MS) {
+    clearSessionData();
+    return null;
+  }
+  const user = getAllUsers()[String(session.username).toLowerCase()];
+  if (!user) {
+    clearSessionData();
+    return null;
+  }
+  return { ...user, username: String(session.username).toLowerCase() };
+}
+
+function applyAuthenticatedUser(user, options = {}) {
+  if (!user || !appShell || !loginScreen) {
+    return;
+  }
+  currentUser = user.username;
+  currentRole = user.role;
+  currentFirstName = user.firstName || user.username;
+  if (welcomeUser) {
+    welcomeUser.textContent = currentFirstName;
+  }
+  if (profileUsername) {
+    profileUsername.textContent = `${user.username} (${currentFirstName} ${user.lastName || ""})`;
+  }
+  if (profileRole) {
+    profileRole.textContent = currentRole;
+  }
+  setAdminVisibility(currentRole === "admin");
+  appShell.classList.remove("hidden");
+  if (options.skipAnimation) {
+    document.body.classList.remove("logging-in");
+    document.body.classList.add("logged-in");
+    loginScreen.classList.add("hidden");
+  }
+  if (options.persist !== false) {
+    saveSessionData(user.username);
+  }
 }
 
 function updateCurrentUserProfile() {
@@ -2561,6 +2632,7 @@ function mountLogout() {
     currentUser = "";
     currentRole = "";
     currentFirstName = "";
+    clearSessionData();
     document.body.classList.remove("logged-in", "logging-in", "is-admin", "has-ticket");
     loginScreen.classList.remove("hidden");
     appShell.classList.add("hidden");
@@ -2834,6 +2906,7 @@ function mountArchiveCarousel() {
 function setPage(route) {
   const nextRoute = route || "home";
   activePage = nextRoute;
+  saveLastRoute(nextRoute);
 
   document.querySelectorAll(".page").forEach((page) => {
     page.classList.toggle("active", page.id === `page-${nextRoute}`);
@@ -3159,20 +3232,7 @@ function handleLogin() {
     if (registerStatus) {
       registerStatus.textContent = "";
     }
-    appShell.classList.remove("hidden");
-    currentUser = user.username;
-    currentRole = user.role;
-    currentFirstName = user.firstName || user.username;
-    if (welcomeUser) {
-      welcomeUser.textContent = currentFirstName;
-    }
-    if (profileUsername) {
-      profileUsername.textContent = `${user.username} (${currentFirstName} ${user.lastName || ""})`;
-    }
-    if (profileRole) {
-      profileRole.textContent = currentRole;
-    }
-    setAdminVisibility(currentRole === "admin");
+    applyAuthenticatedUser(user);
     renderAdminUserList();
     // Requested temporary behavior: clear ticket status on each fresh login.
     clearTicketPurchase();
@@ -3310,9 +3370,18 @@ async function initializeApp() {
   mountPollDeletion();
   mountArchiveViewer();
   mountArchiveCarousel();
-  refreshAppState();
-  resetLoginVideoState();
-  startLoginVideoLoop();
+  const sessionUser = getValidSessionUser();
+  if (sessionUser) {
+    applyAuthenticatedUser(sessionUser, { skipAnimation: true, persist: false });
+    refreshAppState();
+    startEventFilm();
+    startFruefrueQuoteRotation();
+    setPage(getLastRoute());
+  } else {
+    refreshAppState();
+    resetLoginVideoState();
+    startLoginVideoLoop();
+  }
 }
 
 initializeApp().catch((error) => {
