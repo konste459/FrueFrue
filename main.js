@@ -2301,11 +2301,7 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     minute: "2-digit"
   })}`;
 
-  if (showBoughtMessage) {
-    eventInfoText.textContent = `Du hast dir ein Ticket gekauft fuer ${nextEvent.title}. Eventstart: ${when}. Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.`;
-  } else {
-    eventInfoText.textContent = `Eventstart: ${when}. Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.`;
-  }
+  eventInfoText.textContent = `Eventstart: ${when}. Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.`;
   const price = typeof nextEvent.price === "number" ? nextEvent.price : 7;
   if (eventPaypalBox && eventPaypalBtn && eventPaypalInfo) {
     const dismissMap = getDismissedEventPaypalMap();
@@ -2394,17 +2390,14 @@ function mountTicketPurchase() {
       boughtAt: new Date().toISOString()
     });
     updateTicketReminder();
-    updateEventPage(next, true);
+    updateEventPage(next, false);
     if (ticketSuccessText) {
       ticketSuccessText.textContent = `Du hast dir ein Ticket gekauft fuer das Event "${next.title}".`;
     }
     if (ticketStatus) {
       ticketStatus.textContent = `Ticket reserviert fuer ${formatEuro(price)}. Bitte per PayPal Freunde & Familie an konstantinleonard@icloud.de zahlen.`;
     }
-    setPage("ticket-success");
-    window.setTimeout(() => {
-      setPage("event");
-    }, 1600);
+    setPage("event");
   });
 }
 
@@ -3573,7 +3566,8 @@ function mountArchiveCarousel() {
 }
 
 function setPage(route) {
-  const nextRoute = route || "home";
+  const rawRoute = route || "home";
+  const nextRoute = rawRoute === "ticket" || rawRoute === "ticket-success" ? "event" : rawRoute;
   activePage = nextRoute;
   saveLastRoute(nextRoute);
 
