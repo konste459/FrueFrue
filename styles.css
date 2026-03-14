@@ -1798,6 +1798,7 @@ main {
 .digital-card-page {
   display: grid;
   place-items: center;
+  margin-top: 16px;
 }
 
 .digital-card {
@@ -1807,8 +1808,11 @@ main {
   padding: 28px 24px 24px;
   border-radius: 34px;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 28%),
-    linear-gradient(160deg, rgba(255, 250, 242, 0.98), rgba(238, 245, 255, 0.96));
+    linear-gradient(160deg, rgba(255, 255, 255, 0.82), rgba(238, 245, 255, 0.8)),
+    url("assets/backgrounds/visitenkartenback.png");
+  background-size: cover, cover;
+  background-position: center center, center center;
+  background-repeat: no-repeat, no-repeat;
   border: 1px solid rgba(31, 111, 229, 0.16);
   box-shadow: 0 28px 62px rgba(31, 111, 229, 0.14);
   text-align: center;
