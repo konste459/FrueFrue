@@ -24,15 +24,6 @@
     const useMemo = React.useMemo;
     const useState = React.useState;
 
-    const ICON_MAP = {
-      coffee: "☕",
-      music: "♪",
-      camera: "◉",
-      spark: "✦",
-      plate: "◌",
-      sun: "☼"
-    };
-
     function flattenTreeLevels(levels) {
       return (levels || []).reduce(function (acc, level) {
         return acc.concat(level.nodes || []);
@@ -46,7 +37,6 @@
       const isAdmin = props.isAdmin;
       const eventId = props.eventId;
       const isMobile = props.isMobile;
-      const icon = ICON_MAP[node.icon] || ICON_MAP.sun;
       const inactiveSize = isMobile ? 110 : 132;
       const activeSize = isMobile ? 156 : 184;
       const showTopConnector = props.showTopConnector;
@@ -85,22 +75,17 @@
               paddingLeft: active ? (isMobile ? 10 : 13) : (isMobile ? 8 : 10)
             }}
             transition=${{ duration: 0.28, ease: "easeOut" }}
-            className="relative flex flex-col items-center justify-start overflow-hidden rounded-full border border-[#4c84df] bg-[#3f77d3] text-center shadow-[0_22px_46px_rgba(31,111,229,0.22)]"
+            className="relative flex flex-col items-center justify-center overflow-hidden rounded-full border-[3px] border-[#4c84df] bg-[#3f77d3] text-center shadow-[0_22px_46px_rgba(31,111,229,0.22)]"
             style=${{ minWidth: inactiveSize + "px", minHeight: inactiveSize + "px" }}
           >
-            <div className="absolute inset-[9%] rounded-full border border-white/18"></div>
-            <div className="absolute inset-[16%] rounded-full border border-white/10"></div>
-            <div className="relative z-10 flex h-full w-full flex-col items-center justify-between" style=${{ color: "#ffffff" }}>
-              <div className="flex w-full items-center justify-center gap-2 text-white" style=${{ color: "#ffffff" }}>
-                <span className=${isMobile ? "text-[0.86rem]" : "text-[0.95rem]"}>${icon}</span>
-              </div>
-              <div className="px-2" style=${{ color: "#ffffff" }}>
+            <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 px-3" style=${{ color: "#ffffff" }}>
+              <div className="px-1" style=${{ color: "#ffffff" }}>
                 <h5 className=${"font-semibold leading-tight text-white " + (active ? (isMobile ? "text-[0.8rem]" : "text-[0.92rem]") : (isMobile ? "text-[0.72rem]" : "text-[0.82rem]"))}>${node.title}</h5>
                 ${active
                   ? html`<p className=${"mt-1.5 text-white " + (isMobile ? "text-[0.62rem] leading-3.5" : "text-[0.7rem] leading-4")}>${node.description}</p>`
                   : null}
               </div>
-              <div className="flex min-h-[22px] items-center justify-center">
+              <div className="flex min-h-[18px] items-center justify-center">
                 ${active && isAdmin && node.deletable
                   ? html`
                       <button
