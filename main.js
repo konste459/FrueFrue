@@ -1539,7 +1539,7 @@ function renderProgramTimeline(eventData) {
   }
   if (programInspectorDescription) {
     programInspectorDescription.textContent =
-      "Die drei Versionen zeigen denselben Ablauf in unterschiedlichen Tree-Layouts.";
+      "Jede Ansicht ist jetzt wirklich ein anderer Look und nicht nur dieselbe Timeline mit anderer Rundung.";
   }
   if (!eventData) {
     const empty = document.createElement("p");
@@ -1598,64 +1598,113 @@ function renderProgramTimeline(eventData) {
     });
   };
 
-  orderedSlots.forEach(([slot, group], slotIndex) => {
-    const branch = document.createElement("section");
-    branch.className = "program-branch";
+  const createBlob = (item, extraClass = "") => {
+    const stack = document.createElement("div");
+    stack.className = "program-blob-stack";
 
-    const row = document.createElement("div");
-    row.className = "program-row";
-    const slotNode = document.createElement("div");
-    slotNode.className = "program-slot";
-    slotNode.textContent = slot;
-    row.appendChild(slotNode);
+    const blob = document.createElement("button");
+    blob.type = "button";
+    blob.className = `program-blob ${extraClass}`.trim();
+    blob.dataset.programId = item.id;
+    blob.innerHTML = `<span class="program-blob-title">${item.title}</span><span class="program-blob-lane">${
+      item.slot || "Open Flow"
+    } · Spur ${item.lane || 1}</span>`;
+    blob.addEventListener("click", () => updateInspector(item));
+    stack.appendChild(blob);
 
-    const laneWrap = document.createElement("div");
-    laneWrap.className = "program-lanes";
-    const branchNode = document.createElement("div");
-    branchNode.className = "program-branch-node";
-
-    group.items
-      .sort((a, b) => (a.lane || 1) - (b.lane || 1))
-      .forEach((item) => {
-        const stack = document.createElement("div");
-        stack.className = "program-blob-stack";
-
-        const blob = document.createElement("button");
-        blob.type = "button";
-        blob.className = "program-blob";
-        blob.dataset.programId = item.id;
-        blob.innerHTML = `<span class="program-blob-title">${item.title}</span><span class="program-blob-lane">Spur ${
-          item.lane || 1
-        }</span>`;
-
-        blob.addEventListener("click", () => {
-          updateInspector(item);
-        });
-
-        stack.appendChild(blob);
-
-        if (currentRole === "admin") {
-          const deleteBtn = document.createElement("button");
-          deleteBtn.type = "button";
-          deleteBtn.className = "program-delete-btn";
-          deleteBtn.dataset.programId = item.id;
-          deleteBtn.dataset.eventId = eventId;
-          deleteBtn.textContent = "Loeschen";
-          stack.appendChild(deleteBtn);
-        }
-
-        branchNode.appendChild(stack);
-      });
-    laneWrap.appendChild(branchNode);
-    row.appendChild(laneWrap);
-    branch.appendChild(row);
-
-    if (slotIndex < orderedSlots.length - 1) {
-      branch.classList.add("with-connector");
+    if (currentRole === "admin") {
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "program-delete-btn";
+      deleteBtn.dataset.programId = item.id;
+      deleteBtn.dataset.eventId = eventId;
+      deleteBtn.textContent = "Loeschen";
+      stack.appendChild(deleteBtn);
     }
 
-    programTimeline.appendChild(branch);
-  });
+    return stack;
+  };
+
+  if (currentProgramView === "v1") {
+    orderedSlots.forEach(([slot, group], slotIndex) => {
+      const section = document.createElement("section");
+      section.className = "program-editorial-step";
+      if (slotIndex < orderedSlots.length - 1) {
+        section.classList.add("with-connector");
+      }
+
+      const marker = document.createElement("div");
+      marker.className = "program-step-marker";
+      marker.innerHTML = `<span class="program-step-count">${String(slotIndex + 1).padStart(2, "0")}</span><span class="program-step-label">${slot}</span>`;
+      section.appendChild(marker);
+
+      const grid = document.createElement("div");
+      grid.className = "program-editorial-grid";
+      group.items
+        .sort((a, b) => (a.lane || 1) - (b.lane || 1))
+        .forEach((item, index) => {
+          grid.appendChild(createBlob(item, index % 2 === 0 ? "program-blob-editorial" : "program-blob-editorial-alt"));
+        });
+      section.appendChild(grid);
+      programTimeline.appendChild(section);
+    });
+  } else if (currentProgramView === "v2") {
+    const lanes = [1, 2, 3];
+    const metro = document.createElement("div");
+    metro.className = "program-metro-board";
+
+    lanes.forEach((lane) => {
+      const laneColumn = document.createElement("section");
+      laneColumn.className = "program-metro-lane";
+      laneColumn.innerHTML = `<div class="program-metro-head">Spur ${lane}</div>`;
+
+      orderedSlots.forEach(([slot, group]) => {
+        const laneItems = group.items.filter((item) => Number(item.lane || 1) === lane);
+        const stop = document.createElement("div");
+        stop.className = "program-metro-stop";
+        stop.innerHTML = `<div class="program-metro-slot">${slot}</div>`;
+        if (laneItems.length) {
+          laneItems.forEach((item) => {
+            stop.appendChild(createBlob(item, "program-blob-metro"));
+          });
+        } else {
+          const ghost = document.createElement("div");
+          ghost.className = "program-metro-ghost";
+          ghost.textContent = "keine Session";
+          stop.appendChild(ghost);
+        }
+        laneColumn.appendChild(stop);
+      });
+
+      metro.appendChild(laneColumn);
+    });
+
+    programTimeline.appendChild(metro);
+  } else {
+    const posterWall = document.createElement("div");
+    posterWall.className = "program-poster-wall";
+
+    orderedSlots.forEach(([slot, group], slotIndex) => {
+      const cluster = document.createElement("section");
+      cluster.className = "program-poster-cluster";
+      cluster.innerHTML = `<div class="program-poster-head"><span class="program-poster-kicker">Cluster ${String(
+        slotIndex + 1
+      ).padStart(2, "0")}</span><h5>${slot}</h5></div>`;
+
+      const body = document.createElement("div");
+      body.className = "program-poster-body";
+      group.items
+        .sort((a, b) => (a.lane || 1) - (b.lane || 1))
+        .forEach((item, index) => {
+          const styleClass = ["program-blob-poster-a", "program-blob-poster-b", "program-blob-poster-c"][index % 3];
+          body.appendChild(createBlob(item, styleClass));
+        });
+      cluster.appendChild(body);
+      posterWall.appendChild(cluster);
+    });
+
+    programTimeline.appendChild(posterWall);
+  }
 
   updateInspector(items.find((item) => item.id === activeProgramId) || items[0]);
 }

@@ -1518,6 +1518,246 @@ main {
   left: 18px;
 }
 
+.program-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+}
+
+.program-timeline {
+  min-height: 220px;
+}
+
+.program-blob-stack::before,
+.program-branch.with-connector::after,
+.program-branch-node::before,
+.program-branch-node::after {
+  display: none;
+}
+
+.program-view-v1 {
+  gap: 22px;
+}
+
+.program-editorial-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 124px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.program-editorial-step.with-connector::after {
+  content: "";
+  position: absolute;
+  left: 60px;
+  top: calc(100% + 4px);
+  width: 2px;
+  height: 26px;
+  background: linear-gradient(180deg, rgba(31, 111, 229, 0.34), rgba(31, 111, 229, 0));
+}
+
+.program-step-marker {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 6px;
+  padding: 18px 12px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #164c9b, #3c83ea);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 18px 34px rgba(18, 75, 154, 0.22);
+}
+
+.program-step-count {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.program-step-label {
+  font-family: "Marker Felt", "Bradley Hand", "Snell Roundhand", "Avenir Next", cursive;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.program-editorial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.program-blob-editorial,
+.program-blob-editorial-alt {
+  min-height: 118px;
+  border-radius: 26px;
+  padding: 18px 18px 16px;
+}
+
+.program-blob-editorial {
+  background: linear-gradient(155deg, #fff2de, #fffefc 46%, #dcecff);
+}
+
+.program-blob-editorial-alt {
+  background: linear-gradient(155deg, #edf7ff, #fffefc 42%, #ffe9cf);
+}
+
+.program-view-v2 .program-metro-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.program-metro-lane {
+  position: relative;
+  padding: 18px 14px 12px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(12, 58, 129, 0.96), rgba(37, 103, 198, 0.92));
+  color: #fff;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(20, 73, 149, 0.18);
+}
+
+.program-metro-lane::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 54px;
+  bottom: 18px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe6a8, #ffd074);
+}
+
+.program-metro-head {
+  margin-bottom: 16px;
+  padding-left: 24px;
+  font-family: "Marker Felt", "Bradley Hand", "Snell Roundhand", "Avenir Next", cursive;
+  font-size: 1rem;
+}
+
+.program-metro-stop {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 0 0 14px 40px;
+}
+
+.program-metro-stop::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff3d1;
+  box-shadow: 0 0 0 5px rgba(255, 233, 182, 0.22);
+}
+
+.program-metro-slot {
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.program-blob-metro {
+  background: linear-gradient(145deg, #fdf7eb, #ffffff);
+  color: #0e428d;
+  border-radius: 22px;
+  min-width: 0;
+}
+
+.program-metro-ghost {
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.56);
+  font-weight: 700;
+}
+
+.program-view-v3 .program-poster-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.program-poster-cluster {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.78), transparent 24%),
+    linear-gradient(165deg, #fff8ee, #eef6ff 54%, #ffe8d2);
+  box-shadow: 0 20px 36px rgba(31, 111, 229, 0.1);
+  border: 1px solid rgba(31, 111, 229, 0.12);
+}
+
+.program-poster-head {
+  display: grid;
+  gap: 6px;
+}
+
+.program-poster-head h5 {
+  margin: 0;
+  font-size: 1.12rem;
+  color: #104892;
+}
+
+.program-poster-kicker {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: #0f4ea7;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.program-poster-body {
+  display: grid;
+  gap: 12px;
+}
+
+.program-blob-poster-a,
+.program-blob-poster-b,
+.program-blob-poster-c {
+  min-width: 0;
+  text-align: center;
+  justify-items: center;
+}
+
+.program-blob-poster-a {
+  background: linear-gradient(145deg, #fff4d9, #fffdf8);
+  border-radius: 34px 22px 30px 18px;
+}
+
+.program-blob-poster-b {
+  background: linear-gradient(145deg, #eaf4ff, #fffdf8);
+  border-radius: 18px 34px 22px 28px;
+}
+
+.program-blob-poster-c {
+  background: linear-gradient(145deg, #ffe8d8, #fffdf8);
+  border-radius: 28px 20px 36px 24px;
+}
+
+.program-inspector {
+  background:
+    radial-gradient(circle at 84% 14%, rgba(255, 255, 255, 0.76), transparent 22%),
+    linear-gradient(160deg, rgba(255, 248, 239, 0.98), rgba(235, 244, 255, 0.96));
+  border-radius: 28px;
+}
+
 .digital-card-page {
   display: grid;
   place-items: center;
@@ -1860,6 +2100,27 @@ main {
   .program-layout,
   .facts-gender-wrap,
   .facts-diet-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .program-editorial-step {
+    grid-template-columns: 1fr;
+  }
+
+  .program-editorial-step.with-connector::after {
+    display: none;
+  }
+
+  .program-step-marker {
+    position: relative;
+    top: 0;
+  }
+
+  .program-view-v2 .program-metro-board {
+    grid-template-columns: 1fr;
+  }
+
+  .program-view-v3 .program-poster-wall {
     grid-template-columns: 1fr;
   }
 
