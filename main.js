@@ -159,6 +159,7 @@ const ticketDateTime = document.getElementById("ticketDateTime");
 const ticketDescription = document.getElementById("ticketDescription");
 const buyTicketBtn = document.getElementById("buyTicketBtn");
 const ticketStatus = document.getElementById("ticketStatus");
+const openPaypalBtn = document.getElementById("openPaypalBtn");
 const copyPaypalBtn = document.getElementById("copyPaypalBtn");
 const regularTicketFlow = document.getElementById("regularTicketFlow");
 const plannedTicketFlow = document.getElementById("plannedTicketFlow");
@@ -277,6 +278,7 @@ const SPOTIFY_PLAYLIST_ID = "1ZMxyXU9lfbgHl8x9vv4uE";
 const SPOTIFY_PLAYLIST_URL =
   "https://open.spotify.com/playlist/1ZMxyXU9lfbgHl8x9vv4uE?si=99a80bd12c0c46cd&pt=20a83edc59fd41cffb8f517c39114d32";
 const WEBSITE_URL = "https://konste459.github.io/FrueFrue/";
+const PAYPAL_ME_BASE = "https://www.paypal.me/KonstantinM2001";
 const LOGIN_LOOP_CONTINUE_END = 5;
 const LOGIN_REVEAL_START = 0.75;
 const LOGIN_REVEAL_END = 5;
@@ -1370,6 +1372,9 @@ function updateTicketView(event) {
     ticketDescription.textContent = "Lege als Admin ein Event an, um Tickets freizuschalten.";
     buyTicketBtn.textContent = `Ticket holen fuer ${formatEuro(7)}`;
     buyTicketBtn.disabled = true;
+    if (openPaypalBtn) {
+      openPaypalBtn.href = `${PAYPAL_ME_BASE}/7`;
+    }
     if (ticketStatus) {
       ticketStatus.textContent = "";
     }
@@ -1406,6 +1411,9 @@ function updateTicketView(event) {
   ticketDescription.textContent = event.description;
   buyTicketBtn.textContent = `Ticket holen fuer ${formatEuro(price)}`;
   buyTicketBtn.disabled = false;
+  if (openPaypalBtn) {
+    openPaypalBtn.href = `${PAYPAL_ME_BASE}/${String(price).replace(",", ".")}`;
+  }
   if (ticketStatus) {
     ticketStatus.textContent = "";
   }
