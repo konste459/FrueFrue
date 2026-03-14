@@ -2081,18 +2081,18 @@ main {
 }
 
 .archive-panel-left .archive-plate-single {
-  left: 39.1%;
-  top: 37.8%;
+  left: 45.7%;
+  top: 47.2%;
 }
 
 .archive-panel-middle .archive-plate-single {
-  left: 32.6%;
-  top: 37.8%;
+  left: 45.7%;
+  top: 50.4%;
 }
 
 .archive-panel-right .archive-plate-single {
-  left: 52.2%;
-  top: 25.2%;
+  left: 39.1%;
+  top: 44.1%;
 }
 
 .archive-play {
@@ -2254,21 +2254,6 @@ main {
   .archive-plate {
     width: clamp(122px, 31vw, 150px);
     min-height: clamp(100px, 24vw, 120px);
-  }
-
-  .archive-panel-left .archive-plate-single {
-    left: 39.1%;
-    top: 37.8%;
-  }
-
-  .archive-panel-middle .archive-plate-single {
-    left: 32.6%;
-    top: 37.8%;
-  }
-
-  .archive-panel-right .archive-plate-single {
-    left: 52.2%;
-    top: 25.2%;
   }
 
   .archive-play {
