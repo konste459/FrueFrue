@@ -7,7 +7,7 @@
       return;
     }
     debugEl.classList.remove("hidden");
-    debugEl.textContent = details ? `${message}\n${details}` : message;
+    debugEl.textContent = details ? message + "\n" + details : message;
   }
 
   try {
@@ -24,7 +24,9 @@
     const html = window.htm.bind(React.createElement);
     const motion = motionLib.motion;
     const AnimatePresence = motionLib.AnimatePresence;
-    const { useEffect, useMemo, useState } = React;
+    const useEffect = React.useEffect;
+    const useMemo = React.useMemo;
+    const useState = React.useState;
 
     const ICON_MAP = {
       coffee: "☕",
@@ -35,147 +37,314 @@
       sun: "☼"
     };
 
+    const VARIANTS = {
+      orbit: {
+        label: "Orbit Spine",
+        copy: "Vertikale Kreisachse mit grossen Stops links und rechts."
+      },
+      cluster: {
+        label: "Cluster Grid",
+        copy: "Gruppierte Kreisfelder fuer parallele Momente und Stages."
+      },
+      ribbon: {
+        label: "Side Ribbon",
+        copy: "Frontale Seitenbewegung mit klar verbundenen Kreisstationen."
+      },
+      scatter: {
+        label: "Scatter Field",
+        copy: "Freieres Feld aus blauen Kreisen mit editorialem Detailpanel."
+      }
+    };
+
     function groupByTime(items) {
       const grouped = new Map();
       items
         .slice()
-        .sort((a, b) => {
+        .sort(function (a, b) {
           if (a.order !== b.order) return a.order - b.order;
           return a.lane - b.lane;
         })
-        .forEach((item) => {
+        .forEach(function (item) {
           const key = item.time || "Open Flow";
           if (!grouped.has(key)) {
             grouped.set(key, []);
           }
           grouped.get(key).push(item);
         });
-      return Array.from(grouped.entries()).map(([time, entries], index) => ({
-        id: `${time}-${index}`,
-        time,
-        entries
-      }));
+      return Array.from(grouped.entries()).map(function (entry, index) {
+        return {
+          id: entry[0] + "-" + index,
+          time: entry[0],
+          entries: entry[1]
+        };
+      });
     }
 
-    function GlassCard({ children, className = "" }) {
-      return html`<div className=${`rounded-[28px] border border-white/45 bg-white/45 shadow-brunch backdrop-blur-xl ${className}`}>${children}</div>`;
+    function groupByLane(items) {
+      const grouped = new Map();
+      items.forEach(function (item) {
+        const key = String(item.lane || 1);
+        if (!grouped.has(key)) {
+          grouped.set(key, []);
+        }
+        grouped.get(key).push(item);
+      });
+      return Array.from(grouped.entries()).map(function (entry) {
+        return {
+          lane: entry[0],
+          entries: entry[1].slice().sort(function (a, b) {
+            if (a.order !== b.order) return a.order - b.order;
+            return a.lane - b.lane;
+          })
+        };
+      });
     }
 
-    function Badge({ children, className = "" }) {
-      return html`<span className=${`inline-flex items-center rounded-full border border-frue-200/70 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-frue-700 ${className}`}>${children}</span>`;
-    }
+    function CircleNode(props) {
+      const item = props.item;
+      const active = props.active;
+      const onToggle = props.onToggle;
+      const isAdmin = props.isAdmin;
+      const eventId = props.eventId;
+      const size = props.size || "md";
+      const icon = ICON_MAP[item.icon] || ICON_MAP.sun;
+      const sizeClass = size === "lg" ? "w-72 h-72 p-7" : size === "sm" ? "w-48 h-48 p-5" : "w-60 h-60 p-6";
 
-    function IconBubble({ icon }) {
-      return html`<div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/60 bg-gradient-to-br from-white/80 to-frue-100/80 text-xl text-frue-700 shadow-[0_10px_24px_rgba(41,90,181,0.12)]">${ICON_MAP[icon] || ICON_MAP.sun}</div>`;
-    }
-
-    function TimelineNode({ item, active, onToggle, isAdmin, eventId, index }) {
       return html`
-        <${motion.article}
-          initial=${{ opacity: 0, y: 24, scale: 0.96 }}
+        <${motion.button}
+          type="button"
+          onClick=${onToggle}
+          initial=${{ opacity: 0, y: 18, scale: 0.96 }}
           whileInView=${{ opacity: 1, y: 0, scale: 1 }}
-          viewport=${{ once: true, amount: 0.22 }}
-          transition=${{ duration: 0.45, delay: index * 0.05 }}
-          whileHover=${{ y: -3, scale: 1.01 }}
-          className="relative"
+          viewport=${{ once: true, amount: 0.25 }}
+          whileHover=${{ y: -6, scale: 1.03 }}
+          whileTap=${{ scale: 0.99 }}
+          className=${
+            "relative overflow-hidden rounded-full border text-left shadow-[0_22px_70px_rgba(40,95,190,0.16)] transition-all duration-300 " +
+            sizeClass +
+            " " +
+            (active
+              ? "border-frue-300 bg-[radial-gradient(circle_at_28%_22%,rgba(255,255,255,0.99),rgba(220,236,255,0.97)_42%,rgba(95,152,242,0.94)_100%)] shadow-[0_28px_90px_rgba(45,98,191,0.24)]"
+              : "border-frue-200 bg-[radial-gradient(circle_at_28%_22%,rgba(255,255,255,0.99),rgba(235,244,255,0.97)_44%,rgba(138,185,255,0.93)_100%)]")
+          }
         >
-          <button type="button" onClick=${onToggle} className=${`group w-full text-left transition-all duration-300 ${active ? "scale-[1.01]" : ""}`}>
-            <${GlassCard}
-              className=${`relative overflow-hidden p-4 md:p-5 ${
-                active ? "border-frue-300/90 bg-white/60 ring-1 ring-frue-200/70" : "border-white/45 bg-white/45 hover:bg-white/55"
-              }`}
-            >
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-frue-300/70 to-transparent"></div>
-              <div className="flex items-start gap-4">
-                <${IconBubble} icon=${item.icon} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <${Badge}>${item.time}<//>
-                    <${Badge} className="bg-frue-50/80 text-frue-600">Track ${item.lane}<//>
-                  </div>
-                  <h5 className="mt-3 text-lg font-semibold leading-tight text-frue-900 md:text-[1.15rem]">${item.title}</h5>
-                  <p className="mt-2 text-sm leading-6 text-slate-600 md:text-[15px]">${item.description}</p>
-                </div>
+          <div className="absolute inset-[8%] rounded-full border border-white/60"></div>
+          <div className="absolute inset-[15%] rounded-full border border-frue-100/80"></div>
+          <div className="relative z-10 flex h-full flex-col justify-between gap-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-frue-500">${item.time}</p>
+                <h5 className="mt-3 max-w-[9rem] text-lg font-semibold leading-tight text-frue-900">${item.title}</h5>
               </div>
-
-              <${AnimatePresence} initial=${false}>
-                ${active
-                  ? html`
-                      <${motion.div}
-                        initial=${{ opacity: 0, height: 0, marginTop: 0 }}
-                        animate=${{ opacity: 1, height: "auto", marginTop: 16 }}
-                        exit=${{ opacity: 0, height: 0, marginTop: 0 }}
-                        transition=${{ duration: 0.28, ease: "easeOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="rounded-[22px] border border-frue-100/80 bg-white/65 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-frue-500">Event Detail</p>
-                            <span className="text-xs font-medium text-slate-500">tap again to close</span>
-                          </div>
-                          <p className="mt-3 text-[15px] leading-7 text-slate-700">${item.description}</p>
-                          ${isAdmin
-                            ? html`
-                                <div className="mt-4 flex flex-wrap gap-2">
-                                  <button
-                                    type="button"
-                                    className="program-delete-btn rounded-full px-4 py-2 text-sm"
-                                    data-program-id=${item.id}
-                                    data-event-id=${eventId}
-                                  >
-                                    Loeschen
-                                  </button>
-                                </div>
-                              `
-                            : null}
-                        </div>
-                      <//>
-                    `
-                  : null}
-              <//>
-            <//>
-          </button>
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/75 text-lg text-frue-700 shadow-[0_8px_24px_rgba(31,111,229,0.12)]">${icon}</span>
+            </div>
+            <p className="line-clamp-4 text-sm leading-6 text-frue-800/80">${item.description}</p>
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-frue-700">● ${item.time}</span>
+              <span className="rounded-full border border-frue-100 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-frue-600">Track ${item.lane}</span>
+            </div>
+          </div>
+          <${AnimatePresence} initial=${false}>
+            ${active
+              ? html`
+                  <${motion.div}
+                    initial=${{ opacity: 0 }}
+                    animate=${{ opacity: 1 }}
+                    exit=${{ opacity: 0 }}
+                    className="absolute inset-0 z-20 flex items-end bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(12,57,129,0.08))] p-5"
+                  >
+                    <div className="w-full rounded-[26px] border border-white/45 bg-white/68 p-4 shadow-[0_16px_30px_rgba(18,75,154,0.12)] backdrop-blur-md">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-frue-500">Open Detail</p>
+                      <p className="mt-2 text-sm leading-6 text-frue-800/85">${item.description}</p>
+                      ${isAdmin
+                        ? html`
+                            <div className="mt-3 flex justify-end">
+                              <button
+                                type="button"
+                                className="program-delete-btn rounded-full px-4 py-2 text-sm"
+                                data-program-id=${item.id}
+                                data-event-id=${eventId}
+                              >
+                                Loeschen
+                              </button>
+                            </div>
+                          `
+                        : null}
+                    </div>
+                  <//>`
+              : null}
+          <//>
         <//>
       `;
     }
 
-    function TimelineSection({ section, index, activeId, setActiveId, isAdmin, eventId }) {
+    function DetailPanel(props) {
+      const item = props.item;
+      if (!item) return null;
       return html`
-        <section className="relative grid gap-5 md:grid-cols-[112px_minmax(0,1fr)] md:gap-8">
-          <div className="relative md:sticky md:top-24 md:self-start">
-            <div className="hidden md:block absolute left-[54px] top-16 bottom-[-34px] w-px bg-gradient-to-b from-frue-200/90 via-frue-200/60 to-transparent"></div>
-            <${GlassCard} className="px-4 py-4 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-frue-500">moment</p>
-              <p className="mt-2 font-['Marker_Felt','Bradley_Hand','Avenir_Next',cursive] text-xl leading-tight text-frue-800">${section.time}</p>
-            <//>
+        <${motion.div}
+          key=${item.id}
+          initial=${{ opacity: 0, y: 12 }}
+          animate=${{ opacity: 1, y: 0 }}
+          transition=${{ duration: 0.28, ease: "easeOut" }}
+          className="rounded-[34px] border border-frue-100/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(235,245,255,0.86))] p-6 shadow-[0_20px_60px_rgba(29,69,143,0.12)] backdrop-blur-xl"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-frue-500">Selected Stop</p>
+          <h4 className="mt-3 text-2xl font-semibold text-frue-900">${item.title}</h4>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-frue-100 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-frue-600">${item.time}</span>
+            <span className="rounded-full border border-frue-100 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-frue-600">Track ${item.lane}</span>
           </div>
-          <div className="grid gap-4">
-            ${section.entries.map((item, itemIndex) =>
-              html`<${TimelineNode}
-                key=${item.id}
-                item=${item}
-                active=${activeId === item.id}
-                onToggle=${() => setActiveId(activeId === item.id ? "" : item.id)}
-                isAdmin=${isAdmin}
-                eventId=${eventId}
-                index=${index + itemIndex}
-              />`
-            )}
-          </div>
-        </section>
+          <p className="mt-5 text-sm leading-7 text-frue-800/80">${item.description}</p>
+        <//>
       `;
     }
 
-    function EmptyProgram({ message }) {
-      return html`<${GlassCard} className="px-6 py-10 text-center"><div className="mx-auto max-w-md"><${Badge} className="bg-frue-50/80">program flow<//><h5 className="mt-4 text-xl font-semibold text-frue-900">Noch ist die Timeline quiet.</h5><p className="mt-3 text-sm leading-7 text-slate-600">${message}</p></div><//>`;
+    function OrbitVariant(props) {
+      const items = props.items;
+      const activeId = props.activeId;
+      const setActiveId = props.setActiveId;
+      const isAdmin = props.isAdmin;
+      const eventId = props.eventId;
+      return html`
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.02fr)_320px]">
+          <div className="relative min-h-[58rem] overflow-hidden rounded-[38px] border border-frue-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(232,243,255,0.72))] p-6">
+            <div className="absolute left-1/2 top-10 bottom-10 w-[10px] -translate-x-1/2 rounded-full bg-[linear-gradient(180deg,rgba(138,185,255,0.1),#5f97e8_34%,#82aff3_68%,rgba(138,185,255,0.1))]"></div>
+            ${items.map(function (item, index) {
+              return html`
+                <div
+                  key=${item.id}
+                  className=${"absolute " + (index % 2 === 0 ? "left-[6%]" : "right-[6%]")}
+                  style=${{ top: 6 + index * 12.5 + "%" }}
+                >
+                  <${CircleNode}
+                    item=${item}
+                    active=${activeId === item.id}
+                    onToggle=${function () { setActiveId(activeId === item.id ? "" : item.id); }}
+                    isAdmin=${isAdmin}
+                    eventId=${eventId}
+                    size=${index % 3 === 0 ? "lg" : "md"}
+                  />
+                </div>`;
+            })}
+          </div>
+          <${DetailPanel} item=${items.find(function (item) { return item.id === activeId; }) || items[0]} />
+        </div>
+      `;
+    }
+
+    function ClusterVariant(props) {
+      const lanes = groupByLane(props.items);
+      return html`
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="rounded-[38px] border border-frue-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(232,243,255,0.72))] p-6 shadow-[0_18px_60px_rgba(61,102,180,0.14)]">
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              ${lanes.map(function (lane) {
+                return html`
+                  <section key=${lane.lane} className="relative overflow-hidden rounded-[32px] border border-frue-100/70 bg-white/52 p-4 backdrop-blur-md">
+                    <div className="mb-4 flex items-center justify-between">
+                      <span className="rounded-full bg-frue-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white">Lane ${lane.lane}</span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-frue-500">${lane.entries.length} stops</span>
+                    </div>
+                    <div className="grid gap-4 justify-items-center">
+                      ${lane.entries.map(function (item, index) {
+                        return html`<${CircleNode}
+                          key=${item.id}
+                          item=${item}
+                          active=${props.activeId === item.id}
+                          onToggle=${function () { props.setActiveId(props.activeId === item.id ? "" : item.id); }}
+                          isAdmin=${props.isAdmin}
+                          eventId=${props.eventId}
+                          size=${index === 0 ? "md" : "sm"}
+                        />`;
+                      })}
+                    </div>
+                  </section>`;
+              })}
+            </div>
+          </div>
+          <${DetailPanel} item=${props.items.find(function (item) { return item.id === props.activeId; }) || props.items[0]} />
+        </div>
+      `;
+    }
+
+    function RibbonVariant(props) {
+      return html`
+        <div className="space-y-6">
+          <div className="overflow-x-auto pb-2">
+            <div className="flex min-w-max items-center gap-8 pr-6">
+              ${props.items.map(function (item, index) {
+                return html`
+                  <div key=${item.id} className="relative w-[240px] shrink-0 first:ml-1">
+                    ${index < props.items.length - 1
+                      ? html`<div className="absolute right-[-46px] top-1/2 z-0 h-[16px] w-[64px] -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,#7aaeff_0%,#4f8ae3_45%,#9ec6ff_100%)] opacity-85"></div>`
+                      : null}
+                    <${CircleNode}
+                      item=${item}
+                      active=${props.activeId === item.id}
+                      onToggle=${function () { props.setActiveId(props.activeId === item.id ? "" : item.id); }}
+                      isAdmin=${props.isAdmin}
+                      eventId=${props.eventId}
+                      size="md"
+                    />
+                  </div>`;
+              })}
+            </div>
+          </div>
+          <${DetailPanel} item=${props.items.find(function (item) { return item.id === props.activeId; }) || props.items[0]} />
+        </div>
+      `;
+    }
+
+    function ScatterVariant(props) {
+      const positions = [
+        "left-[2%] top-[8%]",
+        "left-[33%] top-[2%]",
+        "right-[10%] top-[12%]",
+        "left-[12%] top-[39%]",
+        "left-[42%] top-[33%]",
+        "right-[3%] top-[42%]",
+        "left-[28%] bottom-[3%]"
+      ];
+      return html`
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.02fr)_320px]">
+          <div className="relative min-h-[48rem] overflow-hidden rounded-[38px] border border-frue-100/80 bg-[radial-gradient(circle_at_top_left,rgba(225,238,255,0.88),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(181,214,255,0.7),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.78),rgba(235,245,255,0.72))] p-6">
+            ${props.items.map(function (item, index) {
+              return html`
+                <div key=${item.id} className=${"absolute " + positions[index % positions.length]}>
+                  <${CircleNode}
+                    item=${item}
+                    active=${props.activeId === item.id}
+                    onToggle=${function () { props.setActiveId(props.activeId === item.id ? "" : item.id); }}
+                    isAdmin=${props.isAdmin}
+                    eventId=${props.eventId}
+                    size=${index % 2 === 0 ? "md" : "sm"}
+                  />
+                </div>`;
+            })}
+          </div>
+          <${DetailPanel} item=${props.items.find(function (item) { return item.id === props.activeId; }) || props.items[0]} />
+        </div>
+      `;
+    }
+
+    function EmptyProgram(props) {
+      return html`
+        <div className="rounded-[32px] border border-frue-100/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(235,245,255,0.82))] px-6 py-10 text-center shadow-[0_20px_60px_rgba(29,69,143,0.1)]">
+          <span className="inline-flex rounded-full border border-frue-100 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-frue-600">program flow</span>
+          <h5 className="mt-4 text-xl font-semibold text-frue-900">Noch ist die Timeline leer.</h5>
+          <p className="mt-3 text-sm leading-7 text-frue-800/75">${props.message}</p>
+        </div>
+      `;
     }
 
     function ProgramTimelineApp() {
       const [data, setData] = useState(window.__FRUEFRUE_PROGRAM_DATA || { items: [], emptyMessage: "" });
       const [activeId, setActiveId] = useState("");
+      const [variant, setVariant] = useState("orbit");
 
-      useEffect(() => {
-        const handler = (event) => {
+      useEffect(function () {
+        const handler = function (event) {
           const next = event.detail || { items: [], emptyMessage: "" };
           setData(next);
           setActiveId(next.items && next.items[0] ? next.items[0].id : "");
@@ -188,41 +357,58 @@
           const first = window.__FRUEFRUE_PROGRAM_DATA.items[0];
           setActiveId(first ? first.id : "");
         }
-        return () => window.removeEventListener("fruefrue:program-data", handler);
+        return function () {
+          window.removeEventListener("fruefrue:program-data", handler);
+        };
       }, []);
 
-      const sections = useMemo(() => groupByTime(data.items || []), [data.items]);
+      const items = data.items || [];
+      const activeItem = items.find(function (item) { return item.id === activeId; }) || items[0] || null;
+      const currentVariant = VARIANTS[variant] || VARIANTS.orbit;
 
       return html`
-        <div className="relative overflow-hidden rounded-[34px] border border-white/55 bg-gradient-to-br from-white/65 via-[#f8fbff]/80 to-[#fff4e6]/75 p-4 shadow-brunch backdrop-blur-xl md:p-6">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.8),transparent_34%),radial-gradient(circle_at_85%_12%,rgba(135,188,255,0.22),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(255,220,188,0.24),transparent_26%)]"></div>
+        <div className="relative overflow-hidden rounded-[36px] border border-frue-100/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.6),rgba(234,244,255,0.58))] p-4 shadow-[0_30px_120px_rgba(39,79,151,0.14)] backdrop-blur-xl md:p-6">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.84),transparent_34%),radial-gradient(circle_at_85%_12%,rgba(135,188,255,0.24),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(184,216,255,0.24),transparent_26%)]"></div>
           <div className="relative">
             <div className="mb-6 flex flex-col gap-3 border-b border-white/50 pb-5 md:flex-row md:items-end md:justify-between">
               <div>
-                <${Badge}>fruefrue event flow<//>
-                <h4 className="mt-3 text-2xl font-semibold tracking-tight text-frue-900 md:text-[2rem]">Brunch Program</h4>
-                <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600 md:text-[15px]">
-                  Ein editoriales Flow-Board mit soften Verbindungen, kleinen Motion-Momenten und genug Ruhe, damit die Inhalte nicht nach Standard-Schedule aussehen.
-                </p>
+                <span className="inline-flex rounded-full border border-frue-100 bg-white/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-frue-700">fruefrue program</span>
+                <h4 className="mt-3 text-2xl font-semibold tracking-tight text-frue-900 md:text-[2rem]">Blue Circle Timeline</h4>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-frue-800/75 md:text-[15px]">${currentVariant.copy}</p>
               </div>
               ${data.eventTitle
-                ? html`<div className="rounded-full border border-white/60 bg-white/65 px-4 py-2 text-sm font-medium text-frue-700 shadow-[0_14px_30px_rgba(31,111,229,0.08)]">${data.eventTitle}</div>`
+                ? html`<div className="rounded-full border border-frue-100 bg-white/65 px-4 py-2 text-sm font-medium text-frue-700 shadow-[0_14px_30px_rgba(31,111,229,0.08)]">${data.eventTitle}</div>`
                 : null}
             </div>
-            ${sections.length
-              ? html`<div className="grid gap-8">
-                  ${sections.map(
-                    (section, index) => html`<${TimelineSection}
-                      key=${section.id}
-                      section=${section}
-                      index=${index}
-                      activeId=${activeId}
-                      setActiveId=${setActiveId}
-                      isAdmin=${Boolean(data.isAdmin)}
-                      eventId=${data.eventId}
-                    />`
-                  )}
-                </div>`
+
+            <div className="mb-6 flex flex-wrap gap-2">
+              ${Object.keys(VARIANTS).map(function (key) {
+                const item = VARIANTS[key];
+                return html`
+                  <button
+                    key=${key}
+                    type="button"
+                    onClick=${function () { setVariant(key); }}
+                    className=${
+                      "rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 " +
+                      (variant === key
+                        ? "border-transparent bg-frue-700 text-white shadow-[0_12px_24px_rgba(31,111,229,0.18)]"
+                        : "border-frue-100 bg-white/70 text-frue-700 hover:bg-frue-50")
+                    }
+                  >
+                    ${item.label}
+                  </button>`;
+              })}
+            </div>
+
+            ${items.length
+              ? variant === "orbit"
+                ? html`<${OrbitVariant} items=${items} activeId=${activeId} setActiveId=${setActiveId} isAdmin=${Boolean(data.isAdmin)} eventId=${data.eventId} />`
+                : variant === "cluster"
+                  ? html`<${ClusterVariant} items=${items} activeId=${activeId} setActiveId=${setActiveId} isAdmin=${Boolean(data.isAdmin)} eventId=${data.eventId} />`
+                  : variant === "ribbon"
+                    ? html`<${RibbonVariant} items=${items} activeId=${activeId} setActiveId=${setActiveId} isAdmin=${Boolean(data.isAdmin)} eventId=${data.eventId} />`
+                    : html`<${ScatterVariant} items=${items} activeId=${activeId} setActiveId=${setActiveId} isAdmin=${Boolean(data.isAdmin)} eventId=${data.eventId} />`
               : html`<${EmptyProgram} message=${data.emptyMessage || "Noch kein Programm veroeffentlicht."} />`}
           </div>
         </div>
