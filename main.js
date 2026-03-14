@@ -176,6 +176,7 @@ const eventPaypalBox = document.getElementById("eventPaypalBox");
 const eventPaypalInfo = document.getElementById("eventPaypalInfo");
 const eventPaypalBtn = document.getElementById("eventPaypalBtn");
 const copyEventPaypalBtn = document.getElementById("copyEventPaypalBtn");
+const hideEventPaypalBtn = document.getElementById("hideEventPaypalBtn");
 const programTimeline = document.getElementById("programTimeline");
 const programTitle = document.getElementById("programTitle");
 const programLevelSelect = document.getElementById("programLevelSelect");
@@ -261,6 +262,7 @@ const EVENT_IMAGES_KEY = "fruefrue-event-images-v1";
 const EVENT_POLLS_KEY = "fruefrue-event-polls-v1";
 const EVENT_DRIVE_KEY = "fruefrue-event-drive-v1";
 const EVENT_POSTS_KEY = "fruefrue-event-posts-v1";
+const EVENT_PAYPAL_DISMISSED_KEY = "fruefrue-event-paypal-dismissed-v1";
 const EVENT_PROGRAM_KEY = "fruefrue-event-program-v1";
 const EVENT_PROGRAM_META_KEY = "fruefrue-event-program-meta-v1";
 const PROGRAM_VIEW_KEY = "fruefrue-program-view-v1";
@@ -1553,6 +1555,18 @@ function getEventPosts(eventId) {
   return Array.isArray(all[eventId]) ? all[eventId] : [];
 }
 
+function getDismissedEventPaypalMap() {
+  return loadJSON(EVENT_PAYPAL_DISMISSED_KEY, {});
+}
+
+function saveDismissedEventPaypalMap(map) {
+  saveJSON(EVENT_PAYPAL_DISMISSED_KEY, map);
+}
+
+function getEventPaypalDismissKey(eventId) {
+  return `${currentUser || "anon"}:${eventId}`;
+}
+
 function readImageAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -2293,7 +2307,11 @@ function updateEventPage(nextEvent, showBoughtMessage) {
   }
   const price = typeof nextEvent.price === "number" ? nextEvent.price : 7;
   if (eventPaypalBox && eventPaypalBtn && eventPaypalInfo) {
-    eventPaypalBox.classList.remove("hidden");
+    const dismissMap = getDismissedEventPaypalMap();
+    const dismissKey = getEventPaypalDismissKey(getEventId(nextEvent));
+    const isDismissed = Boolean(dismissMap[dismissKey]);
+    eventPaypalBox.classList.remove("is-hiding");
+    eventPaypalBox.classList.toggle("hidden", isDismissed);
     eventPaypalBtn.href = `${PAYPAL_ME_BASE}/${String(price).replace(",", ".")}`;
     eventPaypalInfo.textContent = `Bezahle ${formatEuro(price)} direkt per PayPal.Me an KonstantinM2001.`;
   }
@@ -2315,6 +2333,23 @@ function mountTicketPurchase() {
           eventPaypalInfo.textContent = "PayPal Adresse: konstantinleonard@icloud.de";
         }
       }
+    });
+  }
+  if (hideEventPaypalBtn) {
+    hideEventPaypalBtn.addEventListener("click", () => {
+      const next = getActiveEventForPage();
+      if (!next || !eventPaypalBox) {
+        return;
+      }
+      const eventId = getEventId(next);
+      const dismissMap = getDismissedEventPaypalMap();
+      dismissMap[getEventPaypalDismissKey(eventId)] = true;
+      saveDismissedEventPaypalMap(dismissMap);
+      eventPaypalBox.classList.add("is-hiding");
+      window.setTimeout(() => {
+        eventPaypalBox.classList.add("hidden");
+        eventPaypalBox.classList.remove("is-hiding");
+      }, 220);
     });
   }
   if (copyPaypalBtn) {

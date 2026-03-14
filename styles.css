@@ -1089,6 +1089,20 @@ main {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 247, 255, 0.96));
   border: 1px solid rgba(31, 111, 229, 0.14);
   box-shadow: 0 10px 20px rgba(17, 69, 143, 0.08);
+  transition: opacity 220ms ease, transform 220ms ease, max-height 220ms ease, margin 220ms ease, padding 220ms ease;
+  transform-origin: top center;
+  max-height: 320px;
+  overflow: hidden;
+}
+
+.ticket-payment-box.is-hiding {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  max-height: 0;
+  margin: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
 }
 
 .ticket-payment-title {
