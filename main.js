@@ -277,7 +277,7 @@ const SPOTIFY_PLAYLIST_URL =
 const WEBSITE_URL = "https://konste459.github.io/FrueFrue/";
 const LOGIN_LOOP_CONTINUE_END = 5;
 const LOGIN_REVEAL_START = 0.75;
-const LOGIN_REVEAL_END = 7;
+const LOGIN_REVEAL_END = 5;
 const SPOTIFY_SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 const SESSION_MAX_AGE_MS = 60 * 60 * 1000;
 const SUPABASE_SETTINGS =
@@ -3487,9 +3487,6 @@ function resetLoginVideoState() {
   loginLoopVideo.pause();
   loginRevealVideo.pause();
   loginLoopVideo.loop = true;
-  if (loginVideoShell) {
-    loginVideoShell.classList.remove("is-switching");
-  }
   loginLoopVideo.classList.remove("hidden-video");
   loginRevealVideo.classList.add("hidden-video");
   try {
@@ -3563,10 +3560,9 @@ function startRevealSegment() {
   }
   loginContinueActive = false;
   loginContinueNeedsWrap = false;
+  loginLoopVideo.pause();
+  loginLoopVideo.classList.add("hidden-video");
   loginRevealVideo.classList.remove("hidden-video");
-  if (loginVideoShell) {
-    loginVideoShell.classList.add("is-switching");
-  }
 
   const playReveal = () => {
     try {
@@ -3577,10 +3573,6 @@ function startRevealSegment() {
     loginRevealVideo.play().catch(() => {
       finalizeLoginTransition();
     });
-    window.setTimeout(() => {
-      loginLoopVideo.pause();
-      loginLoopVideo.classList.add("hidden-video");
-    }, 180);
     const revealMs = Math.max(300, (LOGIN_REVEAL_END - LOGIN_REVEAL_START) * 1000);
     loginRevealTimeout = window.setTimeout(finalizeLoginTransition, revealMs);
   };
