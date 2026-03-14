@@ -94,10 +94,11 @@
                         className="program-delete-btn rounded-full border border-white/22 bg-white/14 px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white"
                         data-program-id=${node.id}
                         data-event-id=${eventId}
+                        data-template-id=${node.templateId || ""}
                       >
                         Loeschen
                       </button>`
-                  : html`<span className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/68">${node.deletable ? node.time || "custom" : "base"}</span>`}
+                  : html`<span className="text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/68">${node.time || ""}</span>`}
               </div>
             </div>
           <//>
@@ -118,7 +119,6 @@
           ${levelIndex > 0
             ? html`<div className="mb-4 h-12 w-[3px] rounded-full bg-[linear-gradient(180deg,rgba(143,183,244,0.15),rgba(99,148,227,0.95))]"></div>`
             : null}
-          <div className="mb-4 rounded-full border border-[#cfe1ff] bg-white/80 px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#5f87c7] shadow-[0_10px_25px_rgba(31,111,229,0.08)]">${level.label}</div>
           <div className="relative w-full max-w-5xl">
             ${level.nodes && level.nodes.length > 1
               ? html`<div className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[3px] w-[min(62vw,34rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,rgba(148,184,243,0.24),rgba(63,119,211,0.95),rgba(148,184,243,0.24))] md:block"></div>`

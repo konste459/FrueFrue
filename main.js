@@ -172,8 +172,8 @@ const eventPageTitle = document.getElementById("eventPageTitle");
 const eventInfoText = document.getElementById("eventInfoText");
 const programTimeline = document.getElementById("programTimeline");
 const programTitle = document.getElementById("programTitle");
-const programSlot = document.getElementById("programSlot");
-const programLane = document.getElementById("programLane");
+const programLevelSelect = document.getElementById("programLevelSelect");
+const programLevelName = document.getElementById("programLevelName");
 const programDescription = document.getElementById("programDescription");
 const createProgramBtn = document.getElementById("createProgramBtn");
 const programStatus = document.getElementById("programStatus");
@@ -248,6 +248,7 @@ const EVENT_IMAGES_KEY = "fruefrue-event-images-v1";
 const EVENT_POLLS_KEY = "fruefrue-event-polls-v1";
 const EVENT_DRIVE_KEY = "fruefrue-event-drive-v1";
 const EVENT_PROGRAM_KEY = "fruefrue-event-program-v1";
+const EVENT_PROGRAM_META_KEY = "fruefrue-event-program-meta-v1";
 const PROGRAM_VIEW_KEY = "fruefrue-program-view-v1";
 const POLL_VOTES_KEY = "fruefrue-poll-votes-v1";
 const PLANNED_VOTES_KEY = "fruefrue-planned-votes-v1";
@@ -283,6 +284,7 @@ const REMOTE_SYNC_PREFIXES = [
   EVENT_POLLS_KEY,
   EVENT_DRIVE_KEY,
   EVENT_PROGRAM_KEY,
+  EVENT_PROGRAM_META_KEY,
   PLANNED_VOTES_KEY,
   USERS_STORAGE_KEY,
   DELETED_USERS_KEY,
@@ -1532,6 +1534,14 @@ function saveStoredPrograms(programs) {
   saveJSON(EVENT_PROGRAM_KEY, programs);
 }
 
+function getStoredProgramMeta() {
+  return loadJSON(EVENT_PROGRAM_META_KEY, {});
+}
+
+function saveStoredProgramMeta(meta) {
+  saveJSON(EVENT_PROGRAM_META_KEY, meta);
+}
+
 function getProgramItemsForEvent(eventId) {
   const all = getStoredPrograms();
   return Array.isArray(all[eventId]) ? all[eventId] : [];
@@ -1795,67 +1805,85 @@ function buildBaseProgramTree(eventData, eventId) {
   return [
     {
       id: `${eventId}-level-start`,
-      label: "Ebene 1",
+      label: "Start",
       nodes: [
         {
           id: `${eventId}-base-start`,
+          templateId: "base-start",
           title: "Start",
           description: `Start um ${startTime}.`,
           icon: "spark",
-          base: true
+          deletable: true,
+          slot: "Start",
+          isTemplate: true
         }
       ]
     },
     {
       id: `${eventId}-level-arrival`,
-      label: "Ebene 2",
+      label: "Arrival",
       nodes: [
         {
           id: `${eventId}-base-secco`,
+          templateId: "base-secco",
           title: "Secco",
           description: "Erster Drink, kurzes Ankommen und locker reinstarten.",
           icon: "spark",
-          base: true
+          deletable: true,
+          slot: "Arrival",
+          isTemplate: true
         },
         {
           id: `${eventId}-base-arrive`,
+          templateId: "base-arrive",
           title: "Arrive at your pace",
           description: "Drop rein, finde deinen Spot und komm entspannt in den Vibe.",
           icon: "sun",
-          base: true
+          deletable: true,
+          slot: "Arrival",
+          isTemplate: true
         }
       ]
     },
     {
       id: `${eventId}-level-brunch`,
-      label: "Ebene 3",
+      label: "Brunch",
       nodes: [
         {
           id: `${eventId}-base-brunch`,
+          templateId: "base-brunch",
           title: "Brunch",
           description: "Food, Talks und cozy Sunday Energy am Tisch.",
           icon: "plate",
-          base: true
+          deletable: true,
+          slot: "Brunch",
+          isTemplate: true
         },
         {
           id: `${eventId}-base-print`,
+          templateId: "base-print",
           title: "Siebdrucken",
           description: "Parallel kreativ werden, Motive testen und gemeinsam was machen.",
           icon: "camera",
-          base: true
+          deletable: true,
+          slot: "Brunch",
+          isTemplate: true
         }
       ]
     },
     {
       id: `${eventId}-level-open-end`,
-      label: "Ebene 4",
+      label: "Open End",
       nodes: [
         {
           id: `${eventId}-base-open-end`,
+          templateId: "base-open-end",
           title: "Open End",
           description: "Leave at your pace.",
           icon: "music",
-          base: true
+          deletable: true,
+          slot: "Open End",
+          isTemplate: true
         }
       ]
     }
@@ -1882,6 +1910,19 @@ function getProgramIcon(item) {
   return "sun";
 }
 
+function getVisibleBaseProgramTree(eventData, eventId) {
+  const meta = getStoredProgramMeta();
+  const eventMeta = meta[eventId] || {};
+  const deletedTemplateIds = Array.isArray(eventMeta.deletedTemplateIds) ? eventMeta.deletedTemplateIds : [];
+  return buildBaseProgramTree(eventData, eventId)
+    .map((level) => ({
+      id: level.id,
+      label: level.label,
+      nodes: (level.nodes || []).filter((node) => !deletedTemplateIds.includes(node.templateId))
+    }))
+    .filter((level) => level.nodes.length);
+}
+
 function mergeCustomProgramTree(baseLevels, items) {
   if (!Array.isArray(items) || !items.length) {
     return baseLevels;
@@ -1903,7 +1944,6 @@ function mergeCustomProgramTree(baseLevels, items) {
       description: item.description,
       icon: getProgramIcon(item),
       deletable: true,
-      lane: Number(item.lane || 1),
       order: Number(item.sortOrder || index),
       time: slot
     });
@@ -1915,10 +1955,7 @@ function mergeCustomProgramTree(baseLevels, items) {
       id: level.id,
       label: level.label,
       nodes: level.nodes.sort((a, b) => {
-        if ((a.order || 0) !== (b.order || 0)) {
-          return (a.order || 0) - (b.order || 0);
-        }
-        return (a.lane || 1) - (b.lane || 1);
+        return (a.order || 0) - (b.order || 0);
       })
     }))
   );
@@ -2001,13 +2038,10 @@ function renderProgramTimeline(eventData) {
 
   const eventId = getEventId(eventData);
   const items = getProgramItemsForEvent(eventId).sort((a, b) => {
-    if ((a.sortOrder || 0) !== (b.sortOrder || 0)) {
-      return (a.sortOrder || 0) - (b.sortOrder || 0);
-    }
-    return (a.lane || 1) - (b.lane || 1);
+    return (a.sortOrder || 0) - (b.sortOrder || 0);
   });
 
-  const treeLevels = mergeCustomProgramTree(buildBaseProgramTree(eventData, eventId), items);
+  const treeLevels = mergeCustomProgramTree(getVisibleBaseProgramTree(eventData, eventId), items);
   const payload = {
     eventId,
     eventTitle: eventData.title || "Event",
@@ -2024,6 +2058,39 @@ function renderProgramTimeline(eventData) {
   window.dispatchEvent(new CustomEvent("fruefrue:program-data", { detail: payload }));
 }
 
+function getProgramLevelOptions(eventData) {
+  if (!eventData) {
+    return [];
+  }
+  const eventId = getEventId(eventData);
+  const baseLevels = getVisibleBaseProgramTree(eventData, eventId).map((level) => level.label);
+  const customLevels = getProgramItemsForEvent(eventId)
+    .map((item) => (item.slot || "").trim())
+    .filter(Boolean);
+  return Array.from(new Set(baseLevels.concat(customLevels)));
+}
+
+function updateProgramLevelControls(eventData) {
+  if (!programLevelSelect || !programLevelName) {
+    return;
+  }
+  const options = getProgramLevelOptions(eventData);
+  const currentValue = programLevelSelect.value || "__new__";
+  programLevelSelect.innerHTML = [
+    `<option value="__new__">Neue Ebene</option>`,
+    ...options.map((level) => `<option value="${level}">${level}</option>`)
+  ].join("");
+  if (options.includes(currentValue)) {
+    programLevelSelect.value = currentValue;
+  } else {
+    programLevelSelect.value = "__new__";
+  }
+  programLevelName.disabled = programLevelSelect.value !== "__new__";
+  if (programLevelSelect.value !== "__new__") {
+    programLevelName.value = "";
+  }
+}
+
 function updateEventPage(nextEvent, showBoughtMessage) {
   if (!eventPageTitle || !eventInfoText) {
     return;
@@ -2034,6 +2101,7 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     eventInfoText.textContent =
       "Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.";
     renderProgramTimeline(null);
+    updateProgramLevelControls(null);
     return;
   }
 
@@ -2042,6 +2110,7 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     eventInfoText.textContent =
       "Dieses Planned Event hat noch kein fixes Datum. Stimme im Kalender auf der Ticketseite fuer passende Wochenendtermine ab.";
     renderProgramTimeline(nextEvent);
+    updateProgramLevelControls(nextEvent);
     return;
   }
 
@@ -2058,6 +2127,7 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     eventInfoText.textContent = `Eventstart: ${when}. Sobald das Event losgeht, werden hier weitere Infos, Abstimmungen oder Aktionen veroeffentlicht.`;
   }
   renderProgramTimeline(nextEvent);
+  updateProgramLevelControls(nextEvent);
 }
 
 function mountTicketPurchase() {
@@ -2200,9 +2270,15 @@ function mountPlannedVoting() {
 }
 
 function mountProgramCreator() {
-  if (!createProgramBtn || !programTitle || !programSlot || !programLane || !programDescription) {
+  if (!createProgramBtn || !programTitle || !programLevelSelect || !programLevelName || !programDescription) {
     return;
   }
+  programLevelSelect.addEventListener("change", () => {
+    programLevelName.disabled = programLevelSelect.value !== "__new__";
+    if (programLevelSelect.value !== "__new__") {
+      programLevelName.value = "";
+    }
+  });
   createProgramBtn.addEventListener("click", () => {
     if (currentRole !== "admin") {
       if (programStatus) {
@@ -2219,12 +2295,14 @@ function mountProgramCreator() {
     }
 
     const title = programTitle.value.trim();
-    const slot = programSlot.value.trim() || "Open Flow";
-    const lane = Number(programLane.value || 1);
+    const slot =
+      programLevelSelect.value === "__new__"
+        ? programLevelName.value.trim()
+        : programLevelSelect.value.trim();
     const description = programDescription.value.trim();
-    if (!title || !description) {
+    if (!title || !description || !slot) {
       if (programStatus) {
-        programStatus.textContent = "Bitte Titel und Kurzbeschreibung angeben.";
+        programStatus.textContent = "Bitte Titel, Ebene und Kurzbeschreibung angeben.";
       }
       return;
     }
@@ -2232,22 +2310,21 @@ function mountProgramCreator() {
     const eventId = getEventId(eventData);
     const allPrograms = getStoredPrograms();
     const items = Array.isArray(allPrograms[eventId]) ? allPrograms[eventId] : [];
-    const sameSlotCount = items.filter((item) => (item.slot || "Open Flow") === slot).length;
     items.push({
       id: `prg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       title,
       slot,
-      lane,
       description,
-      sortOrder: sameSlotCount === 0 ? items.length : items.findIndex((item) => (item.slot || "Open Flow") === slot),
+      sortOrder: items.length,
       createdBy: currentUser || "admin"
     });
     allPrograms[eventId] = items;
     saveStoredPrograms(allPrograms);
 
     programTitle.value = "";
-    programSlot.value = "";
-    programLane.value = "1";
+    programLevelSelect.value = "__new__";
+    programLevelName.value = "";
+    programLevelName.disabled = false;
     programDescription.value = "";
     if (programStatus) {
       programStatus.textContent = "Programmpunkt erstellt.";
@@ -2277,17 +2354,34 @@ function mountProgramDeletion() {
     }
     const eventId = target.dataset.eventId || "";
     const programId = target.dataset.programId || "";
+    const templateId = target.dataset.templateId || "";
     if (!eventId || !programId) {
       return;
     }
-    const allPrograms = getStoredPrograms();
-    const items = (allPrograms[eventId] || []).filter((item) => item.id !== programId);
-    allPrograms[eventId] = items;
-    saveStoredPrograms(allPrograms);
+    if (templateId) {
+      const meta = getStoredProgramMeta();
+      const eventMeta = meta[eventId] || {};
+      const deletedTemplateIds = Array.isArray(eventMeta.deletedTemplateIds) ? eventMeta.deletedTemplateIds.slice() : [];
+      if (!deletedTemplateIds.includes(templateId)) {
+        deletedTemplateIds.push(templateId);
+      }
+      meta[eventId] = {
+        ...eventMeta,
+        deletedTemplateIds
+      };
+      saveStoredProgramMeta(meta);
+    } else {
+      const allPrograms = getStoredPrograms();
+      const items = (allPrograms[eventId] || []).filter((item) => item.id !== programId);
+      allPrograms[eventId] = items;
+      saveStoredPrograms(allPrograms);
+    }
     if (programStatus) {
       programStatus.textContent = "Programmpunkt geloescht.";
     }
-    renderProgramTimeline(getActiveEventForPage());
+    const activeEvent = getActiveEventForPage();
+    renderProgramTimeline(activeEvent);
+    updateProgramLevelControls(activeEvent);
   });
 }
 

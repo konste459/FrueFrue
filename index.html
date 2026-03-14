@@ -493,14 +493,12 @@
               <div class="event-admin-tools" data-admin-only>
                 <label for="programTitle">Programmtitel (Admin)</label>
                 <input id="programTitle" type="text" placeholder="z.B. Coffee Check-in" />
-                <label for="programSlot">Stage / Zeitpunkt</label>
-                <input id="programSlot" type="text" placeholder="z.B. Start, Brunch Wave, Chill Round" />
-                <label for="programLane">Parallel-Spur</label>
-                <select id="programLane">
-                  <option value="1">Spur 1</option>
-                  <option value="2">Spur 2</option>
-                  <option value="3">Spur 3</option>
+                <label for="programLevelSelect">Ebene waehlen</label>
+                <select id="programLevelSelect">
+                  <option value="__new__">Neue Ebene</option>
                 </select>
+                <label for="programLevelName">Neue Ebene Name</label>
+                <input id="programLevelName" type="text" placeholder="z.B. Creative Break oder Dessert" />
                 <label for="programDescription">Kurzbeschreibung</label>
                 <textarea
                   id="programDescription"
@@ -634,7 +632,7 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=61"></script>
-    <script src="program-timeline-react.js?v=7"></script>
+    <script src="main.js?v=62"></script>
+    <script src="program-timeline-react.js?v=8"></script>
   </body>
 </html>
