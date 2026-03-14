@@ -2083,7 +2083,7 @@ main {
 
 .archive-plate-single {
   left: 50%;
-  top: 45.8%;
+  top: 44.9%;
 }
 
 .archive-play {
@@ -2117,7 +2117,9 @@ main {
   font-size: clamp(0.72rem, 0.88vw, 0.92rem);
   line-height: 1.15;
   text-align: center;
-  text-shadow: 0 1px 4px rgba(20, 43, 84, 0.28);
+  color: #295ab5;
+  text-shadow: none;
+  font-weight: 900;
 }
 
 .archive-play-icon {
@@ -2242,7 +2244,7 @@ main {
   }
 
   .archive-plate-single {
-    top: 44.7%;
+    top: 43.8%;
   }
 
   .archive-play {
