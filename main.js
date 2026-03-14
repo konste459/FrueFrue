@@ -1862,6 +1862,26 @@ function buildBaseProgramTree(eventData, eventId) {
   ];
 }
 
+function getProgramIcon(item) {
+  const haystack = `${item.title || ""} ${item.description || ""} ${item.slot || ""}`.toLowerCase();
+  if (haystack.includes("coffee") || haystack.includes("kaffee") || haystack.includes("latte")) {
+    return "coffee";
+  }
+  if (haystack.includes("music") || haystack.includes("dj") || haystack.includes("sound")) {
+    return "music";
+  }
+  if (haystack.includes("photo") || haystack.includes("bild") || haystack.includes("shoot")) {
+    return "camera";
+  }
+  if (haystack.includes("vote") || haystack.includes("abstimm")) {
+    return "spark";
+  }
+  if (haystack.includes("brunch") || haystack.includes("food") || haystack.includes("dish")) {
+    return "plate";
+  }
+  return "sun";
+}
+
 function mergeCustomProgramTree(baseLevels, items) {
   if (!Array.isArray(items) || !items.length) {
     return baseLevels;
@@ -1959,26 +1979,6 @@ function renderProgramTimeline(eventData) {
         `
       )
       .join("");
-  };
-
-  const getProgramIcon = (item) => {
-    const haystack = `${item.title || ""} ${item.description || ""} ${item.slot || ""}`.toLowerCase();
-    if (haystack.includes("coffee") || haystack.includes("kaffee") || haystack.includes("latte")) {
-      return "coffee";
-    }
-    if (haystack.includes("music") || haystack.includes("dj") || haystack.includes("sound")) {
-      return "music";
-    }
-    if (haystack.includes("photo") || haystack.includes("bild") || haystack.includes("shoot")) {
-      return "camera";
-    }
-    if (haystack.includes("vote") || haystack.includes("abstimm")) {
-      return "spark";
-    }
-    if (haystack.includes("brunch") || haystack.includes("food") || haystack.includes("dish")) {
-      return "plate";
-    }
-    return "sun";
   };
 
   if (!eventData) {
