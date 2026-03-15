@@ -1454,7 +1454,7 @@ function updateTicketView(event) {
       plannedTicketFlow.classList.remove("hidden");
     }
     if (plannedEventTitle) {
-      plannedEventTitle.textContent = `${event.title} (Planned Event)`;
+      plannedEventTitle.textContent = `Termin abstimmen · ${event.title}`;
     }
     if (plannedEventMonth) {
       plannedEventMonth.textContent = `Monat: ${getMonthLabel(Number(event.month))}`;
