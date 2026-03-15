@@ -2523,6 +2523,11 @@ main {
     border-radius: 18px;
   }
 
+  .login-card input,
+  .login-card select {
+    font-size: 16px;
+  }
+
   .planned-calendar {
     grid-template-columns: 1fr;
   }

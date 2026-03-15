@@ -818,6 +818,28 @@ function clearSpotifyAuth() {
   removeStoredValue(SPOTIFY_AUTH_KEY);
 }
 
+function resetLoginZoom() {
+  const active = document.activeElement;
+  if (active && typeof active.blur === "function") {
+    active.blur();
+  }
+
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+  const viewportMeta = document.querySelector('meta[name="viewport"]');
+  if (!viewportMeta) {
+    return;
+  }
+
+  const originalContent = viewportMeta.getAttribute("content") || "width=device-width, initial-scale=1.0";
+  viewportMeta.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+
+  window.setTimeout(() => {
+    viewportMeta.setAttribute("content", originalContent);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, 280);
+}
+
 function getSpotifyRedirectUri() {
   return `${window.location.origin}${window.location.pathname}`;
 }
@@ -3993,6 +4015,7 @@ async function handleLogin() {
 
   const user = login(username, password);
   if (user) {
+    resetLoginZoom();
     loginError.textContent = "";
     if (registerStatus) {
       registerStatus.textContent = "";
