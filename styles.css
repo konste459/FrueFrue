@@ -648,13 +648,21 @@ main {
   height: auto;
   display: block;
   transform: translateY(-50%);
-  animation: welcomeLogoSlide 4.8s ease-in-out infinite alternate;
+  animation: welcomeLogoSlide 1.85s cubic-bezier(0.22, 0.9, 0.24, 1) 1 forwards;
   will-change: transform;
 }
 
 @keyframes welcomeLogoSlide {
   0% {
     transform: translateY(-50%);
+  }
+
+  72% {
+    transform: translateY(2.5%);
+  }
+
+  86% {
+    transform: translateY(-1.2%);
   }
 
   100% {
