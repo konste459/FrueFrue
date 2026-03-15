@@ -3929,7 +3929,7 @@ function handleRegister() {
   renderAdminUserList();
 }
 
-function handleLogin() {
+async function handleLogin() {
   if (!usernameInput || !passwordInput || !loginError || !loginScreen || !appShell) {
     return;
   }
@@ -3940,6 +3940,14 @@ function handleLogin() {
   if (!username || !password) {
     loginError.textContent = "Bitte Benutzername und Passwort eingeben.";
     return;
+  }
+
+  if (supabaseInitPromise) {
+    try {
+      await supabaseInitPromise;
+    } catch (_error) {
+      // Keep login available even if the initial shared-state load fails.
+    }
   }
 
   const user = login(username, password);
