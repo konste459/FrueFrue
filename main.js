@@ -168,6 +168,7 @@ const regularTicketFlow = document.getElementById("regularTicketFlow");
 const plannedTicketFlow = document.getElementById("plannedTicketFlow");
 const plannedEventTitle = document.getElementById("plannedEventTitle");
 const plannedEventMonth = document.getElementById("plannedEventMonth");
+const plannedEventDescription = document.getElementById("plannedEventDescription");
 const plannedCalendar = document.getElementById("plannedCalendar");
 const plannedVoteStatus = document.getElementById("plannedVoteStatus");
 const plannedFinalizeTime = document.getElementById("plannedFinalizeTime");
@@ -1454,6 +1455,11 @@ function updateTicketView(event) {
     }
     if (plannedEventMonth) {
       plannedEventMonth.textContent = `Monat: ${getMonthLabel(Number(event.month))}`;
+    }
+    if (plannedEventDescription) {
+      plannedEventDescription.textContent = event.description
+        ? event.description
+        : "Waehle die Wochenendtermine, an denen du Zeit hast.";
     }
     renderPlannedCalendar(event);
     return;
