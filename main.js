@@ -4,6 +4,7 @@ const BASE_USERS = {
     role: "admin",
     firstName: "Admin",
     lastName: "FrüFrü",
+    email: "admin@fruefrue.club",
     gender: "divers",
     age: 24,
     level: "7a",
@@ -14,6 +15,7 @@ const BASE_USERS = {
     role: "gast",
     firstName: "Gast",
     lastName: "FrüFrü",
+    email: "gast@fruefrue.club",
     gender: "divers",
     age: 22,
     level: "6a",
@@ -130,6 +132,7 @@ const loginBtn = document.getElementById("loginBtn");
 const loginError = document.getElementById("loginError");
 const regFirstNameInput = document.getElementById("regFirstName");
 const regLastNameInput = document.getElementById("regLastName");
+const regEmailInput = document.getElementById("regEmail");
 const regPasswordInput = document.getElementById("regPassword");
 const regGenderInput = document.getElementById("regGender");
 const regAgeInput = document.getElementById("regAge");
@@ -690,6 +693,30 @@ function getAllUsers() {
     }
   });
   return result;
+}
+
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(email));
+}
+
+function findUserByIdentifier(identifier) {
+  const normalized = String(identifier || "").trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+  const users = getAllUsers();
+  if (users[normalized]) {
+    return { username: normalized, user: users[normalized] };
+  }
+  const match = Object.entries(users).find(([, user]) => normalizeEmail(user.email) === normalized);
+  if (!match) {
+    return null;
+  }
+  return { username: match[0], user: match[1] };
 }
 
 function getClubUsers() {
@@ -3218,7 +3245,8 @@ function renderAdminUserList() {
     const age = user.age ? `${user.age}` : "-";
     const gender = user.gender || "-";
     const level = user.level || "-";
-    label.textContent = `${username} · ${firstName} ${lastName} · ${user.role} · ${gender} · ${age} · ${level}`;
+    const email = user.email || "-";
+    label.textContent = `${username} · ${email} · ${firstName} ${lastName} · ${user.role} · ${gender} · ${age} · ${level}`;
     row.appendChild(label);
 
     if (username !== "admin") {
@@ -3799,20 +3827,22 @@ function startRevealSegment() {
 }
 
 function login(username, password) {
-  const user = getAllUsers()[username];
-  if (!user) {
+  const match = findUserByIdentifier(username);
+  if (!match) {
     return null;
   }
+  const { username: canonicalUsername, user } = match;
   if (user.password !== password) {
     return null;
   }
-  return { ...user, username };
+  return { ...user, username: canonicalUsername };
 }
 
 function handleRegister() {
   if (
     !regFirstNameInput ||
     !regLastNameInput ||
+    !regEmailInput ||
     !regPasswordInput ||
     !regGenderInput ||
     !regAgeInput ||
@@ -3824,14 +3854,19 @@ function handleRegister() {
   }
   const firstName = regFirstNameInput.value.trim();
   const lastName = regLastNameInput.value.trim();
+  const email = normalizeEmail(regEmailInput.value);
   const password = regPasswordInput.value.trim();
   const gender = regGenderInput.value;
   const age = Number(regAgeInput.value);
   const level = regLevelInput.value;
   const diet = regDietInput.value;
 
-  if (!firstName || !lastName || !password || !gender || !level || !diet) {
+  if (!firstName || !lastName || !email || !password || !gender || !level || !diet) {
     registerStatus.textContent = "Bitte alle Felder ausfuellen.";
+    return;
+  }
+  if (!isValidEmail(email)) {
+    registerStatus.textContent = "Bitte eine gueltige E-Mail angeben.";
     return;
   }
   if (password.length < 4) {
@@ -3852,6 +3887,11 @@ function handleRegister() {
   }
 
   const users = getAllUsers();
+  const emailTaken = Object.values(users).some((user) => normalizeEmail(user.email) === email);
+  if (emailTaken) {
+    registerStatus.textContent = "Diese E-Mail wird bereits verwendet.";
+    return;
+  }
   const username = generateRandomUsername(users);
   const customUsers = getRegisteredUsers();
   customUsers[username] = {
@@ -3859,6 +3899,7 @@ function handleRegister() {
     role: "gast",
     firstName,
     lastName,
+    email,
     gender,
     age,
     level,
@@ -3872,12 +3913,13 @@ function handleRegister() {
   if (passwordInput) {
     passwordInput.value = password;
   }
-  registerStatus.textContent = `Registriert! Dein Username: ${username}`;
+  registerStatus.textContent = `Registriert! Dein Username: ${username}. Login geht auch mit ${email}.`;
   if (loginError) {
     loginError.textContent = "";
   }
   regFirstNameInput.value = "";
   regLastNameInput.value = "";
+  regEmailInput.value = "";
   regPasswordInput.value = "";
   regGenderInput.value = "weiblich";
   regAgeInput.value = "";

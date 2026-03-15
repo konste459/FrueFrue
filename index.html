@@ -67,8 +67,15 @@
           User: <strong>admin</strong> oder <strong>gast</strong> | Passwort: <strong>1234</strong>
         </p>
 
-        <label for="username">Benutzername</label>
-        <input id="username" name="username" type="text" autocomplete="username" required />
+        <label for="username">Benutzername oder E-Mail</label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          autocomplete="username"
+          placeholder="Username oder E-Mail"
+          required
+        />
 
         <label for="password">Passwort</label>
         <input id="password" name="password" type="password" autocomplete="current-password" required />
@@ -83,6 +90,9 @@
 
           <label for="regLastName">Nachname</label>
           <input id="regLastName" name="regLastName" type="text" autocomplete="family-name" />
+
+          <label for="regEmail">E-Mail</label>
+          <input id="regEmail" name="regEmail" type="email" autocomplete="email" />
 
           <label for="regPassword">Passwort</label>
           <input id="regPassword" name="regPassword" type="password" autocomplete="new-password" />
@@ -713,6 +723,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=83"></script>
+    <script src="main.js?v=84"></script>
   </body>
 </html>
