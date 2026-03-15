@@ -1443,6 +1443,7 @@ function renderPlannedCalendar(event) {
   const votes = getPlannedVotes();
   const eventId = getEventId(event);
   const eventVotes = votes[eventId] || {};
+  let changed = false;
   const maxYes = terms.reduce((max, date) => {
     const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
       date.getDate()
@@ -1458,6 +1459,7 @@ function renderPlannedCalendar(event) {
     ).padStart(2, "0")}`;
     if (!eventVotes[iso]) {
       eventVotes[iso] = { yes: 0, no: 0, voters: {} };
+      changed = true;
     }
     const dayVote = eventVotes[iso];
     const userChoice = dayVote.voters[currentUser] || "";
@@ -1523,8 +1525,10 @@ function renderPlannedCalendar(event) {
     plannedCalendar.appendChild(card);
   });
 
-  votes[eventId] = eventVotes;
-  savePlannedVotes(votes);
+  if (changed) {
+    votes[eventId] = eventVotes;
+    savePlannedVotes(votes);
+  }
 }
 
 function getStoredEventImages() {
