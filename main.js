@@ -178,6 +178,9 @@ const eventPageTitle = document.getElementById("eventPageTitle");
 const eventInfoText = document.getElementById("eventInfoText");
 const eventPaypalBox = document.getElementById("eventPaypalBox");
 const eventPaypalInfo = document.getElementById("eventPaypalInfo");
+const eventPagePriceInput = document.getElementById("eventPagePriceInput");
+const saveEventPriceBtn = document.getElementById("saveEventPriceBtn");
+const eventPriceStatus = document.getElementById("eventPriceStatus");
 const eventPaypalBtn = document.getElementById("eventPaypalBtn");
 const copyEventPaypalBtn = document.getElementById("copyEventPaypalBtn");
 const hideEventPaypalBtn = document.getElementById("hideEventPaypalBtn");
@@ -2341,6 +2344,12 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     if (eventPaypalBox) {
       eventPaypalBox.classList.add("hidden");
     }
+    if (eventPagePriceInput) {
+      eventPagePriceInput.value = "";
+    }
+    if (eventPriceStatus) {
+      eventPriceStatus.textContent = "";
+    }
     renderProgramTimeline(null);
     updateProgramLevelControls(null);
     renderEventPosts(null);
@@ -2353,6 +2362,12 @@ function updateEventPage(nextEvent, showBoughtMessage) {
       "Dieses Planned Event hat noch kein fixes Datum. Stimme im Kalender auf der Ticketseite fuer passende Wochenendtermine ab.";
     if (eventPaypalBox) {
       eventPaypalBox.classList.add("hidden");
+    }
+    if (eventPagePriceInput) {
+      eventPagePriceInput.value = "";
+    }
+    if (eventPriceStatus) {
+      eventPriceStatus.textContent = "";
     }
     renderProgramTimeline(nextEvent);
     updateProgramLevelControls(nextEvent);
@@ -2378,12 +2393,54 @@ function updateEventPage(nextEvent, showBoughtMessage) {
     eventPaypalBtn.href = `${PAYPAL_ME_BASE}/${String(price).replace(",", ".")}`;
     eventPaypalInfo.textContent = `Bezahle ${formatEuro(price)} direkt per PayPal.Me an KonstantinM2001.`;
   }
+  if (eventPagePriceInput) {
+    eventPagePriceInput.value = String(price);
+  }
+  if (eventPriceStatus) {
+    eventPriceStatus.textContent = "";
+  }
   renderProgramTimeline(nextEvent);
   updateProgramLevelControls(nextEvent);
   renderEventPosts(nextEvent);
 }
 
 function mountTicketPurchase() {
+  if (saveEventPriceBtn) {
+    saveEventPriceBtn.addEventListener("click", () => {
+      if (currentRole !== "admin") {
+        if (eventPriceStatus) {
+          eventPriceStatus.textContent = "Nur Admin kann den Preis aendern.";
+        }
+        return;
+      }
+      const activeEvent = getActiveEventForPage();
+      if (!activeEvent || activeEvent.type !== "regular" || !eventPagePriceInput) {
+        if (eventPriceStatus) {
+          eventPriceStatus.textContent = "Aktuell kein normales Event zum Bearbeiten aktiv.";
+        }
+        return;
+      }
+      const nextPrice = Number(String(eventPagePriceInput.value || "").trim());
+      if (Number.isNaN(nextPrice) || nextPrice < 0) {
+        if (eventPriceStatus) {
+          eventPriceStatus.textContent = "Bitte einen gueltigen Preis eingeben.";
+        }
+        return;
+      }
+      const activeId = getEventId(activeEvent);
+      const nextEvents = loadEvents().map((item) =>
+        getEventId(item) === activeId ? { ...item, price: nextPrice } : item
+      );
+      saveEvents(nextEvents);
+      const updatedEvent = nextEvents.find((item) => getEventId(item) === activeId) || activeEvent;
+      renderEventList();
+      updateCalendarCard();
+      updateEventPage(updatedEvent, false);
+      if (eventPriceStatus) {
+        eventPriceStatus.textContent = `Preis gespeichert: ${formatEuro(nextPrice)}.`;
+      }
+    });
+  }
   if (copyEventPaypalBtn) {
     copyEventPaypalBtn.addEventListener("click", async () => {
       try {

@@ -514,6 +514,12 @@
               <p id="eventPaypalInfo" class="event-status">
                 Bezahle das Event direkt per PayPal.Me.
               </p>
+              <div class="event-admin-tools" data-admin-only>
+                <label for="eventPagePriceInput">Ticketpreis fuer dieses Event (Admin)</label>
+                <input id="eventPagePriceInput" type="number" min="0" step="0.5" />
+                <button id="saveEventPriceBtn" class="cta-secondary" type="button">Preis speichern</button>
+                <p id="eventPriceStatus" class="event-status" aria-live="polite"></p>
+              </div>
               <div class="ticket-payment-actions">
                 <a
                   id="eventPaypalBtn"
