@@ -1,6 +1,6 @@
 const BASE_USERS = {
   admin: {
-    password: "1234",
+    password: "4657",
     role: "admin",
     firstName: "Admin",
     lastName: "FrüFrü",
