@@ -1,8 +1,8 @@
 @font-face {
-  font-family: "Lost Tumbler";
+  font-family: "Tuna Medium";
   src:
-    url("assets/fonts/lost-tumbler/Lost%20Tumbler.otf") format("opentype"),
-    url("assets/fonts/lost-tumbler/Lost%20Tumbler.ttf") format("truetype");
+    url("assets/fonts/tuna/Tuna-Medium.otf") format("opentype"),
+    url("assets/fonts/tuna/Tuna-Medium.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -19,7 +19,7 @@
   --warm: #f6e3cf;
   --shadow: 0 18px 42px rgba(72, 114, 177, 0.15);
   --radius-lg: 24px;
-  --display-font: "Lost Tumbler", "Trebuchet MS", sans-serif;
+  --display-font: "Tuna Medium", "Trebuchet MS", sans-serif;
   --body-font: "Nunito", "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
 }
 
