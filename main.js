@@ -3567,7 +3567,7 @@ function mountArchiveCarousel() {
 
 function setPage(route) {
   const rawRoute = route || "home";
-  const nextRoute = rawRoute === "ticket" || rawRoute === "ticket-success" ? "event" : rawRoute;
+  const nextRoute = rawRoute === "ticket-success" ? "event" : rawRoute;
   activePage = nextRoute;
   saveLastRoute(nextRoute);
 
