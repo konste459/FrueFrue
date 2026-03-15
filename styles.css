@@ -633,13 +633,33 @@ main {
   font-size: clamp(1.8rem, 5vw, 3rem);
 }
 
-.welcome-logo {
+.welcome-logo-window {
   width: min(220px, 54vw);
-  height: auto;
+  aspect-ratio: 1647 / 1407;
   margin: 2px 0 10px;
+  overflow: hidden;
   display: block;
+  position: relative;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
-  mix-blend-mode: multiply;
+}
+
+.welcome-logo-slide {
+  width: 100%;
+  height: auto;
+  display: block;
+  transform: translateY(-50%);
+  animation: welcomeLogoSlide 4.8s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes welcomeLogoSlide {
+  0% {
+    transform: translateY(-50%);
+  }
+
+  100% {
+    transform: translateY(0%);
+  }
 }
 
 .film-content p {
