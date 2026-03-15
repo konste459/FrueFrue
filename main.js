@@ -3588,6 +3588,9 @@ function setPage(route) {
     link.classList.toggle("active", link.dataset.route === nextRoute);
   });
 
+  renderEventList();
+  updateCalendarCard();
+
   if (nextRoute === "fakten") {
     renderFacts(true);
   }
@@ -3922,6 +3925,13 @@ function handleLogin() {
         refreshAppState({ animateFacts: activePage === "fakten" });
       }
     });
+  [1500, 4000, 8000].forEach((delay) => {
+    window.setTimeout(() => {
+      if (currentUser === user.username) {
+        refreshAppState({ animateFacts: activePage === "fakten" });
+      }
+    }, delay);
+  });
   return;
 }
 
