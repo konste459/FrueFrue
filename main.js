@@ -2454,9 +2454,10 @@ function mountPlannedVoting() {
           fixedAt: new Date().toISOString()
         });
       }
-      plannedVoteStatus.textContent = `Termin ${term} um ${time} als Event gesetzt. Tickets sind aktiv.`;
+      plannedVoteStatus.textContent = `Termin ${term} um ${time} als Event gesetzt.`;
       renderEventList();
       updateCalendarCard();
+      setPage("event");
       return;
     }
 
@@ -3576,7 +3577,13 @@ function mountArchiveCarousel() {
 
 function setPage(route) {
   const rawRoute = route || "home";
-  const nextRoute = rawRoute === "ticket-success" ? "event" : rawRoute;
+  let nextRoute = rawRoute === "ticket-success" ? "event" : rawRoute;
+  if (nextRoute === "ticket") {
+    const nextEvent = getNextEvent();
+    if (!nextEvent || nextEvent.type !== "planned") {
+      nextRoute = "event";
+    }
+  }
   activePage = nextRoute;
   saveLastRoute(nextRoute);
 
