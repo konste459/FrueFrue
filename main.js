@@ -328,6 +328,7 @@ let editingEventPostId = "";
 let editingEventPostImage = "";
 let supabaseClient = null;
 let supabaseChannel = null;
+let supabaseInitPromise = null;
 const storageCache = {};
 
 const archiveEvents = {
@@ -3904,18 +3905,25 @@ function handleLogin() {
       ticketReminder.classList.add("hidden");
     }
     document.body.classList.add("logging-in");
-    setPage("home");
-    startEventFilm();
-    renderEventList();
-    updateCalendarCard();
-    renderPolls();
-    renderEventGallery();
-    renderFacts(false);
-    renderSpotifySongs();
-    startFruefrueQuoteRotation();
-    playLoginRevealVideo();
-    return;
-  }
+  setPage("home");
+  startEventFilm();
+  renderEventList();
+  updateCalendarCard();
+  renderPolls();
+  renderEventGallery();
+  renderFacts(false);
+  renderSpotifySongs();
+  startFruefrueQuoteRotation();
+  playLoginRevealVideo();
+  Promise.resolve(supabaseInitPromise)
+    .catch(() => {})
+    .finally(() => {
+      if (currentUser === user.username) {
+        refreshAppState({ animateFacts: activePage === "fakten" });
+      }
+    });
+  return;
+}
 
   loginError.textContent = "Falsche Daten. Nutze admin/gast (1234) oder registriere dich.";
 }
@@ -4011,7 +4019,8 @@ window.addEventListener("storage", (event) => {
 });
 
 async function initializeApp() {
-  await initSupabaseState();
+  supabaseInitPromise = initSupabaseState();
+  await supabaseInitPromise;
   mountMenuLinks();
   normalizeLogos();
   mountEventTypeToggle();
