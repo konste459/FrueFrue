@@ -1159,7 +1159,7 @@ function updateTicketReminder() {
     return;
   }
   const next = getNextEvent();
-  const showReminder = Boolean(next && next.type !== "planned");
+  const showReminder = Boolean(next);
   setTicketVisibility(showReminder);
   if (!showReminder) {
     ticketReminder.classList.add("hidden");
@@ -1171,7 +1171,20 @@ function updateTicketReminder() {
   }
 
   ticketReminder.classList.remove("hidden");
-  ticketReminderText.textContent = `Naechstes Event: ${next.title}.`;
+  ticketReminderText.textContent =
+    next.type === "planned"
+      ? `Naechstes Event: ${next.title}. Jetzt fuer den Termin abstimmen.`
+      : `Naechstes Event: ${next.title}.`;
+
+  if (next.type === "planned") {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+    ticketCountdown.textContent = "Tippe hier, um zum Voting-Button zu springen.";
+    return;
+  }
+
   const target = new Date(`${next.date}T${next.time}`).getTime();
 
   const tick = () => {
