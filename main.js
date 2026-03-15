@@ -656,6 +656,10 @@ async function initSupabaseState() {
       }
     )
     .subscribe();
+
+  if (currentUser) {
+    refreshAppState({ animateFacts: activePage === "fakten" });
+  }
 }
 
 function getRegisteredUsers() {
