@@ -705,6 +705,23 @@ main {
   font-weight: 700;
 }
 
+.quote-delete-btn {
+  margin-top: 8px;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(76, 132, 223, 0.14);
+  color: #11458f;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.quote-delete-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(76, 132, 223, 0.2);
+}
+
 .fruefrue-answer-form {
   margin-top: 12px;
   display: grid;

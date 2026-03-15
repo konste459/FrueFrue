@@ -243,6 +243,7 @@ const factsDietLactoseCount = document.getElementById("factsDietLactoseCount");
 const factsDietGlutenCount = document.getElementById("factsDietGlutenCount");
 const fruefrueQuote = document.getElementById("fruefrueQuote");
 const fruefrueQuoteAuthor = document.getElementById("fruefrueQuoteAuthor");
+const deleteFruefrueQuoteBtn = document.getElementById("deleteFruefrueQuoteBtn");
 const fruefrueAnswerForm = document.getElementById("fruefrueAnswerForm");
 const fruefrueAnswerInput = document.getElementById("fruefrueAnswerInput");
 const fruefrueAnswerStatus = document.getElementById("fruefrueAnswerStatus");
@@ -324,6 +325,7 @@ let archiveCurrentEvent = "";
 let archiveCurrentIndex = 0;
 let archiveSceneIndex = 0;
 let quoteTimer = null;
+let currentQuoteEntry = null;
 let loginContinueActive = false;
 let loginContinueNeedsWrap = false;
 let activeProgramId = "";
@@ -2872,12 +2874,26 @@ function renderRandomFruefrueQuote() {
   if (!entry) {
     return;
   }
+  currentQuoteEntry = entry;
   fruefrueQuote.classList.remove("swap");
   void fruefrueQuote.offsetWidth;
   fruefrueQuote.classList.add("swap");
   fruefrueQuote.textContent = `"${entry.text}"`;
   const author = entry.firstName || entry.username || "Community Voice";
   fruefrueQuoteAuthor.textContent = `- ${author}`;
+  if (deleteFruefrueQuoteBtn) {
+    const isCustomEntry = answers.some((answer) => {
+      if (entry.id && answer.id) {
+        return answer.id === entry.id;
+      }
+      return (
+        answer.text === entry.text &&
+        answer.username === entry.username &&
+        answer.createdAt === entry.createdAt
+      );
+    });
+    deleteFruefrueQuoteBtn.classList.toggle("hidden", !(currentRole === "admin" && isCustomEntry));
+  }
 }
 
 function startFruefrueQuoteRotation() {
@@ -2901,6 +2917,7 @@ function mountFruefrueAnswerForm() {
     }
     const answers = getFruefrueAnswers();
     answers.unshift({
+      id: `quote-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
       text: text.slice(0, 220),
       username: currentUser || "anon",
       firstName: currentFirstName || "Guest",
@@ -2909,6 +2926,30 @@ function mountFruefrueAnswerForm() {
     saveFruefrueAnswers(answers.slice(0, 120));
     fruefrueAnswerInput.value = "";
     fruefrueAnswerStatus.textContent = "Nice, dein Quote ist jetzt live im Feed.";
+    renderRandomFruefrueQuote();
+  });
+}
+
+function mountFruefrueQuoteDeletion() {
+  if (!deleteFruefrueQuoteBtn) {
+    return;
+  }
+  deleteFruefrueQuoteBtn.addEventListener("click", () => {
+    if (currentRole !== "admin" || !currentQuoteEntry) {
+      return;
+    }
+    const nextAnswers = getFruefrueAnswers().filter((entry) => {
+      if (currentQuoteEntry.id && entry.id) {
+        return entry.id !== currentQuoteEntry.id;
+      }
+      return !(
+        entry.text === currentQuoteEntry.text &&
+        entry.username === currentQuoteEntry.username &&
+        entry.createdAt === currentQuoteEntry.createdAt
+      );
+    });
+    saveFruefrueAnswers(nextAnswers);
+    currentQuoteEntry = null;
     renderRandomFruefrueQuote();
   });
 }
@@ -4102,6 +4143,7 @@ async function initializeApp() {
   mountReminderActions();
   mountEventPosts();
   mountFruefrueAnswerForm();
+  mountFruefrueQuoteDeletion();
   mountSpotifySongForm();
   mountAdminUserActions();
   mountLogout();
