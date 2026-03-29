@@ -130,6 +130,10 @@ const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
 const loginError = document.getElementById("loginError");
+const resetIdentifierInput = document.getElementById("resetIdentifier");
+const resetPasswordInput = document.getElementById("resetPassword");
+const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+const resetPasswordStatus = document.getElementById("resetPasswordStatus");
 const regFirstNameInput = document.getElementById("regFirstName");
 const regLastNameInput = document.getElementById("regLastName");
 const regEmailInput = document.getElementById("regEmail");
@@ -278,6 +282,7 @@ const PROGRAM_VIEW_KEY = "fruefrue-program-view-v1";
 const POLL_VOTES_KEY = "fruefrue-poll-votes-v1";
 const PLANNED_VOTES_KEY = "fruefrue-planned-votes-v1";
 const USERS_STORAGE_KEY = "fruefrue-users-v1";
+const PASSWORD_OVERRIDES_KEY = "fruefrue-password-overrides-v1";
 const DELETED_USERS_KEY = "fruefrue-deleted-users-v1";
 const FIXED_NOTICE_KEY = "fruefrue-fixed-notice-v1";
 const FRUEFRUE_ANSWERS_KEY = "fruefrue-answers-v1";
@@ -314,6 +319,7 @@ const REMOTE_SYNC_PREFIXES = [
   EVENT_PROGRAM_META_KEY,
   PLANNED_VOTES_KEY,
   USERS_STORAGE_KEY,
+  PASSWORD_OVERRIDES_KEY,
   DELETED_USERS_KEY,
   FIXED_NOTICE_KEY,
   FRUEFRUE_ANSWERS_KEY,
@@ -680,6 +686,14 @@ function saveRegisteredUsers(users) {
   saveJSON(USERS_STORAGE_KEY, users);
 }
 
+function getPasswordOverrides() {
+  return loadJSON(PASSWORD_OVERRIDES_KEY, {});
+}
+
+function savePasswordOverrides(overrides) {
+  saveJSON(PASSWORD_OVERRIDES_KEY, overrides);
+}
+
 function getDeletedUsers() {
   const list = loadJSON(DELETED_USERS_KEY, []);
   return Array.isArray(list) ? list : [];
@@ -723,6 +737,37 @@ function findUserByIdentifier(identifier) {
     return null;
   }
   return { username: match[0], user: match[1] };
+}
+
+function getResolvedPassword(username, user) {
+  const overrides = getPasswordOverrides();
+  const normalized = String(username || "").toLowerCase();
+  if (Object.prototype.hasOwnProperty.call(overrides, normalized)) {
+    return String(overrides[normalized] || "");
+  }
+  return String((user && user.password) || "");
+}
+
+function setPasswordForUser(username, nextPassword) {
+  const normalized = String(username || "").toLowerCase();
+  const users = getRegisteredUsers();
+  if (users[normalized]) {
+    users[normalized] = {
+      ...users[normalized],
+      password: nextPassword
+    };
+    saveRegisteredUsers(users);
+    return true;
+  }
+
+  if (BASE_USERS[normalized]) {
+    const overrides = getPasswordOverrides();
+    overrides[normalized] = nextPassword;
+    savePasswordOverrides(overrides);
+    return true;
+  }
+
+  return false;
 }
 
 function getClubUsers() {
@@ -3971,10 +4016,57 @@ function login(username, password) {
     return null;
   }
   const { username: canonicalUsername, user } = match;
-  if (user.password !== password) {
+  if (getResolvedPassword(canonicalUsername, user) !== password) {
     return null;
   }
   return { ...user, username: canonicalUsername };
+}
+
+function handlePasswordReset() {
+  if (!resetIdentifierInput || !resetPasswordInput || !resetPasswordStatus) {
+    return;
+  }
+
+  const identifier = String(resetIdentifierInput.value || "").trim().toLowerCase();
+  const nextPassword = String(resetPasswordInput.value || "").trim();
+
+  if (!identifier || !nextPassword) {
+    resetPasswordStatus.textContent = "Bitte Benutzername oder E-Mail und ein neues Passwort eingeben.";
+    return;
+  }
+
+  if (nextPassword.length < 4) {
+    resetPasswordStatus.textContent = "Neues Passwort muss mindestens 4 Zeichen haben.";
+    return;
+  }
+
+  const match = findUserByIdentifier(identifier);
+  if (!match) {
+    resetPasswordStatus.textContent = "Kein Account mit diesem Benutzernamen oder dieser E-Mail gefunden.";
+    return;
+  }
+
+  const didUpdate = setPasswordForUser(match.username, nextPassword);
+  if (!didUpdate) {
+    resetPasswordStatus.textContent = "Passwort konnte nicht aktualisiert werden.";
+    return;
+  }
+
+  if (usernameInput) {
+    usernameInput.value = identifier;
+  }
+  if (passwordInput) {
+    passwordInput.value = nextPassword;
+  }
+  resetIdentifierInput.value = "";
+  resetPasswordInput.value = "";
+  resetPasswordStatus.textContent = "Passwort aktualisiert. Du kannst dich jetzt direkt einloggen.";
+  if (loginError) {
+    loginError.textContent = "";
+  }
+  if (registerStatus) {
+    registerStatus.textContent = "";
+  }
 }
 
 function handleRegister() {
@@ -4143,6 +4235,10 @@ if (registerBtn) {
   registerBtn.addEventListener("click", handleRegister);
 }
 
+if (resetPasswordBtn) {
+  resetPasswordBtn.addEventListener("click", handlePasswordReset);
+}
+
 if (passwordInput) {
   passwordInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
@@ -4157,6 +4253,15 @@ if (regPasswordInput) {
     if (event.key === "Enter") {
       event.preventDefault();
       handleRegister();
+    }
+  });
+}
+
+if (resetPasswordInput) {
+  resetPasswordInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handlePasswordReset();
     }
   });
 }

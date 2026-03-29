@@ -88,6 +88,18 @@
         <p id="loginError" class="error" aria-live="polite"></p>
 
         <div class="register-box">
+          <p class="register-title">Passwort vergessen?</p>
+          <label for="resetIdentifier">Benutzername oder E-Mail</label>
+          <input id="resetIdentifier" name="resetIdentifier" type="text" autocomplete="username email" />
+
+          <label for="resetPassword">Neues Passwort</label>
+          <input id="resetPassword" name="resetPassword" type="password" autocomplete="new-password" />
+
+          <button id="resetPasswordBtn" type="button" class="cta-secondary">Neues Passwort setzen</button>
+          <p id="resetPasswordStatus" class="error" aria-live="polite"></p>
+        </div>
+
+        <div class="register-box">
           <p class="register-title">Neu hier? Registrieren</p>
           <label for="regFirstName">Vorname</label>
           <input id="regFirstName" name="regFirstName" type="text" autocomplete="given-name" />
