@@ -776,6 +776,21 @@ function getClubUsers() {
     .map(([username, user]) => ({ username, ...user }));
 }
 
+function getUserDisplayLabel(username) {
+  const normalized = String(username || "").trim().toLowerCase();
+  if (!normalized) {
+    return "Unbekannt";
+  }
+  const user = getAllUsers()[normalized];
+  if (!user) {
+    return normalized;
+  }
+  const firstName = String(user.firstName || "").trim();
+  const lastName = String(user.lastName || "").trim();
+  const fullName = `${firstName} ${lastName}`.trim();
+  return fullName || normalized;
+}
+
 function gradeToIndex(grade) {
   return BOULDER_GRADES.indexOf(String(grade || "").toLowerCase());
 }
@@ -2213,6 +2228,45 @@ function renderPolls() {
       }
       resultRow.appendChild(statWrap);
       optionCard.appendChild(resultRow);
+
+      if (currentRole === "admin") {
+        const voters = option.voters && typeof option.voters === "object" ? option.voters : {};
+        const voterEntries = Object.entries(voters);
+        const voterWrap = document.createElement("div");
+        voterWrap.className = "poll-voter-list";
+
+        if (type === "choice" || type === "yesno") {
+          const yesVoters = voterEntries
+            .filter(([, entry]) => normalizeChoiceVoterEntry(entry) === "yes")
+            .map(([username]) => getUserDisplayLabel(username));
+          const noVoters = voterEntries
+            .filter(([, entry]) => normalizeChoiceVoterEntry(entry) === "no")
+            .map(([username]) => getUserDisplayLabel(username));
+
+          const yesLine = document.createElement("p");
+          yesLine.innerHTML = `Ja: <strong>${yesVoters.length ? yesVoters.join(", ") : "-"}</strong>`;
+          const noLine = document.createElement("p");
+          noLine.innerHTML = `Nein: <strong>${noVoters.length ? noVoters.join(", ") : "-"}</strong>`;
+          voterWrap.appendChild(yesLine);
+          voterWrap.appendChild(noLine);
+        } else {
+          const ratingVoters = voterEntries
+            .map(([username, entry]) => {
+              const rating = normalizeRatingVoterEntry(entry);
+              if (!rating) {
+                return "";
+              }
+              return `${getUserDisplayLabel(username)} (${rating.taste}/${rating.creativity})`;
+            })
+            .filter(Boolean);
+          const ratingLine = document.createElement("p");
+          ratingLine.innerHTML = `Teilgenommen: <strong>${ratingVoters.length ? ratingVoters.join(", ") : "-"}</strong>`;
+          voterWrap.appendChild(ratingLine);
+        }
+
+        optionCard.appendChild(voterWrap);
+      }
+
       optionsWrap.appendChild(optionCard);
     });
 
