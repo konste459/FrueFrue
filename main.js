@@ -1829,14 +1829,99 @@ function resetEventPostComposer(message) {
   }
 }
 
-function getUserVoteState() {
-  const key = `${POLL_VOTES_KEY}:${currentUser || "anon"}`;
-  return loadJSON(key, {});
+function getCurrentVoterId() {
+  return String(currentUser || "").trim().toLowerCase();
 }
 
-function saveUserVoteState(state) {
-  const key = `${POLL_VOTES_KEY}:${currentUser || "anon"}`;
-  saveJSON(key, state);
+function getLegacyPollVoteStates() {
+  const prefix = `${POLL_VOTES_KEY}:`;
+  const result = {};
+  try {
+    Object.keys(localStorage).forEach((key) => {
+      if (!key.startsWith(prefix)) {
+        return;
+      }
+      const username = key.slice(prefix.length).trim().toLowerCase();
+      if (!username) {
+        return;
+      }
+      const value = loadJSON(key, {});
+      if (value && typeof value === "object") {
+        result[username] = value;
+      }
+    });
+  } catch (error) {
+    return result;
+  }
+  return result;
+}
+
+function normalizeChoiceVoterEntry(entry) {
+  if (!entry) {
+    return "";
+  }
+  if (typeof entry === "string") {
+    return entry === "yes" || entry === "no" ? entry : "";
+  }
+  const choice = String(entry.choice || "").toLowerCase();
+  return choice === "yes" || choice === "no" ? choice : "";
+}
+
+function normalizeRatingVoterEntry(entry) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+  const taste = Number(entry.taste);
+  const creativity = Number(entry.creativity);
+  if (!Number.isFinite(taste) || !Number.isFinite(creativity)) {
+    return null;
+  }
+  return {
+    type: "rating",
+    taste: Math.min(10, Math.max(1, Math.round(taste))),
+    creativity: Math.min(10, Math.max(1, Math.round(creativity)))
+  };
+}
+
+function aggregatePollOption(type, option) {
+  const voters = option && option.voters && typeof option.voters === "object" ? option.voters : {};
+  const entries = Object.entries(voters);
+  if (!entries.length) {
+    return {
+      votes: typeof option.votes === "number" ? option.votes : 0,
+      tasteTotal: typeof option.tasteTotal === "number" ? option.tasteTotal : 0,
+      creativityTotal: typeof option.creativityTotal === "number" ? option.creativityTotal : 0,
+      yesVotes: typeof option.yesVotes === "number" ? option.yesVotes : 0,
+      noVotes: typeof option.noVotes === "number" ? option.noVotes : 0
+    };
+  }
+  if (type === "choice" || type === "yesno") {
+    let yesVotes = 0;
+    let noVotes = 0;
+    entries.forEach(([, entry]) => {
+      const choice = normalizeChoiceVoterEntry(entry);
+      if (choice === "yes") {
+        yesVotes += 1;
+      }
+      if (choice === "no") {
+        noVotes += 1;
+      }
+    });
+    return { votes: yesVotes + noVotes, tasteTotal: 0, creativityTotal: 0, yesVotes, noVotes };
+  }
+  let votes = 0;
+  let tasteTotal = 0;
+  let creativityTotal = 0;
+  entries.forEach(([, entry]) => {
+    const rating = normalizeRatingVoterEntry(entry);
+    if (!rating) {
+      return;
+    }
+    votes += 1;
+    tasteTotal += rating.taste;
+    creativityTotal += rating.creativity;
+  });
+  return { votes, tasteTotal, creativityTotal, yesVotes: 0, noVotes: 0 };
 }
 
 function getStoredPrograms() {
@@ -1886,18 +1971,63 @@ function renderEventGallery() {
 
 function getStoredPolls() {
   const polls = loadJSON(EVENT_POLLS_KEY, []);
-  return polls.map((poll) => ({
-    ...poll,
-    options: (poll.options || []).map((option, index) => ({
-      id: option.id || `opt-${index}`,
-      label: option.label || `Option ${index + 1}`,
-      votes: typeof option.votes === "number" ? option.votes : 0,
-      tasteTotal: typeof option.tasteTotal === "number" ? option.tasteTotal : 0,
-      creativityTotal: typeof option.creativityTotal === "number" ? option.creativityTotal : 0,
-      yesVotes: typeof option.yesVotes === "number" ? option.yesVotes : 0,
-      noVotes: typeof option.noVotes === "number" ? option.noVotes : 0
-    }))
-  }));
+  const legacyVotesByUser = getLegacyPollVoteStates();
+  let changed = false;
+  const normalized = polls.map((poll) => {
+    const type = poll.type || "rating";
+    return {
+      ...poll,
+      options: (poll.options || []).map((option, index) => {
+        const id = option.id || `opt-${index}`;
+        const voters = option.voters && typeof option.voters === "object" ? { ...option.voters } : {};
+        let optionChanged = !option.id || !option.voters || typeof option.voters !== "object";
+        Object.entries(legacyVotesByUser).forEach(([username, pollState]) => {
+          const legacyEntry = pollState && pollState[poll.id] ? pollState[poll.id][id] : null;
+          if (!legacyEntry) {
+            return;
+          }
+          if (type === "choice" || type === "yesno") {
+            const choice = normalizeChoiceVoterEntry(legacyEntry);
+            if (choice && voters[username] !== choice) {
+              voters[username] = choice;
+              optionChanged = true;
+            }
+            return;
+          }
+          const rating = normalizeRatingVoterEntry(legacyEntry);
+          const current = normalizeRatingVoterEntry(voters[username]);
+          if (rating && (!current || current.taste !== rating.taste || current.creativity !== rating.creativity)) {
+            voters[username] = rating;
+            optionChanged = true;
+          }
+        });
+        const aggregates = aggregatePollOption(type, { ...option, voters });
+        if (
+          aggregates.votes !== (typeof option.votes === "number" ? option.votes : 0) ||
+          aggregates.tasteTotal !== (typeof option.tasteTotal === "number" ? option.tasteTotal : 0) ||
+          aggregates.creativityTotal !== (typeof option.creativityTotal === "number" ? option.creativityTotal : 0) ||
+          aggregates.yesVotes !== (typeof option.yesVotes === "number" ? option.yesVotes : 0) ||
+          aggregates.noVotes !== (typeof option.noVotes === "number" ? option.noVotes : 0)
+        ) {
+          optionChanged = true;
+        }
+        if (optionChanged) {
+          changed = true;
+        }
+        return {
+          ...option,
+          id,
+          label: option.label || `Option ${index + 1}`,
+          voters,
+          ...aggregates
+        };
+      })
+    };
+  });
+  if (changed) {
+    saveJSON(EVENT_POLLS_KEY, normalized);
+  }
+  return normalized;
 }
 
 function saveStoredPolls(polls) {
@@ -1909,7 +2039,7 @@ function renderPolls() {
     return;
   }
   const polls = getStoredPolls();
-  const userVotes = getUserVoteState();
+  const voterId = getCurrentVoterId();
   pollList.innerHTML = "";
   if (!polls.length) {
     const empty = document.createElement("p");
@@ -1941,7 +2071,7 @@ function renderPolls() {
       optionTitle.textContent = option.label;
       optionCard.appendChild(optionTitle);
 
-      const previousVote = userVotes[poll.id] ? userVotes[poll.id][optionKey] : undefined;
+      const previousVote = voterId && option.voters ? option.voters[voterId] : undefined;
 
       if (type === "rating" && currentRole !== "admin") {
         const ratingWrap = document.createElement("div");
@@ -1980,25 +2110,21 @@ function renderPolls() {
           if (!targetPoll || !targetOption) {
             return;
           }
-          const voteState = getUserVoteState();
-          const pollState = voteState[poll.id] || {};
-          const oldVote = pollState[optionKey];
+          const nextVoterId = getCurrentVoterId();
+          if (!nextVoterId) {
+            return;
+          }
           const taste = Number(tasteInput.value);
           const creativity = Number(creativityInput.value);
-
-          if (oldVote) {
-            targetOption.tasteTotal = Math.max(0, targetOption.tasteTotal - (oldVote.taste || 0));
-            targetOption.creativityTotal = Math.max(0, targetOption.creativityTotal - (oldVote.creativity || 0));
-          } else {
-            targetOption.votes += 1;
-          }
-
-          targetOption.tasteTotal += taste;
-          targetOption.creativityTotal += creativity;
-          pollState[optionKey] = { type: "rating", taste, creativity };
-          voteState[poll.id] = pollState;
+          targetOption.voters = targetOption.voters && typeof targetOption.voters === "object" ? targetOption.voters : {};
+          targetOption.voters[nextVoterId] = { type: "rating", taste, creativity };
+          const aggregates = aggregatePollOption(type, targetOption);
+          targetOption.votes = aggregates.votes;
+          targetOption.tasteTotal = aggregates.tasteTotal;
+          targetOption.creativityTotal = aggregates.creativityTotal;
+          targetOption.yesVotes = aggregates.yesVotes;
+          targetOption.noVotes = aggregates.noVotes;
           saveStoredPolls(allPolls);
-          saveUserVoteState(voteState);
           renderPolls();
         });
         optionCard.appendChild(saveBtn);
@@ -2016,10 +2142,12 @@ function renderPolls() {
         noBtn.className = "poll-choice-btn";
         noBtn.textContent = "Nein";
 
-        if (previousVote && previousVote.choice === "yes") {
+        const previousChoice = normalizeChoiceVoterEntry(previousVote);
+
+        if (previousChoice === "yes") {
           yesBtn.classList.add("active");
         }
-        if (previousVote && previousVote.choice === "no") {
+        if (previousChoice === "no") {
           noBtn.classList.add("active");
         }
 
@@ -2030,30 +2158,23 @@ function renderPolls() {
           if (!targetPoll || !targetOption) {
             return;
           }
-          const voteState = getUserVoteState();
-          const pollState = voteState[poll.id] || {};
-          const oldVote = (pollState[optionKey] && pollState[optionKey].choice) || "";
+          const nextVoterId = getCurrentVoterId();
+          if (!nextVoterId) {
+            return;
+          }
+          targetOption.voters = targetOption.voters && typeof targetOption.voters === "object" ? targetOption.voters : {};
+          const oldVote = normalizeChoiceVoterEntry(targetOption.voters[nextVoterId]);
           if (oldVote === choice) {
             return;
           }
-          if (oldVote === "yes") {
-            targetOption.yesVotes = Math.max(0, targetOption.yesVotes - 1);
-          }
-          if (oldVote === "no") {
-            targetOption.noVotes = Math.max(0, targetOption.noVotes - 1);
-          }
-          if (!oldVote) {
-            targetOption.votes += 1;
-          }
-          if (choice === "yes") {
-            targetOption.yesVotes += 1;
-          } else {
-            targetOption.noVotes += 1;
-          }
-          pollState[optionKey] = { type, choice };
-          voteState[poll.id] = pollState;
+          targetOption.voters[nextVoterId] = choice;
+          const aggregates = aggregatePollOption(type, targetOption);
+          targetOption.votes = aggregates.votes;
+          targetOption.tasteTotal = aggregates.tasteTotal;
+          targetOption.creativityTotal = aggregates.creativityTotal;
+          targetOption.yesVotes = aggregates.yesVotes;
+          targetOption.noVotes = aggregates.noVotes;
           saveStoredPolls(allPolls);
-          saveUserVoteState(voteState);
           renderPolls();
         };
 
@@ -3613,7 +3734,8 @@ function mountPollCreator() {
         tasteTotal: 0,
         creativityTotal: 0,
         yesVotes: 0,
-        noVotes: 0
+        noVotes: 0,
+        voters: {}
       })),
       createdBy: currentUser || "gast"
     });
