@@ -4000,7 +4000,7 @@ function setPage(route) {
     renderEventGallery();
     renderPolls();
   }
-  if (nextRoute === "tuntung") {
+  if (nextRoute === "tungtung") {
     playTuntungAnimation();
   }
 }
