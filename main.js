@@ -264,6 +264,8 @@ const spotifySongArtist = document.getElementById("spotifySongArtist");
 const spotifySongLink = document.getElementById("spotifySongLink");
 const spotifySongStatus = document.getElementById("spotifySongStatus");
 const spotifySongList = document.getElementById("spotifySongList");
+const replayTuntungBtn = document.getElementById("replayTuntungBtn");
+const tuntungRunner = document.getElementById("tuntungRunner");
 const programViewButtons = document.querySelectorAll(".program-view-btn");
 
 let activePage = "home";
@@ -344,6 +346,7 @@ let editingEventPostImage = "";
 let supabaseClient = null;
 let supabaseChannel = null;
 let supabaseInitPromise = null;
+let tuntungResetTimer = null;
 const storageCache = {};
 
 const archiveEvents = {
@@ -3997,6 +4000,9 @@ function setPage(route) {
     renderEventGallery();
     renderPolls();
   }
+  if (nextRoute === "tuntung") {
+    playTuntungAnimation();
+  }
 }
 
 function mountMenuLinks() {
@@ -4072,6 +4078,23 @@ function configureMediaSnippet(video, lengthSeconds) {
       video.play().catch(() => {});
     }
   });
+}
+
+function playTuntungAnimation() {
+  if (!tuntungRunner) {
+    return;
+  }
+  tuntungRunner.classList.remove("is-playing");
+  void tuntungRunner.offsetWidth;
+  tuntungRunner.classList.add("is-playing");
+  if (tuntungResetTimer) {
+    window.clearTimeout(tuntungResetTimer);
+  }
+  tuntungResetTimer = window.setTimeout(() => {
+    if (tuntungRunner) {
+      tuntungRunner.classList.remove("is-playing");
+    }
+  }, 5200);
 }
 
 function resetLoginVideoState() {
@@ -4413,6 +4436,10 @@ if (registerBtn) {
 
 if (resetPasswordBtn) {
   resetPasswordBtn.addEventListener("click", handlePasswordReset);
+}
+
+if (replayTuntungBtn) {
+  replayTuntungBtn.addEventListener("click", playTuntungAnimation);
 }
 
 if (passwordInput) {

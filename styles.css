@@ -533,6 +533,194 @@ main {
   display: block;
 }
 
+.tuntung-card {
+  overflow: hidden;
+}
+
+.tuntung-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.tuntung-stage {
+  position: relative;
+  min-height: 280px;
+  margin-top: 18px;
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2) 36%, transparent 52%),
+    linear-gradient(180deg, rgba(76, 132, 223, 0.12), rgba(76, 132, 223, 0.02)),
+    url("assets/backgrounds/trippy.png") center/cover no-repeat;
+  border: 1px solid rgba(76, 132, 223, 0.14);
+}
+
+.tuntung-stage::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 248, 237, 0.92)),
+    repeating-linear-gradient(90deg, rgba(76, 132, 223, 0.08) 0 24px, rgba(255, 255, 255, 0.18) 24px 48px);
+}
+
+.tuntung-runner {
+  position: absolute;
+  left: -180px;
+  bottom: 34px;
+  width: 160px;
+  height: 170px;
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tuntung-runner.is-playing {
+  animation: tuntunTraverse 5.2s ease-in-out forwards;
+}
+
+.tuntung-shadow {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 4px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(17, 69, 143, 0.18);
+  filter: blur(4px);
+}
+
+.tuntung-body {
+  position: absolute;
+  left: 34px;
+  top: 10px;
+  width: 92px;
+  height: 120px;
+  animation: tuntunBounce 0.62s ease-in-out infinite;
+}
+
+.tuntung-head {
+  position: absolute;
+  left: 21px;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #356fd0;
+  border: 3px solid #ffffff;
+}
+
+.tuntung-eye,
+.tuntung-mouth {
+  position: absolute;
+  background: #ffffff;
+}
+
+.tuntung-eye {
+  top: 17px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.tuntung-eye-left {
+  left: 13px;
+}
+
+.tuntung-eye-right {
+  right: 13px;
+}
+
+.tuntung-mouth {
+  left: 17px;
+  bottom: 11px;
+  width: 14px;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.tuntung-torso {
+  position: absolute;
+  left: 8px;
+  top: 40px;
+  width: 76px;
+  height: 56px;
+  border-radius: 28px;
+  background: #4c84df;
+  border: 3px solid #ffffff;
+}
+
+.tuntung-arm,
+.tuntung-leg {
+  position: absolute;
+  width: 12px;
+  border-radius: 999px;
+  background: #356fd0;
+  transform-origin: top center;
+}
+
+.tuntung-arm {
+  top: 46px;
+  height: 42px;
+}
+
+.tuntung-leg {
+  top: 92px;
+  height: 50px;
+}
+
+.tuntung-arm-left {
+  left: -2px;
+  animation: tuntunArmLeft 0.52s ease-in-out infinite;
+}
+
+.tuntung-arm-right {
+  right: -2px;
+  animation: tuntunArmRight 0.52s ease-in-out infinite;
+}
+
+.tuntung-leg-left {
+  left: 20px;
+  animation: tuntunLegLeft 0.52s ease-in-out infinite;
+}
+
+.tuntung-leg-right {
+  right: 20px;
+  animation: tuntunLegRight 0.52s ease-in-out infinite;
+}
+
+.tuntung-bongo {
+  position: absolute;
+  bottom: 28px;
+  width: 48px;
+  height: 58px;
+  border-radius: 999px 999px 18px 18px;
+  background: linear-gradient(180deg, #f1c98e, #c7814d);
+  border: 3px solid #ffffff;
+}
+
+.tuntung-bongo::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 4px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff3df;
+}
+
+.tuntung-bongo-left {
+  left: 16px;
+}
+
+.tuntung-bongo-right {
+  right: 16px;
+}
+
 .ticket-reminder {
   width: 100%;
   margin: 4px 0 14px;
@@ -2716,6 +2904,84 @@ main {
     opacity: 1;
     clip-path: circle(160% at 50% 38%);
     transform: scale(1);
+  }
+}
+
+@keyframes tuntunTraverse {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  34% {
+    transform: translateX(calc(50vw - 180px));
+    opacity: 1;
+  }
+  62% {
+    transform: translateX(calc(50vw - 180px));
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(100vw + 120px));
+    opacity: 0;
+  }
+}
+
+@keyframes tuntunBounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(0) rotate(3deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(-2deg);
+  }
+}
+
+@keyframes tuntunArmLeft {
+  0%,
+  100% {
+    transform: rotate(22deg);
+  }
+  50% {
+    transform: rotate(-28deg);
+  }
+}
+
+@keyframes tuntunArmRight {
+  0%,
+  100% {
+    transform: rotate(-22deg);
+  }
+  50% {
+    transform: rotate(28deg);
+  }
+}
+
+@keyframes tuntunLegLeft {
+  0%,
+  100% {
+    transform: rotate(14deg);
+  }
+  50% {
+    transform: rotate(-18deg);
+  }
+}
+
+@keyframes tuntunLegRight {
+  0%,
+  100% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(18deg);
   }
 }
 
