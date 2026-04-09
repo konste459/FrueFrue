@@ -174,7 +174,7 @@
         <button class="menu-link" data-route="visitenkarte">Digitale Visitenkarte</button>
         <button class="menu-link" data-route="spotify">Spotify</button>
         <button class="menu-link" data-route="zarti">Zarti Pause</button>
-        <button class="menu-link" data-route="tungtung">Tungtung</button>
+        <button id="tungtungBtn" class="menu-link" type="button">Tungtung</button>
         <button class="menu-link" data-route="event-create" data-admin-only>Event erstellen</button>
         <button class="menu-link" data-route="event">Event</button>
       </nav>
@@ -383,36 +383,6 @@
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowfullscreen
               ></iframe>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-tungtung" class="page">
-          <div class="placeholder-card tuntun-card">
-            <div class="tuntung-copy">
-              <p class="badge">Meme Break</p>
-              <h3 class="brand-display">Tungtung Tungtung Sahur</h3>
-              <p>Beim Oeffnen kommt Tungtung reingelaufen, tanzt kurz und verschwindet wieder.</p>
-              <button id="replayTuntungBtn" class="cta-secondary" type="button">Nochmal abspielen</button>
-            </div>
-            <div class="tuntung-stage" aria-label="Tungtung Animation">
-              <div id="tuntungRunner" class="tuntung-runner" aria-hidden="true">
-                <div class="tuntung-shadow"></div>
-                <div class="tuntung-body">
-                  <div class="tuntung-head">
-                    <span class="tuntung-eye tuntun-eye-left"></span>
-                    <span class="tuntung-eye tuntun-eye-right"></span>
-                    <span class="tuntung-mouth"></span>
-                  </div>
-                  <div class="tuntung-torso"></div>
-                  <div class="tuntung-arm tuntun-arm-left"></div>
-                  <div class="tuntung-arm tuntun-arm-right"></div>
-                  <div class="tuntung-leg tuntun-leg-left"></div>
-                  <div class="tuntung-leg tuntun-leg-right"></div>
-                </div>
-                <div class="tuntung-bongo tuntun-bongo-left"></div>
-                <div class="tuntung-bongo tuntun-bongo-right"></div>
-              </div>
             </div>
           </div>
         </section>
@@ -690,6 +660,25 @@
           </div>
         </section>
       </main>
+      <div id="tungtungOverlay" class="tungtung-overlay" aria-hidden="true">
+        <div id="tungtungRunner" class="tuntung-runner">
+          <div class="tuntung-shadow"></div>
+          <div class="tuntung-body">
+            <div class="tuntung-head">
+              <span class="tuntung-eye tuntun-eye-left"></span>
+              <span class="tuntung-eye tuntun-eye-right"></span>
+              <span class="tuntung-mouth"></span>
+            </div>
+            <div class="tuntung-torso"></div>
+            <div class="tuntung-arm tuntun-arm-left"></div>
+            <div class="tuntung-arm tuntun-arm-right"></div>
+            <div class="tuntung-leg tuntun-leg-left"></div>
+            <div class="tuntung-leg tuntun-leg-right"></div>
+          </div>
+          <div class="tuntung-bongo tuntun-bongo-left"></div>
+          <div class="tuntung-bongo tuntun-bongo-right"></div>
+        </div>
+      </div>
       <section id="impressum" class="impressum-section">
         <div class="placeholder-card impressum-card">
           <a class="impressum-close" href="#" aria-label="Impressum schliessen">Schliessen</a>

@@ -533,44 +533,37 @@ main {
   display: block;
 }
 
-.tuntung-card {
+.tungtung-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
   overflow: hidden;
 }
 
-.tuntung-copy {
-  display: grid;
-  gap: 10px;
+.tungtung-overlay.is-visible {
+  opacity: 1;
 }
 
-.tuntung-stage {
-  position: relative;
-  min-height: 280px;
-  margin-top: 18px;
-  border-radius: 24px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2) 36%, transparent 52%),
-    linear-gradient(180deg, rgba(76, 132, 223, 0.12), rgba(76, 132, 223, 0.02)),
-    url("assets/backgrounds/trippy.png") center/cover no-repeat;
-  border: 1px solid rgba(76, 132, 223, 0.14);
-}
-
-.tuntung-stage::after {
+.tungtung-overlay::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 34%;
+  height: 28vh;
+  min-height: 120px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 248, 237, 0.92)),
-    repeating-linear-gradient(90deg, rgba(76, 132, 223, 0.08) 0 24px, rgba(255, 255, 255, 0.18) 24px 48px);
+    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 248, 237, 0.52)),
+    repeating-linear-gradient(90deg, rgba(76, 132, 223, 0.08) 0 24px, rgba(255, 255, 255, 0.16) 24px 48px);
 }
 
 .tuntung-runner {
   position: absolute;
   left: -180px;
-  bottom: 34px;
+  bottom: 8vh;
   width: 160px;
   height: 170px;
   opacity: 0;

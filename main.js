@@ -264,7 +264,8 @@ const spotifySongArtist = document.getElementById("spotifySongArtist");
 const spotifySongLink = document.getElementById("spotifySongLink");
 const spotifySongStatus = document.getElementById("spotifySongStatus");
 const spotifySongList = document.getElementById("spotifySongList");
-const replayTuntungBtn = document.getElementById("replayTuntungBtn");
+const tungtungBtn = document.getElementById("tungtungBtn");
+const tungtungOverlay = document.getElementById("tungtungOverlay");
 const tuntungRunner = document.getElementById("tuntungRunner");
 const programViewButtons = document.querySelectorAll(".program-view-btn");
 
@@ -4000,9 +4001,6 @@ function setPage(route) {
     renderEventGallery();
     renderPolls();
   }
-  if (nextRoute === "tungtung") {
-    playTuntungAnimation();
-  }
 }
 
 function mountMenuLinks() {
@@ -4081,9 +4079,10 @@ function configureMediaSnippet(video, lengthSeconds) {
 }
 
 function playTuntungAnimation() {
-  if (!tuntungRunner) {
+  if (!tuntungRunner || !tungtungOverlay) {
     return;
   }
+  tungtungOverlay.classList.add("is-visible");
   tuntungRunner.classList.remove("is-playing");
   void tuntungRunner.offsetWidth;
   tuntungRunner.classList.add("is-playing");
@@ -4091,8 +4090,9 @@ function playTuntungAnimation() {
     window.clearTimeout(tuntungResetTimer);
   }
   tuntungResetTimer = window.setTimeout(() => {
-    if (tuntungRunner) {
+    if (tuntungRunner && tungtungOverlay) {
       tuntungRunner.classList.remove("is-playing");
+      tungtungOverlay.classList.remove("is-visible");
     }
   }, 5200);
 }
@@ -4438,8 +4438,8 @@ if (resetPasswordBtn) {
   resetPasswordBtn.addEventListener("click", handlePasswordReset);
 }
 
-if (replayTuntungBtn) {
-  replayTuntungBtn.addEventListener("click", playTuntungAnimation);
+if (tungtungBtn) {
+  tungtungBtn.addEventListener("click", playTuntungAnimation);
 }
 
 if (passwordInput) {
