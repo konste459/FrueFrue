@@ -1456,7 +1456,8 @@ main {
   gap: 6px;
 }
 
-.event-gallery img {
+.event-gallery img,
+.event-gallery video {
   width: 100%;
   height: auto;
   max-height: 240px;

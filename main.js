@@ -1732,7 +1732,7 @@ function getArchiveMediaForEventKey(eventKey) {
   const staticEvent = archiveEvents[eventKey];
   const uploaded = getStoredEventImages()
     .filter((entry) => entry && entry.archiveKey === eventKey && getEventImageSource(entry))
-    .map((entry) => ({ type: "image", src: getEventImageSource(entry) }));
+    .map((entry) => ({ type: entry.type === "video" ? "video" : "image", src: getEventImageSource(entry) }));
   return [...(staticEvent && Array.isArray(staticEvent.media) ? staticEvent.media : []), ...uploaded];
 }
 
@@ -1813,12 +1813,30 @@ function canKeepOriginalImage(file) {
   );
 }
 
+function isAcceptedEventVideoFile(file) {
+  if (!file) {
+    return false;
+  }
+  const type = String(file.type || "").toLowerCase();
+  const extension = getFileExtension(file);
+  return (
+    type === "video/mp4" ||
+    type === "video/quicktime" ||
+    type === "video/webm" ||
+    type === "video/x-m4v" ||
+    extension === "mp4" ||
+    extension === "mov" ||
+    extension === "webm" ||
+    extension === "m4v"
+  );
+}
+
 function isAcceptedEventImageFile(file) {
   if (!file) {
     return false;
   }
   const type = String(file.type || "").toLowerCase();
-  return type.startsWith("image/") || isHeicLikeImage(file);
+  return type.startsWith("image/") || isHeicLikeImage(file) || isAcceptedEventVideoFile(file);
 }
 
 function drawFileToCanvas(file) {
@@ -1873,12 +1891,22 @@ async function resizeImageDataUrl(dataUrl, maxSide, mimeType = "image/jpeg", qua
 }
 
 async function prepareEventImageForUpload(file) {
+  if (isAcceptedEventVideoFile(file)) {
+    return {
+      fileBody: file,
+      contentType: file.type || "video/mp4",
+      extension: getFileExtension(file) || "mp4",
+      mediaType: "video"
+    };
+  }
+
   if (isHeicLikeImage(file)) {
     const canvas = await drawFileToCanvas(file);
     return {
       fileBody: await dataUrlToBlob(canvas.toDataURL("image/jpeg", 0.94)),
       contentType: "image/jpeg",
-      extension: "jpg"
+      extension: "jpg",
+      mediaType: "image"
     };
   }
 
@@ -1886,7 +1914,8 @@ async function prepareEventImageForUpload(file) {
     return {
       fileBody: file,
       contentType: file.type || "application/octet-stream",
-      extension: getFileExtension(file) || "bin"
+      extension: getFileExtension(file) || "bin",
+      mediaType: "image"
     };
   }
 
@@ -1894,7 +1923,8 @@ async function prepareEventImageForUpload(file) {
   return {
     fileBody: await dataUrlToBlob(await resizeImageDataUrl(original, 2200, "image/png")),
     contentType: "image/png",
-    extension: "png"
+    extension: "png",
+    mediaType: "image"
   };
 }
 
@@ -1914,9 +1944,9 @@ function explainStorageUploadError(error, file) {
     return "Die Datei ist fuer den aktuellen Upload zu gross.";
   }
   if (!message) {
-    return "Fotos konnten nicht hochgeladen werden.";
+    return "Dateien konnten nicht hochgeladen werden.";
   }
-  return `Fotos konnten nicht hochgeladen werden: ${message}`;
+  return `Dateien konnten nicht hochgeladen werden: ${message}`;
 }
 
 async function uploadEventImageToStorage(file, eventData) {
@@ -1942,9 +1972,11 @@ async function uploadEventImageToStorage(file, eventData) {
     id: imageId,
     eventId,
     archiveKey,
+    type: prepared.mediaType || "image",
+    mimeType: prepared.contentType,
     src: publicUrlData && publicUrlData.publicUrl ? publicUrlData.publicUrl : "",
     storagePath: path,
-    caption: file.name || eventData.title || "Event Foto",
+    caption: file.name || eventData.title || "Event Medium",
     uploadedBy: currentUser || "gast",
     uploadedByName: currentFirstName || currentUser || "Gast",
     uploadedAt: new Date().toISOString()
@@ -2196,22 +2228,31 @@ function renderEventGallery() {
   const eventId = getEventId(eventData);
   const entries = getEventImageEntries(eventId);
   eventImageGuestText.textContent = entries.length
-    ? "Fotos wurden hochgeladen und sind jetzt auch im Archiv sichtbar."
-    : "Lade hier direkt Fotos fuer dieses Event hoch. Sie erscheinen danach auch im Archiv.";
+    ? "Dateien wurden hochgeladen und sind jetzt auch im Archiv sichtbar."
+    : "Lade hier direkt Fotos und Videos fuer dieses Event hoch. Sie erscheinen danach auch im Archiv.";
   if (!entries.length) {
     const empty = document.createElement("p");
     empty.className = "event-status";
-    empty.textContent = "Noch keine Event-Fotos hochgeladen.";
+    empty.textContent = "Noch keine Event-Medien hochgeladen.";
     eventGallery.appendChild(empty);
     return;
   }
   entries.forEach((entry, index) => {
     const card = document.createElement("figure");
     card.className = "event-gallery-card";
-    const image = document.createElement("img");
-    image.src = getEventImageSource(entry);
-    image.alt = entry.caption || `Event Foto ${index + 1}`;
-    card.appendChild(image);
+    if (entry.type === "video") {
+      const video = document.createElement("video");
+      video.src = getEventImageSource(entry);
+      video.controls = true;
+      video.preload = "metadata";
+      video.playsInline = true;
+      card.appendChild(video);
+    } else {
+      const image = document.createElement("img");
+      image.src = getEventImageSource(entry);
+      image.alt = entry.caption || `Event Bild ${index + 1}`;
+      card.appendChild(image);
+    }
     const caption = document.createElement("figcaption");
     caption.className = "event-gallery-caption";
     const author = entry.uploadedByName || entry.uploadedBy || "FrüFrü";
@@ -3944,7 +3985,7 @@ function mountEventUploads() {
     const eventData = getActiveEventForPage();
     if (!eventData || eventData.type === "planned") {
       if (eventImageStatus) {
-        eventImageStatus.textContent = "Fotos kannst du erst bei einem fixen Event hochladen.";
+        eventImageStatus.textContent = "Dateien kannst du erst bei einem fixen Event hochladen.";
       }
       return;
     }
@@ -3952,14 +3993,14 @@ function mountEventUploads() {
     const files = Array.from(eventImageUploadInput.files || []).filter(isAcceptedEventImageFile);
     if (!files.length) {
       if (eventImageStatus) {
-        eventImageStatus.textContent = "Bitte waehle mindestens ein Bild aus.";
+        eventImageStatus.textContent = "Bitte waehle mindestens ein Bild oder Video aus.";
       }
       return;
     }
 
     const eventId = getEventId(eventData);
     if (eventImageStatus) {
-      eventImageStatus.textContent = "Fotos werden hochgeladen...";
+      eventImageStatus.textContent = "Dateien werden hochgeladen...";
     }
 
     try {
@@ -3975,7 +4016,7 @@ function mountEventUploads() {
       renderEventGallery();
       eventImageUploadInput.value = "";
       if (eventImageStatus) {
-        eventImageStatus.textContent = `${nextEntries.length} Foto(s) hochgeladen.`;
+        eventImageStatus.textContent = `${nextEntries.length} Datei(en) hochgeladen.`;
       }
     } catch (error) {
       if (eventImageStatus) {
