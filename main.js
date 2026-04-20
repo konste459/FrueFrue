@@ -3999,8 +3999,13 @@ function mountEventArchiveShortcut() {
       return;
     }
     setPage("archiv");
-    setTimeout(() => {
-      openArchiveEvent(archiveKey, 0);
+    archiveCurrentEvent = archiveKey;
+    archiveCurrentIndex = 0;
+    window.setTimeout(() => {
+      renderArchiveViewer();
+      if (archiveViewer) {
+        archiveViewer.classList.remove("hidden");
+      }
     }, 140);
   });
 }
