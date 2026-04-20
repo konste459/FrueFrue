@@ -274,6 +274,7 @@ let loginRevealTimeout = null;
 const STORAGE_KEY = "fruefrue-events-v1";
 const TICKET_STORAGE_KEY = "fruefrue-ticket-v1";
 const EVENT_IMAGES_KEY = "fruefrue-event-images-v1";
+const EVENT_IMAGE_BLOB_PREFIX = "fruefrue-event-image-blob-v1:";
 const EVENT_POLLS_KEY = "fruefrue-event-polls-v1";
 const EVENT_POSTS_KEY = "fruefrue-event-posts-v1";
 const EVENT_PAYPAL_DISMISSED_KEY = "fruefrue-event-paypal-dismissed-v1";
@@ -313,6 +314,7 @@ const SUPABASE_TABLE = SUPABASE_SETTINGS.table || "fruefrue_state";
 const REMOTE_SYNC_PREFIXES = [
   STORAGE_KEY,
   EVENT_IMAGES_KEY,
+  EVENT_IMAGE_BLOB_PREFIX,
   EVENT_POLLS_KEY,
   EVENT_POSTS_KEY,
   EVENT_PROGRAM_KEY,
@@ -434,6 +436,9 @@ function shouldSyncRemotely(key) {
 }
 
 function readLocalValue(key) {
+  if (String(key || "").startsWith(EVENT_IMAGE_BLOB_PREFIX)) {
+    return undefined;
+  }
   const raw = localStorage.getItem(key);
   if (raw === null) {
     return undefined;
@@ -446,6 +451,9 @@ function readLocalValue(key) {
 }
 
 function writeLocalValue(key, value) {
+  if (String(key || "").startsWith(EVENT_IMAGE_BLOB_PREFIX)) {
+    return;
+  }
   localStorage.setItem(key, JSON.stringify(value));
 }
 
@@ -491,7 +499,9 @@ async function deleteRemoteValue(key) {
 
 function setStoredValue(key, value, options = {}) {
   storageCache[key] = value;
-  writeLocalValue(key, value);
+  if (options.persistLocal !== false) {
+    writeLocalValue(key, value);
+  }
   if (!options.skipRemote) {
     syncRemoteValue(key, value);
   }
@@ -651,7 +661,9 @@ async function initSupabaseState() {
 
   (data || []).forEach((row) => {
     storageCache[row.key] = row.value;
-    writeLocalValue(row.key, row.value);
+    if (!String(row.key || "").startsWith(EVENT_IMAGE_BLOB_PREFIX)) {
+      writeLocalValue(row.key, row.value);
+    }
   });
 
   currentProgramView = String(getStoredValue(PROGRAM_VIEW_KEY, "v1") || "v1");
@@ -1674,6 +1686,23 @@ function saveStoredEventImages(images) {
   saveJSON(EVENT_IMAGES_KEY, images);
 }
 
+function getEventImageBlobKey(imageId) {
+  return `${EVENT_IMAGE_BLOB_PREFIX}${imageId}`;
+}
+
+function getEventImageSource(entry) {
+  if (!entry) {
+    return "";
+  }
+  if (entry.src) {
+    return entry.src;
+  }
+  if (entry.blobKey) {
+    return String(getStoredValue(entry.blobKey, "") || "");
+  }
+  return "";
+}
+
 function getArchiveKeyForEvent(event) {
   const title = String((event && event.title) || "").toLowerCase();
   if (title.includes("früfrü3.0") || title.includes("fruefrue3.0")) {
@@ -1693,15 +1722,15 @@ function getArchiveKeyForEvent(event) {
 
 function getEventImageEntries(eventId) {
   return getStoredEventImages()
-    .filter((entry) => entry && entry.eventId === eventId && entry.src)
+    .filter((entry) => entry && entry.eventId === eventId && getEventImageSource(entry))
     .sort((a, b) => new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime());
 }
 
 function getArchiveMediaForEventKey(eventKey) {
   const staticEvent = archiveEvents[eventKey];
   const uploaded = getStoredEventImages()
-    .filter((entry) => entry && entry.archiveKey === eventKey && entry.src)
-    .map((entry) => ({ type: "image", src: entry.src }));
+    .filter((entry) => entry && entry.archiveKey === eventKey && getEventImageSource(entry))
+    .map((entry) => ({ type: "image", src: getEventImageSource(entry) }));
   return [...(staticEvent && Array.isArray(staticEvent.media) ? staticEvent.media : []), ...uploaded];
 }
 
@@ -1829,7 +1858,7 @@ async function resizeImageDataUrl(dataUrl, maxSide, mimeType = "image/jpeg", qua
 async function prepareEventImageForUpload(file) {
   if (isHeicLikeImage(file)) {
     const canvas = await drawFileToCanvas(file);
-    return canvas.toDataURL("image/png");
+    return canvas.toDataURL("image/jpeg", 0.94);
   }
 
   if (canKeepOriginalImage(file)) {
@@ -2077,7 +2106,7 @@ function renderEventGallery() {
     return;
   }
   const eventId = getEventId(eventData);
-  const entries = getEventImageEntries(eventId);
+    const entries = getEventImageEntries(eventId);
   eventImageGuestText.textContent = entries.length
     ? "Fotos wurden hochgeladen und sind jetzt auch im Archiv sichtbar."
     : "Lade hier direkt Fotos fuer dieses Event hoch. Sie erscheinen danach auch im Archiv.";
@@ -2092,7 +2121,7 @@ function renderEventGallery() {
     const card = document.createElement("figure");
     card.className = "event-gallery-card";
     const image = document.createElement("img");
-    image.src = entry.src;
+    image.src = getEventImageSource(entry);
     image.alt = entry.caption || `Event Foto ${index + 1}`;
     card.appendChild(image);
     const caption = document.createElement("figcaption");
@@ -3851,11 +3880,14 @@ function mountEventUploads() {
       const nextEntries = [];
       for (const file of files) {
         const prepared = await prepareEventImageForUpload(file);
+        const imageId = `event-image-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const blobKey = getEventImageBlobKey(imageId);
+        setStoredValue(blobKey, prepared, { persistLocal: false });
         nextEntries.push({
-          id: `event-image-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          id: imageId,
           eventId,
           archiveKey,
-          src: prepared,
+          blobKey,
           caption: file.name || eventData.title || "Event Foto",
           uploadedBy: currentUser || "gast",
           uploadedByName: currentFirstName || currentUser || "Gast",
