@@ -311,6 +311,7 @@ const SUPABASE_SETTINGS =
 const SUPABASE_URL = SUPABASE_SETTINGS.url || "";
 const SUPABASE_ANON_KEY = SUPABASE_SETTINGS.anonKey || "";
 const SUPABASE_TABLE = SUPABASE_SETTINGS.table || "fruefrue_state";
+const SUPABASE_IMAGE_BUCKET = SUPABASE_SETTINGS.imageBucket || "fruefrue-event-images";
 const REMOTE_SYNC_PREFIXES = [
   STORAGE_KEY,
   EVENT_IMAGES_KEY,
@@ -1768,6 +1769,21 @@ function readImageAsDataUrl(file) {
   });
 }
 
+function slugifyFilename(name) {
+  return String(name || "bild")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+}
+
+async function dataUrlToBlob(dataUrl) {
+  const response = await fetch(dataUrl);
+  return response.blob();
+}
+
 function getFileExtension(file) {
   const name = String((file && file.name) || "");
   const dotIndex = name.lastIndexOf(".");
@@ -1858,15 +1874,80 @@ async function resizeImageDataUrl(dataUrl, maxSide, mimeType = "image/jpeg", qua
 async function prepareEventImageForUpload(file) {
   if (isHeicLikeImage(file)) {
     const canvas = await drawFileToCanvas(file);
-    return canvas.toDataURL("image/jpeg", 0.94);
+    return {
+      fileBody: await dataUrlToBlob(canvas.toDataURL("image/jpeg", 0.94)),
+      contentType: "image/jpeg",
+      extension: "jpg"
+    };
   }
 
   if (canKeepOriginalImage(file)) {
-    return readImageAsDataUrl(file);
+    return {
+      fileBody: file,
+      contentType: file.type || "application/octet-stream",
+      extension: getFileExtension(file) || "bin"
+    };
   }
 
   const original = await readImageAsDataUrl(file);
-  return resizeImageDataUrl(original, 2200, "image/png");
+  return {
+    fileBody: await dataUrlToBlob(await resizeImageDataUrl(original, 2200, "image/png")),
+    contentType: "image/png",
+    extension: "png"
+  };
+}
+
+function explainStorageUploadError(error, file) {
+  const message = String((error && error.message) || error || "").trim();
+  const lower = message.toLowerCase();
+  if (isHeicLikeImage(file) && (lower.includes("verarbeitet") || lower.includes("decode") || lower.includes("image"))) {
+    return "HEIC/HEIF konnte auf diesem Geraet nicht verarbeitet werden. Bitte JPG/PNG nutzen oder direkt vom iPhone in Safari hochladen.";
+  }
+  if (lower.includes("bucket") && lower.includes("not found")) {
+    return `Der Supabase Storage Bucket "${SUPABASE_IMAGE_BUCKET}" existiert noch nicht.`;
+  }
+  if (lower.includes("row-level security") || lower.includes("unauthorized") || lower.includes("permission")) {
+    return `Supabase Storage blockiert den Upload. Es fehlt eine Upload-Policy fuer den Bucket "${SUPABASE_IMAGE_BUCKET}".`;
+  }
+  if (lower.includes("payload") || lower.includes("too large") || lower.includes("entity too large")) {
+    return "Die Datei ist fuer den aktuellen Upload zu gross.";
+  }
+  if (!message) {
+    return "Fotos konnten nicht hochgeladen werden.";
+  }
+  return `Fotos konnten nicht hochgeladen werden: ${message}`;
+}
+
+async function uploadEventImageToStorage(file, eventData) {
+  if (!supabaseClient) {
+    throw new Error("Supabase ist noch nicht verbunden.");
+  }
+  const prepared = await prepareEventImageForUpload(file);
+  const eventId = getEventId(eventData);
+  const archiveKey = getArchiveKeyForEvent(eventData);
+  const imageId = `event-image-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const safeName = slugifyFilename(file.name || imageId) || imageId;
+  const path = `${archiveKey || "event"}/${eventId}/${imageId}-${safeName.replace(/\.[^.]+$/, "")}.${prepared.extension}`;
+  const { error: uploadError } = await supabaseClient.storage.from(SUPABASE_IMAGE_BUCKET).upload(path, prepared.fileBody, {
+    cacheControl: "31536000",
+    contentType: prepared.contentType,
+    upsert: false
+  });
+  if (uploadError) {
+    throw uploadError;
+  }
+  const { data: publicUrlData } = supabaseClient.storage.from(SUPABASE_IMAGE_BUCKET).getPublicUrl(path);
+  return {
+    id: imageId,
+    eventId,
+    archiveKey,
+    src: publicUrlData && publicUrlData.publicUrl ? publicUrlData.publicUrl : "",
+    storagePath: path,
+    caption: file.name || eventData.title || "Event Foto",
+    uploadedBy: currentUser || "gast",
+    uploadedByName: currentFirstName || currentUser || "Gast",
+    uploadedAt: new Date().toISOString()
+  };
 }
 
 function renderEventPosts(eventData) {
@@ -3870,29 +3951,18 @@ function mountEventUploads() {
     }
 
     const eventId = getEventId(eventData);
-    const archiveKey = getArchiveKeyForEvent(eventData);
     if (eventImageStatus) {
       eventImageStatus.textContent = "Fotos werden hochgeladen...";
     }
 
     try {
+      if (!supabaseClient) {
+        throw new Error("Supabase Storage ist noch nicht bereit.");
+      }
       const existing = getStoredEventImages();
       const nextEntries = [];
       for (const file of files) {
-        const prepared = await prepareEventImageForUpload(file);
-        const imageId = `event-image-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const blobKey = getEventImageBlobKey(imageId);
-        setStoredValue(blobKey, prepared, { persistLocal: false });
-        nextEntries.push({
-          id: imageId,
-          eventId,
-          archiveKey,
-          blobKey,
-          caption: file.name || eventData.title || "Event Foto",
-          uploadedBy: currentUser || "gast",
-          uploadedByName: currentFirstName || currentUser || "Gast",
-          uploadedAt: new Date().toISOString()
-        });
+        nextEntries.push(await uploadEventImageToStorage(file, eventData));
       }
       saveStoredEventImages([...existing, ...nextEntries]);
       renderEventGallery();
@@ -3902,9 +3972,7 @@ function mountEventUploads() {
       }
     } catch (error) {
       if (eventImageStatus) {
-        eventImageStatus.textContent = isHeicLikeImage((eventImageUploadInput.files || [])[0])
-          ? "HEIC/HEIF konnte auf diesem Geraet nicht verarbeitet werden. Bitte JPG/PNG nutzen oder direkt vom iPhone in Safari hochladen."
-          : "Fotos konnten nicht hochgeladen werden.";
+        eventImageStatus.textContent = explainStorageUploadError(error, (eventImageUploadInput.files || [])[0]);
       }
     }
   });
