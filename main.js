@@ -1236,12 +1236,9 @@ function updateTicketReminder() {
   }
 
   ticketReminder.classList.remove("hidden");
-  ticketReminderText.textContent =
-    next.type === "planned"
-      ? `Naechstes Event: ${next.title}. Jetzt fuer den Termin abstimmen.`
-      : `Naechstes Event: ${next.title}.`;
 
   if (next.type === "planned") {
+    ticketReminderText.textContent = `Naechstes Event: ${next.title}. Jetzt fuer den Termin abstimmen.`;
     if (countdownTimer) {
       clearInterval(countdownTimer);
       countdownTimer = null;
@@ -1250,42 +1247,37 @@ function updateTicketReminder() {
     return;
   }
 
-  const target = new Date(`${next.date}T${next.time}`).getTime();
-
-  const tick = () => {
-    const now = Date.now();
-    const diff = Math.max(0, target - now);
-    ticketCountdown.textContent = `Countdown: ${formatCountdown(diff)}`;
-  };
-
-  tick();
+  ticketReminder.classList.add("hidden");
   if (countdownTimer) {
     clearInterval(countdownTimer);
+    countdownTimer = null;
   }
-  countdownTimer = setInterval(tick, 1000);
+  return;
 }
 
 function updateFixedEventNotice() {
   if (!fixedEventNotice) {
     return;
   }
-  const notice = getFixedNotice();
-  if (!notice || !notice.eventId) {
+  const event = getNextEvent();
+  if (!event || event.type === "planned") {
     fixedEventNotice.classList.add("hidden");
     return;
   }
-  const event = loadEvents().find((item) => getEventId(item) === notice.eventId && item.type !== "planned");
-  if (!event) {
-    fixedEventNotice.classList.add("hidden");
-    return;
-  }
-  const date = new Date(`${event.date}T${event.time}`);
-  const when = `${date.toLocaleDateString("de-DE")} · ${date.toLocaleTimeString("de-DE", {
-    hour: "2-digit",
-    minute: "2-digit"
-  })}`;
-  fixedEventNotice.textContent = `Termin steht fest fuer ${event.title} (${when})`;
+  fixedEventNotice.textContent = `Fotos zu ${event.title} hochladen`;
   fixedEventNotice.classList.remove("hidden");
+}
+
+function scrollToEventUpload() {
+  if (activePage !== "event") {
+    setPage("event");
+  }
+  setTimeout(() => {
+    const target = uploadEventImagesBtn || eventImageUploadInput;
+    if (target && typeof target.scrollIntoView === "function") {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, 140);
 }
 
 function updateCalendarCard() {
@@ -3275,19 +3267,18 @@ function mountCalendarWidget() {
 }
 
 function mountReminderActions() {
-  if (fixedEventNotice && calendarWidget) {
+  if (fixedEventNotice) {
     fixedEventNotice.addEventListener("click", () => {
-      if (activePage !== "home") {
-        setPage("home");
-      }
-      setTimeout(() => {
-        calendarWidget.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 120);
+      scrollToEventUpload();
     });
   }
 
   if (ticketReminder && calendarWidget) {
     ticketReminder.addEventListener("click", () => {
+      if (getNextEvent() && getNextEvent().type !== "planned") {
+        scrollToEventUpload();
+        return;
+      }
       if (activePage !== "home") {
         setPage("home");
       }
