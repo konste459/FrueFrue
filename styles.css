@@ -2541,6 +2541,17 @@ main {
   cursor: pointer;
 }
 
+.archive-delete-btn {
+  margin-left: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #ffd5d5;
+  color: #8f1111;
+  font-weight: 800;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
 .archive-viewer-image {
   margin-top: 10px;
   width: 100%;

@@ -229,6 +229,7 @@ const archiveViewer = document.getElementById("archiveViewer");
 const archiveViewerImage = document.getElementById("archiveViewerImage");
 const archiveViewerVideo = document.getElementById("archiveViewerVideo");
 const archiveViewerLabel = document.getElementById("archiveViewerLabel");
+const archiveDeleteBtn = document.getElementById("archiveDeleteBtn");
 const archiveCloseBtn = document.getElementById("archiveCloseBtn");
 const archivePrevBtn = document.getElementById("archivePrevBtn");
 const archiveNextBtn = document.getElementById("archiveNextBtn");
@@ -1732,8 +1733,24 @@ function getArchiveMediaForEventKey(eventKey) {
   const staticEvent = archiveEvents[eventKey];
   const uploaded = getStoredEventImages()
     .filter((entry) => entry && entry.archiveKey === eventKey && getEventImageSource(entry))
-    .map((entry) => ({ type: entry.type === "video" ? "video" : "image", src: getEventImageSource(entry) }));
+    .map((entry) => ({
+      ...entry,
+      type: entry.type === "video" ? "video" : "image",
+      src: getEventImageSource(entry)
+    }));
   return [...(staticEvent && Array.isArray(staticEvent.media) ? staticEvent.media : []), ...uploaded];
+}
+
+function getCurrentArchiveMedia() {
+  if (!archiveCurrentEvent) {
+    return null;
+  }
+  const mediaList = getArchiveMediaForEventKey(archiveCurrentEvent);
+  if (!mediaList.length) {
+    return null;
+  }
+  const index = ((archiveCurrentIndex % mediaList.length) + mediaList.length) % mediaList.length;
+  return mediaList[index] || null;
 }
 
 function getStoredEventPosts() {
@@ -3916,6 +3933,10 @@ function mountAdminUserActions() {
     if (!username || username === "admin") {
       return;
     }
+    const confirmed = window.confirm(`Bist du sicher, dass du ${username} loeschen willst?`);
+    if (!confirmed) {
+      return;
+    }
 
     const customUsers = getRegisteredUsers();
     if (customUsers[username]) {
@@ -4194,11 +4215,17 @@ function renderArchiveViewer() {
     archiveViewerVideo.removeAttribute("src");
     archiveViewerVideo.load();
     archiveViewerLabel.textContent = `${(event && event.title) || "Event"} - Noch keine Medien hinterlegt.`;
+    if (archiveDeleteBtn) {
+      archiveDeleteBtn.classList.add("hidden");
+    }
     return;
   }
   const index = ((archiveCurrentIndex % mediaList.length) + mediaList.length) % mediaList.length;
   archiveCurrentIndex = index;
   const media = mediaList[index];
+  if (archiveDeleteBtn) {
+    archiveDeleteBtn.classList.toggle("hidden", !(currentRole === "admin" && media && media.id));
+  }
   if (media.type === "video") {
     archiveViewerImage.classList.add("hidden");
     archiveViewerImage.removeAttribute("src");
@@ -4249,6 +4276,43 @@ function mountArchiveViewer() {
 
   if (archiveCloseBtn) {
     archiveCloseBtn.addEventListener("click", closeArchiveViewer);
+  }
+
+  if (archiveDeleteBtn) {
+    archiveDeleteBtn.addEventListener("click", async () => {
+      if (currentRole !== "admin") {
+        return;
+      }
+      const media = getCurrentArchiveMedia();
+      if (!media || !media.id) {
+        return;
+      }
+      const confirmed = window.confirm("Bist du sicher, dass du dieses Archiv-Medium loeschen willst?");
+      if (!confirmed) {
+        return;
+      }
+      archiveDeleteBtn.disabled = true;
+      try {
+        if (supabaseClient && media.storagePath) {
+          const { error } = await supabaseClient.storage.from(SUPABASE_IMAGE_BUCKET).remove([media.storagePath]);
+          if (error) {
+            console.error("Supabase storage remove failed", media.storagePath, error.message);
+          }
+        }
+        const remaining = getStoredEventImages().filter((entry) => entry && entry.id !== media.id);
+        saveStoredEventImages(remaining);
+        const nextMedia = getArchiveMediaForEventKey(archiveCurrentEvent);
+        if (!nextMedia.length) {
+          closeArchiveViewer();
+        } else {
+          archiveCurrentIndex = Math.min(archiveCurrentIndex, nextMedia.length - 1);
+          renderArchiveViewer();
+        }
+        renderEventGallery();
+      } finally {
+        archiveDeleteBtn.disabled = false;
+      }
+    });
   }
 
   if (archivePrevBtn) {
