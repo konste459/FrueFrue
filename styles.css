@@ -1477,6 +1477,13 @@ main {
   line-height: 1.35;
 }
 
+.event-media-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .event-admin-tools {
   margin-top: 12px;
   display: grid;

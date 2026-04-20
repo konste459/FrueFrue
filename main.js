@@ -201,6 +201,7 @@ const programInspectorMeta = document.getElementById("programInspectorMeta");
 const programInspectorDescription = document.getElementById("programInspectorDescription");
 const eventGallery = document.getElementById("eventGallery");
 const eventImageGuestText = document.getElementById("eventImageGuestText");
+const goToEventArchiveBtn = document.getElementById("goToEventArchiveBtn");
 const eventImageUploadInput = document.getElementById("eventImageUploadInput");
 const uploadEventImagesBtn = document.getElementById("uploadEventImagesBtn");
 const eventImageStatus = document.getElementById("eventImageStatus");
@@ -2184,10 +2185,16 @@ function renderEventGallery() {
   const eventData = getActiveEventForPage();
   if (!eventData || eventData.type === "planned") {
     eventImageGuestText.textContent = "Fotos erscheinen hier, sobald ein fixes Event aktiv ist.";
+    if (goToEventArchiveBtn) {
+      goToEventArchiveBtn.classList.add("hidden");
+    }
     return;
   }
+  if (goToEventArchiveBtn) {
+    goToEventArchiveBtn.classList.toggle("hidden", !getArchiveKeyForEvent(eventData));
+  }
   const eventId = getEventId(eventData);
-    const entries = getEventImageEntries(eventId);
+  const entries = getEventImageEntries(eventId);
   eventImageGuestText.textContent = entries.length
     ? "Fotos wurden hochgeladen und sind jetzt auch im Archiv sichtbar."
     : "Lade hier direkt Fotos fuer dieses Event hoch. Sie erscheinen danach auch im Archiv.";
@@ -3978,6 +3985,26 @@ function mountEventUploads() {
   });
 }
 
+function mountEventArchiveShortcut() {
+  if (!goToEventArchiveBtn) {
+    return;
+  }
+  goToEventArchiveBtn.addEventListener("click", () => {
+    const eventData = getActiveEventForPage();
+    const archiveKey = getArchiveKeyForEvent(eventData);
+    if (!archiveKey) {
+      if (eventImageStatus) {
+        eventImageStatus.textContent = "Fuer dieses Event ist noch kein Archiv-Slot verknuepft.";
+      }
+      return;
+    }
+    setPage("archiv");
+    setTimeout(() => {
+      openArchiveEvent(archiveKey, 0);
+    }, 140);
+  });
+}
+
 function mountPollCreator() {
   if (!createPollBtn || !pollQuestion || !pollOptions || !pollType) {
     return;
@@ -4803,6 +4830,7 @@ async function initializeApp() {
   mountAdminUserActions();
   mountLogout();
   mountEventUploads();
+  mountEventArchiveShortcut();
   mountPollCreator();
   mountPollDeletion();
   mountArchiveViewer();
