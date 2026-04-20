@@ -43,7 +43,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=58" />
+    <link rel="stylesheet" href="styles.css?v=59" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -276,6 +276,17 @@
                     <div class="archive-plate archive-plate-single">
                       <button class="archive-play" data-archive-event="papa-x-fruefrue" type="button" aria-label="PaPa x FrüFrü ansehen">
                         <span class="archive-play-label">PaPa x Fr&uuml;Fr&uuml;</span>
+                        <span class="archive-play-icon">&#9658;</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="archive-panel archive-panel-middle">
+                  <div class="archive-table-frame">
+                    <img class="archive-table-piece" src="assets/archive-v2/middlearchivtisch.png" alt="Archiv Tisch Mitte" />
+                    <div class="archive-plate archive-plate-single">
+                      <button class="archive-play" data-archive-event="fruefrue-3" type="button" aria-label="FrüFrü 3.0 ansehen">
+                        <span class="archive-play-label">Fr&uuml;Fr&uuml; 3.0</span>
                         <span class="archive-play-icon">&#9658;</span>
                       </button>
                     </div>
@@ -582,16 +593,13 @@
             <div class="event-media">
               <h4>Event Bilder</h4>
               <div id="eventGallery" class="event-gallery"></div>
-              <p id="eventDriveGuestText" class="event-status">
-                Noch kein Drive Link zum Bilder hochladen veroeffentlicht.
+              <p id="eventImageGuestText" class="event-status">
+                Lade hier direkt Fotos fuer dieses Event hoch. Sie erscheinen danach auch im Archiv.
               </p>
-              <a id="eventDriveLink" class="drive-link hidden" href="#" target="_blank" rel="noopener noreferrer"
-                >Zum Bilderordner (Google Drive)</a
-              >
-              <div class="event-admin-tools" data-admin-only>
-                <label for="eventDriveInput">Google Drive Link (Admin)</label>
-                <input id="eventDriveInput" type="url" placeholder="https://drive.google.com/..." />
-                <button id="publishDriveBtn" class="cta-primary" type="button">Drive Link veroeffentlichen</button>
+              <div class="event-admin-tools">
+                <label for="eventImageUploadInput">Fotos fuer dieses Event hochladen</label>
+                <input id="eventImageUploadInput" type="file" accept="image/*" multiple />
+                <button id="uploadEventImagesBtn" class="cta-primary" type="button">Fotos hochladen</button>
                 <p id="eventImageStatus" class="event-status" aria-live="polite"></p>
               </div>
             </div>
@@ -763,6 +771,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=87"></script>
+    <script src="main.js?v=88"></script>
   </body>
 </html>

@@ -200,10 +200,9 @@ const programInspectorTitle = document.getElementById("programInspectorTitle");
 const programInspectorMeta = document.getElementById("programInspectorMeta");
 const programInspectorDescription = document.getElementById("programInspectorDescription");
 const eventGallery = document.getElementById("eventGallery");
-const eventDriveGuestText = document.getElementById("eventDriveGuestText");
-const eventDriveLink = document.getElementById("eventDriveLink");
-const eventDriveInput = document.getElementById("eventDriveInput");
-const publishDriveBtn = document.getElementById("publishDriveBtn");
+const eventImageGuestText = document.getElementById("eventImageGuestText");
+const eventImageUploadInput = document.getElementById("eventImageUploadInput");
+const uploadEventImagesBtn = document.getElementById("uploadEventImagesBtn");
 const eventImageStatus = document.getElementById("eventImageStatus");
 const eventPostsList = document.getElementById("eventPostsList");
 const eventPostTitle = document.getElementById("eventPostTitle");
@@ -276,7 +275,6 @@ const STORAGE_KEY = "fruefrue-events-v1";
 const TICKET_STORAGE_KEY = "fruefrue-ticket-v1";
 const EVENT_IMAGES_KEY = "fruefrue-event-images-v1";
 const EVENT_POLLS_KEY = "fruefrue-event-polls-v1";
-const EVENT_DRIVE_KEY = "fruefrue-event-drive-v1";
 const EVENT_POSTS_KEY = "fruefrue-event-posts-v1";
 const EVENT_PAYPAL_DISMISSED_KEY = "fruefrue-event-paypal-dismissed-v1";
 const EVENT_PROGRAM_KEY = "fruefrue-event-program-v1";
@@ -316,7 +314,6 @@ const REMOTE_SYNC_PREFIXES = [
   STORAGE_KEY,
   EVENT_IMAGES_KEY,
   EVENT_POLLS_KEY,
-  EVENT_DRIVE_KEY,
   EVENT_POSTS_KEY,
   EVENT_PROGRAM_KEY,
   EVENT_PROGRAM_META_KEY,
@@ -353,6 +350,10 @@ const storageCache = {};
 const archiveEvents = {
   "fruefrue-1": {
     title: "FrüFrü 1.0",
+    media: []
+  },
+  "fruefrue-3": {
+    title: "FrüFrü 3.0",
     media: []
   },
   "fruefrue-2": {
@@ -1681,12 +1682,35 @@ function saveStoredEventImages(images) {
   saveJSON(EVENT_IMAGES_KEY, images);
 }
 
-function getEventDriveLink() {
-  return loadJSON(EVENT_DRIVE_KEY, "");
+function getArchiveKeyForEvent(event) {
+  const title = String((event && event.title) || "").toLowerCase();
+  if (title.includes("früfrü3.0") || title.includes("fruefrue3.0")) {
+    return "fruefrue-3";
+  }
+  if (title.includes("früfrü2.0") || title.includes("fruefrue2.0")) {
+    return "fruefrue-2";
+  }
+  if (title.includes("papa")) {
+    return "papa-x-fruefrue";
+  }
+  if (title.includes("cockogott")) {
+    return "cockogott-x-fruefrue";
+  }
+  return "";
 }
 
-function saveEventDriveLink(link) {
-  saveJSON(EVENT_DRIVE_KEY, link);
+function getEventImageEntries(eventId) {
+  return getStoredEventImages()
+    .filter((entry) => entry && entry.eventId === eventId && entry.src)
+    .sort((a, b) => new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime());
+}
+
+function getArchiveMediaForEventKey(eventKey) {
+  const staticEvent = archiveEvents[eventKey];
+  const uploaded = getStoredEventImages()
+    .filter((entry) => entry && entry.archiveKey === eventKey && entry.src)
+    .map((entry) => ({ type: "image", src: entry.src }));
+  return [...(staticEvent && Array.isArray(staticEvent.media) ? staticEvent.media : []), ...uploaded];
 }
 
 function getStoredEventPosts() {
@@ -1973,19 +1997,43 @@ function getActiveEventForPage() {
 }
 
 function renderEventGallery() {
-  if (!eventGallery || !eventDriveLink || !eventDriveGuestText) {
+  if (!eventGallery || !eventImageGuestText) {
     return;
   }
-  const driveLink = getEventDriveLink();
   eventGallery.innerHTML = "";
-  if (driveLink) {
-    eventDriveGuestText.textContent = "Bilderordner ist veroeffentlicht.";
-    eventDriveLink.href = driveLink;
-    eventDriveLink.classList.remove("hidden");
-  } else {
-    eventDriveGuestText.textContent = "Noch kein Drive Link zum Bilder hochladen veroeffentlicht.";
-    eventDriveLink.classList.add("hidden");
+  const eventData = getActiveEventForPage();
+  if (!eventData || eventData.type === "planned") {
+    eventImageGuestText.textContent = "Fotos erscheinen hier, sobald ein fixes Event aktiv ist.";
+    return;
   }
+  const eventId = getEventId(eventData);
+  const entries = getEventImageEntries(eventId);
+  eventImageGuestText.textContent = entries.length
+    ? "Fotos wurden hochgeladen und sind jetzt auch im Archiv sichtbar."
+    : "Lade hier direkt Fotos fuer dieses Event hoch. Sie erscheinen danach auch im Archiv.";
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "event-status";
+    empty.textContent = "Noch keine Event-Fotos hochgeladen.";
+    eventGallery.appendChild(empty);
+    return;
+  }
+  entries.forEach((entry, index) => {
+    const card = document.createElement("figure");
+    card.className = "event-gallery-card";
+    const image = document.createElement("img");
+    image.src = entry.src;
+    image.alt = entry.caption || `Event Foto ${index + 1}`;
+    card.appendChild(image);
+    const caption = document.createElement("figcaption");
+    caption.className = "event-gallery-caption";
+    const author = entry.uploadedByName || entry.uploadedBy || "FrüFrü";
+    const uploadedAt = entry.uploadedAt ? new Date(entry.uploadedAt) : null;
+    const timeText = uploadedAt && !Number.isNaN(uploadedAt.getTime()) ? uploadedAt.toLocaleString("de-DE") : "";
+    caption.textContent = timeText ? `${author} · ${timeText}` : author;
+    card.appendChild(caption);
+    eventGallery.appendChild(card);
+  });
 }
 
 function getStoredPolls() {
@@ -3702,31 +3750,60 @@ function mountLogout() {
 }
 
 function mountEventUploads() {
-  if (!publishDriveBtn || !eventDriveInput) {
+  if (!uploadEventImagesBtn || !eventImageUploadInput) {
     return;
   }
 
-  publishDriveBtn.addEventListener("click", () => {
-    if (currentRole !== "admin") {
+  uploadEventImagesBtn.addEventListener("click", async () => {
+    const eventData = getActiveEventForPage();
+    if (!eventData || eventData.type === "planned") {
       if (eventImageStatus) {
-        eventImageStatus.textContent = "Nur Admin kann den Drive Link veroeffentlichen.";
+        eventImageStatus.textContent = "Fotos kannst du erst bei einem fixen Event hochladen.";
       }
       return;
     }
 
-    const link = eventDriveInput.value.trim();
-    if (!link.startsWith("http")) {
+    const files = Array.from(eventImageUploadInput.files || []).filter((file) => file && file.type.startsWith("image/"));
+    if (!files.length) {
       if (eventImageStatus) {
-        eventImageStatus.textContent = "Bitte einen gueltigen Drive Link eingeben.";
+        eventImageStatus.textContent = "Bitte waehle mindestens ein Bild aus.";
       }
       return;
     }
 
-    saveEventDriveLink(link);
-    renderEventGallery();
-    eventDriveInput.value = "";
+    const eventId = getEventId(eventData);
+    const archiveKey = getArchiveKeyForEvent(eventData);
     if (eventImageStatus) {
-      eventImageStatus.textContent = "Drive Link veroeffentlicht.";
+      eventImageStatus.textContent = "Fotos werden hochgeladen...";
+    }
+
+    try {
+      const existing = getStoredEventImages();
+      const nextEntries = [];
+      for (const file of files) {
+        const original = await readImageAsDataUrl(file);
+        const resized = await resizeImageDataUrl(original, 1600);
+        nextEntries.push({
+          id: `event-image-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          eventId,
+          archiveKey,
+          src: resized,
+          caption: file.name || eventData.title || "Event Foto",
+          uploadedBy: currentUser || "gast",
+          uploadedByName: currentFirstName || currentUser || "Gast",
+          uploadedAt: new Date().toISOString()
+        });
+      }
+      saveStoredEventImages([...existing, ...nextEntries]);
+      renderEventGallery();
+      eventImageUploadInput.value = "";
+      if (eventImageStatus) {
+        eventImageStatus.textContent = `${nextEntries.length} Foto(s) hochgeladen.`;
+      }
+    } catch (error) {
+      if (eventImageStatus) {
+        eventImageStatus.textContent = "Fotos konnten nicht hochgeladen werden.";
+      }
     }
   });
 }
@@ -3865,7 +3942,7 @@ function renderArchiveViewer() {
     return;
   }
   const event = archiveEvents[archiveCurrentEvent];
-  const mediaList = (event && event.media) || [];
+  const mediaList = getArchiveMediaForEventKey(archiveCurrentEvent);
   if (!event || !mediaList.length) {
     archiveViewerImage.classList.add("hidden");
     archiveViewerImage.removeAttribute("src");
@@ -3960,10 +4037,11 @@ function mountArchiveCarousel() {
   }
   archiveSceneIndex = 0;
   archiveTrack.style.transform = "translateX(0)";
+  archiveTrack.style.setProperty("--archive-scenes", String(archiveTrack.children.length || 1));
   archiveNextScene.addEventListener("click", () => {
     const sceneCount = archiveTrack.children.length || 1;
     archiveSceneIndex = (archiveSceneIndex + 1) % sceneCount;
-    archiveTrack.style.transform = `translateX(-${archiveSceneIndex * 25}%)`;
+    archiveTrack.style.transform = `translateX(-${archiveSceneIndex * (100 / sceneCount)}%)`;
   });
 }
 
