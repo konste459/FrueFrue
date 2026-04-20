@@ -1747,7 +1747,71 @@ function readImageAsDataUrl(file) {
   });
 }
 
-async function resizeImageDataUrl(dataUrl, maxSide) {
+function getFileExtension(file) {
+  const name = String((file && file.name) || "");
+  const dotIndex = name.lastIndexOf(".");
+  return dotIndex >= 0 ? name.slice(dotIndex + 1).toLowerCase() : "";
+}
+
+function isHeicLikeImage(file) {
+  const type = String((file && file.type) || "").toLowerCase();
+  const extension = getFileExtension(file);
+  return type.includes("heic") || type.includes("heif") || extension === "heic" || extension === "heif";
+}
+
+function canKeepOriginalImage(file) {
+  const type = String((file && file.type) || "").toLowerCase();
+  const extension = getFileExtension(file);
+  return (
+    type === "image/jpeg" ||
+    type === "image/png" ||
+    type === "image/webp" ||
+    type === "image/gif" ||
+    extension === "jpg" ||
+    extension === "jpeg" ||
+    extension === "png" ||
+    extension === "webp" ||
+    extension === "gif"
+  );
+}
+
+function isAcceptedEventImageFile(file) {
+  if (!file) {
+    return false;
+  }
+  const type = String(file.type || "").toLowerCase();
+  return type.startsWith("image/") || isHeicLikeImage(file);
+}
+
+function drawFileToCanvas(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("Bild konnte nicht verarbeitet werden."));
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas);
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Bild konnte nicht verarbeitet werden."));
+    };
+    image.src = objectUrl;
+  });
+}
+
+async function resizeImageDataUrl(dataUrl, maxSide, mimeType = "image/jpeg", quality = 0.82) {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
@@ -1763,11 +1827,25 @@ async function resizeImageDataUrl(dataUrl, maxSide) {
         return;
       }
       context.drawImage(image, 0, 0, width, height);
-      resolve(canvas.toDataURL("image/jpeg", 0.82));
+      resolve(canvas.toDataURL(mimeType, quality));
     };
     image.onerror = () => reject(new Error("Bild konnte nicht verarbeitet werden."));
     image.src = dataUrl;
   });
+}
+
+async function prepareEventImageForUpload(file) {
+  if (isHeicLikeImage(file)) {
+    const canvas = await drawFileToCanvas(file);
+    return canvas.toDataURL("image/png");
+  }
+
+  if (canKeepOriginalImage(file)) {
+    return readImageAsDataUrl(file);
+  }
+
+  const original = await readImageAsDataUrl(file);
+  return resizeImageDataUrl(original, 2200, "image/png");
 }
 
 function renderEventPosts(eventData) {
@@ -3763,7 +3841,7 @@ function mountEventUploads() {
       return;
     }
 
-    const files = Array.from(eventImageUploadInput.files || []).filter((file) => file && file.type.startsWith("image/"));
+    const files = Array.from(eventImageUploadInput.files || []).filter(isAcceptedEventImageFile);
     if (!files.length) {
       if (eventImageStatus) {
         eventImageStatus.textContent = "Bitte waehle mindestens ein Bild aus.";
@@ -3781,13 +3859,12 @@ function mountEventUploads() {
       const existing = getStoredEventImages();
       const nextEntries = [];
       for (const file of files) {
-        const original = await readImageAsDataUrl(file);
-        const resized = await resizeImageDataUrl(original, 1600);
+        const prepared = await prepareEventImageForUpload(file);
         nextEntries.push({
           id: `event-image-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           eventId,
           archiveKey,
-          src: resized,
+          src: prepared,
           caption: file.name || eventData.title || "Event Foto",
           uploadedBy: currentUser || "gast",
           uploadedByName: currentFirstName || currentUser || "Gast",
@@ -3802,7 +3879,9 @@ function mountEventUploads() {
       }
     } catch (error) {
       if (eventImageStatus) {
-        eventImageStatus.textContent = "Fotos konnten nicht hochgeladen werden.";
+        eventImageStatus.textContent = isHeicLikeImage((eventImageUploadInput.files || [])[0])
+          ? "HEIC/HEIF konnte auf diesem Geraet nicht verarbeitet werden. Bitte JPG/PNG nutzen oder direkt vom iPhone in Safari hochladen."
+          : "Fotos konnten nicht hochgeladen werden.";
       }
     }
   });
