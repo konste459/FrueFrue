@@ -49,7 +49,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=61" />
+    <link rel="stylesheet" href="styles.css?v=62" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -695,22 +695,16 @@
         </section>
       </main>
       <div id="tungtungOverlay" class="tungtung-overlay" aria-hidden="true">
-        <div id="tungtungRunner" class="tuntung-runner">
-          <div class="tuntung-shadow"></div>
-          <div class="tuntung-body">
-            <div class="tuntung-head">
-              <span class="tuntung-eye tuntun-eye-left"></span>
-              <span class="tuntung-eye tuntun-eye-right"></span>
-              <span class="tuntung-mouth"></span>
-            </div>
-            <div class="tuntung-torso"></div>
-            <div class="tuntung-arm tuntun-arm-left"></div>
-            <div class="tuntung-arm tuntun-arm-right"></div>
-            <div class="tuntung-leg tuntun-leg-left"></div>
-            <div class="tuntung-leg tuntun-leg-right"></div>
-          </div>
-          <div class="tuntung-bongo tuntun-bongo-left"></div>
-          <div class="tuntung-bongo tuntun-bongo-right"></div>
+        <div id="tungtungRunner" class="tungtung-video-runner">
+          <video
+            id="tungtungVideo"
+            class="tungtung-source-video"
+            src="assets/video/tungtung-sahur-green.mp4"
+            muted
+            playsinline
+            preload="auto"
+          ></video>
+          <canvas id="tungtungCanvas" class="tungtung-canvas" aria-hidden="true"></canvas>
         </div>
       </div>
       <section id="impressum" class="impressum-section">
@@ -780,6 +774,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=92"></script>
+    <script src="main.js?v=93"></script>
   </body>
 </html>

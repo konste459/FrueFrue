@@ -1,15 +1,16 @@
-const CACHE_NAME = "fruefrue-pwa-v1";
+const CACHE_NAME = "fruefrue-pwa-v2";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=61",
-  "./main.js?v=92",
+  "./styles.css?v=62",
+  "./main.js?v=93",
   "./config.js?v=1",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
   "./apple-touch-icon.png",
-  "./assets/logo/fruefrue-logo.png"
+  "./assets/logo/fruefrue-logo.png",
+  "./assets/video/tungtung-sahur-green.mp4"
 ];
 
 self.addEventListener("install", (event) => {

@@ -268,7 +268,9 @@ const spotifySongStatus = document.getElementById("spotifySongStatus");
 const spotifySongList = document.getElementById("spotifySongList");
 const tungtungBtn = document.getElementById("tungtungBtn");
 const tungtungOverlay = document.getElementById("tungtungOverlay");
-const tuntungRunner = document.getElementById("tuntungRunner");
+const tungtungRunner = document.getElementById("tungtungRunner");
+const tungtungVideo = document.getElementById("tungtungVideo");
+const tungtungCanvas = document.getElementById("tungtungCanvas");
 const programViewButtons = document.querySelectorAll(".program-view-btn");
 
 let activePage = "home";
@@ -350,7 +352,8 @@ let editingEventPostImage = "";
 let supabaseClient = null;
 let supabaseChannel = null;
 let supabaseInitPromise = null;
-let tuntungResetTimer = null;
+let tungtungResetTimer = null;
+let tungtungFrameId = null;
 const storageCache = {};
 
 const archiveEvents = {
@@ -4473,22 +4476,104 @@ function configureMediaSnippet(video, lengthSeconds) {
   });
 }
 
-function playTuntungAnimation() {
-  if (!tuntungRunner || !tungtungOverlay) {
+function stopTungtungAnimation() {
+  if (tungtungFrameId) {
+    window.cancelAnimationFrame(tungtungFrameId);
+    tungtungFrameId = null;
+  }
+  if (tungtungResetTimer) {
+    window.clearTimeout(tungtungResetTimer);
+    tungtungResetTimer = null;
+  }
+  if (tungtungVideo) {
+    tungtungVideo.pause();
+  }
+  if (tungtungCanvas) {
+    const context = tungtungCanvas.getContext("2d");
+    context?.clearRect(0, 0, tungtungCanvas.width, tungtungCanvas.height);
+  }
+  if (tungtungRunner && tungtungOverlay) {
+    tungtungRunner.classList.remove("is-playing");
+    tungtungOverlay.classList.remove("is-visible");
+  }
+}
+
+function drawTungtungFrame() {
+  if (!tungtungVideo || !tungtungCanvas || !tungtungOverlay?.classList.contains("is-visible")) {
     return;
   }
-  tungtungOverlay.classList.add("is-visible");
-  tuntungRunner.classList.remove("is-playing");
-  void tuntungRunner.offsetWidth;
-  tuntungRunner.classList.add("is-playing");
-  if (tuntungResetTimer) {
-    window.clearTimeout(tuntungResetTimer);
+
+  const sourceWidth = tungtungVideo.videoWidth || 720;
+  const sourceHeight = tungtungVideo.videoHeight || 720;
+  const maxCanvasSize = 720;
+  const scale = Math.min(1, maxCanvasSize / Math.max(sourceWidth, sourceHeight));
+  const canvasWidth = Math.max(1, Math.round(sourceWidth * scale));
+  const canvasHeight = Math.max(1, Math.round(sourceHeight * scale));
+
+  if (tungtungCanvas.width !== canvasWidth || tungtungCanvas.height !== canvasHeight) {
+    tungtungCanvas.width = canvasWidth;
+    tungtungCanvas.height = canvasHeight;
   }
-  tuntungResetTimer = window.setTimeout(() => {
-    if (tuntungRunner && tungtungOverlay) {
-      tuntungRunner.classList.remove("is-playing");
-      tungtungOverlay.classList.remove("is-visible");
+
+  const context = tungtungCanvas.getContext("2d", { willReadFrequently: true });
+  if (!context || tungtungVideo.readyState < 2) {
+    tungtungFrameId = window.requestAnimationFrame(drawTungtungFrame);
+    return;
+  }
+  context.clearRect(0, 0, canvasWidth, canvasHeight);
+  context.drawImage(tungtungVideo, 0, 0, canvasWidth, canvasHeight);
+
+  const frame = context.getImageData(0, 0, canvasWidth, canvasHeight);
+  const { data } = frame;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const red = data[index];
+    const green = data[index + 1];
+    const blue = data[index + 2];
+    const strongestNonGreen = Math.max(red, blue);
+    const greenDistance = green - strongestNonGreen;
+
+    if (green > 82 && greenDistance > 22 && green > red * 1.18 && green > blue * 1.18) {
+      const alphaCut = Math.min(255, Math.max(0, (greenDistance - 18) * 6));
+      data[index + 3] = Math.max(0, 255 - alphaCut);
+    } else if (greenDistance > 12) {
+      data[index + 1] = Math.min(green, strongestNonGreen + 16);
     }
+  }
+
+  context.putImageData(frame, 0, 0);
+
+  if (tungtungVideo.currentTime >= 1.85) {
+    try {
+      tungtungVideo.currentTime = 0.05;
+    } catch (error) {
+      console.warn("Tungtung video loop reset failed", error);
+    }
+  }
+
+  tungtungFrameId = window.requestAnimationFrame(drawTungtungFrame);
+}
+
+function playTuntungAnimation() {
+  if (!tungtungRunner || !tungtungOverlay || !tungtungVideo || !tungtungCanvas) {
+    return;
+  }
+
+  stopTungtungAnimation();
+  tungtungOverlay.classList.add("is-visible");
+  tungtungRunner.classList.remove("is-playing");
+  void tungtungRunner.offsetWidth;
+  tungtungRunner.classList.add("is-playing");
+  try {
+    tungtungVideo.currentTime = 0.05;
+  } catch (error) {
+    console.warn("Tungtung video start reset failed", error);
+  }
+  tungtungVideo.play().catch(() => {});
+  drawTungtungFrame();
+
+  tungtungResetTimer = window.setTimeout(() => {
+    stopTungtungAnimation();
   }, 5200);
 }
 
