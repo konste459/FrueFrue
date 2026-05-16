@@ -1254,6 +1254,26 @@ main {
   padding-top: 10px;
 }
 
+.app-install-box {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(31, 111, 229, 0.18);
+  border-radius: 12px;
+  background: rgba(245, 249, 255, 0.82);
+}
+
+.app-install-box h4 {
+  margin: 0 0 4px;
+  color: #11458f;
+}
+
+.app-install-box p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .admin-user-list {
   margin: 8px 0 0;
   padding: 0;

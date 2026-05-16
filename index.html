@@ -3,9 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0d0d0f" />
+    <meta name="theme-color" content="#1f6fe5" />
     <meta name="description" content="FrüFrü - Deine Social Brunch Community" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="FrüFrü" />
     <title>FrüFrü | Social Brunch</title>
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -43,7 +49,7 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="stylesheet" href="styles.css?v=59" />
+    <link rel="stylesheet" href="styles.css?v=60" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -636,6 +642,10 @@
               Angemeldet als <strong id="profileUsername">-</strong>. Rolle:
               <strong id="profileRole">-</strong>
             </p>
+            <div class="app-install-box">
+              <h4>Als App installieren</h4>
+              <p>Auf dem iPhone in Safari öffnen, Teilen drücken und „Zum Home-Bildschirm“ wählen.</p>
+            </div>
             <div class="admin-user-box" data-admin-only>
               <h4>Alle Nutzer</h4>
               <ul id="adminUserList" class="admin-user-list"></ul>
@@ -743,31 +753,14 @@
     </div>
 
     <script>
-      (function () {
+      window.addEventListener("load", () => {
         if (!("serviceWorker" in navigator)) {
           return;
         }
-        const flag = "fruefrue-sw-reset-v1";
-        if (sessionStorage.getItem(flag)) {
-          return;
-        }
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          if (!registrations.length) {
-            return;
-          }
-          Promise.all(registrations.map((registration) => registration.unregister()))
-            .then(() => {
-              if (!("caches" in window)) {
-                return;
-              }
-              return caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
-            })
-            .then(() => {
-              sessionStorage.setItem(flag, "1");
-              window.location.reload();
-            });
+        navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+          console.warn("Service worker registration failed", error);
         });
-      })();
+      });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -775,6 +768,6 @@
     <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js?v=1"></script>
-    <script src="main.js?v=90"></script>
+    <script src="main.js?v=91"></script>
   </body>
 </html>
