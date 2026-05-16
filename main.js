@@ -160,6 +160,7 @@ const calendarWidget = document.getElementById("calendarWidget");
 const ticketReminder = document.getElementById("ticketReminder");
 const ticketReminderText = document.getElementById("ticketReminderText");
 const ticketCountdown = document.getElementById("ticketCountdown");
+const ticketReminderInfo = document.getElementById("ticketReminderInfo");
 const fixedEventNotice = document.getElementById("fixedEventNotice");
 const ticketTitle = document.getElementById("ticketTitle");
 const ticketDateTime = document.getElementById("ticketDateTime");
@@ -1243,6 +1244,9 @@ function updateTicketReminder() {
   setTicketVisibility(showReminder);
   if (!showReminder) {
     ticketReminder.classList.add("hidden");
+    if (ticketReminderInfo) {
+      ticketReminderInfo.textContent = "";
+    }
     if (countdownTimer) {
       clearInterval(countdownTimer);
       countdownTimer = null;
@@ -1259,10 +1263,16 @@ function updateTicketReminder() {
       countdownTimer = null;
     }
     ticketCountdown.textContent = "Tippe hier, um zum Voting-Button zu springen.";
+    if (ticketReminderInfo) {
+      ticketReminderInfo.textContent = "Kurz antippen und unten im Kalender deine passenden Termine eintragen.";
+    }
     return;
   }
 
   ticketReminder.classList.add("hidden");
+  if (ticketReminderInfo) {
+    ticketReminderInfo.textContent = "";
+  }
   if (countdownTimer) {
     clearInterval(countdownTimer);
     countdownTimer = null;

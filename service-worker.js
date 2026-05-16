@@ -2,8 +2,8 @@ const CACHE_NAME = "fruefrue-pwa-v1";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=60",
-  "./main.js?v=91",
+  "./styles.css?v=61",
+  "./main.js?v=92",
   "./config.js?v=1",
   "./manifest.webmanifest",
   "./icon-192.png",
