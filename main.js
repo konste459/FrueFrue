@@ -287,6 +287,7 @@ const EVENT_PROGRAM_KEY = "fruefrue-event-program-v1";
 const EVENT_PROGRAM_META_KEY = "fruefrue-event-program-meta-v1";
 const PROGRAM_VIEW_KEY = "fruefrue-program-view-v1";
 const POLL_VOTES_KEY = "fruefrue-poll-votes-v1";
+const POLL_VOTE_ROW_PREFIX = "fruefrue-poll-vote-v2:";
 const PLANNED_VOTES_KEY = "fruefrue-planned-votes-v1";
 const USERS_STORAGE_KEY = "fruefrue-users-v1";
 const PASSWORD_OVERRIDES_KEY = "fruefrue-password-overrides-v1";
@@ -322,6 +323,7 @@ const REMOTE_SYNC_PREFIXES = [
   EVENT_IMAGES_KEY,
   EVENT_IMAGE_BLOB_PREFIX,
   EVENT_POLLS_KEY,
+  POLL_VOTE_ROW_PREFIX,
   EVENT_POSTS_KEY,
   EVENT_PROGRAM_KEY,
   EVENT_PROGRAM_META_KEY,
@@ -2119,6 +2121,71 @@ function getCurrentVoterId() {
   return String(currentUser || "").trim().toLowerCase();
 }
 
+function getPollVoteRowKey(pollId, optionId, voterId) {
+  return `${POLL_VOTE_ROW_PREFIX}${encodeURIComponent(pollId)}:${encodeURIComponent(optionId)}:${encodeURIComponent(voterId)}`;
+}
+
+function getSeparatedPollVotes() {
+  const rows = {};
+  const keys = new Set(Object.keys(storageCache));
+  try {
+    Object.keys(localStorage).forEach((key) => keys.add(key));
+  } catch (_error) {
+    // Remote state remains available when localStorage is blocked.
+  }
+
+  keys.forEach((key) => {
+    if (!key.startsWith(POLL_VOTE_ROW_PREFIX)) {
+      return;
+    }
+    const row = getStoredValue(key, null);
+    const pollId = String((row && row.pollId) || "");
+    const optionId = String((row && row.optionId) || "");
+    const voterId = String((row && row.voterId) || "").trim().toLowerCase();
+    if (!pollId || !optionId || !voterId || !row.entry) {
+      return;
+    }
+    rows[pollId] = rows[pollId] || {};
+    rows[pollId][optionId] = rows[pollId][optionId] || {};
+    rows[pollId][optionId][voterId] = row.entry;
+  });
+
+  return rows;
+}
+
+function savePollVoteEntry(pollId, optionId, voterId, entry) {
+  const normalizedVoterId = String(voterId || "").trim().toLowerCase();
+  if (!pollId || !optionId || !normalizedVoterId || !entry) {
+    return;
+  }
+  const key = getPollVoteRowKey(pollId, optionId, normalizedVoterId);
+  setStoredValue(key, {
+    pollId,
+    optionId,
+    voterId: normalizedVoterId,
+    entry,
+    updatedAt: new Date().toISOString()
+  });
+}
+
+function deleteSeparatedPollVotes(pollId) {
+  const keys = new Set(Object.keys(storageCache));
+  try {
+    Object.keys(localStorage).forEach((key) => keys.add(key));
+  } catch (_error) {
+    // Remote keys already loaded into storageCache are still removed.
+  }
+  keys.forEach((key) => {
+    if (!key.startsWith(POLL_VOTE_ROW_PREFIX)) {
+      return;
+    }
+    const row = getStoredValue(key, null);
+    if (row && String(row.pollId || "") === String(pollId || "")) {
+      removeStoredValue(key);
+    }
+  });
+}
+
 function getLegacyPollVoteStates() {
   const prefix = `${POLL_VOTES_KEY}:`;
   const result = {};
@@ -2297,48 +2364,40 @@ function renderEventGallery() {
 function getStoredPolls() {
   const polls = loadJSON(EVENT_POLLS_KEY, []);
   const legacyVotesByUser = getLegacyPollVoteStates();
-  let changed = false;
+  const separatedVotes = getSeparatedPollVotes();
   const normalized = polls.map((poll) => {
     const type = poll.type || "rating";
+    const useSeparatedVotes = Number(poll.voteStorageVersion || 0) >= 2 || Boolean(separatedVotes[poll.id]);
     return {
       ...poll,
       options: (poll.options || []).map((option, index) => {
         const id = option.id || `opt-${index}`;
-        const voters = option.voters && typeof option.voters === "object" ? { ...option.voters } : {};
-        let optionChanged = !option.id || !option.voters || typeof option.voters !== "object";
-        Object.entries(legacyVotesByUser).forEach(([username, pollState]) => {
-          const legacyEntry = pollState && pollState[poll.id] ? pollState[poll.id][id] : null;
-          if (!legacyEntry) {
-            return;
-          }
-          if (type === "choice" || type === "yesno") {
-            const choice = normalizeChoiceVoterEntry(legacyEntry);
-            if (choice && voters[username] !== choice) {
-              voters[username] = choice;
-              optionChanged = true;
+        const voters = useSeparatedVotes
+          ? { ...((separatedVotes[poll.id] && separatedVotes[poll.id][id]) || {}) }
+          : {
+              ...(option.voters && typeof option.voters === "object" ? option.voters : {}),
+              ...((separatedVotes[poll.id] && separatedVotes[poll.id][id]) || {})
+            };
+        if (!useSeparatedVotes) {
+          Object.entries(legacyVotesByUser).forEach(([username, pollState]) => {
+            const legacyEntry = pollState && pollState[poll.id] ? pollState[poll.id][id] : null;
+            if (!legacyEntry) {
+              return;
             }
-            return;
-          }
-          const rating = normalizeRatingVoterEntry(legacyEntry);
-          const current = normalizeRatingVoterEntry(voters[username]);
-          if (rating && (!current || current.taste !== rating.taste || current.creativity !== rating.creativity)) {
-            voters[username] = rating;
-            optionChanged = true;
-          }
-        });
+            if (type === "choice" || type === "yesno") {
+              const choice = normalizeChoiceVoterEntry(legacyEntry);
+              if (choice) {
+                voters[username] = choice;
+              }
+              return;
+            }
+            const rating = normalizeRatingVoterEntry(legacyEntry);
+            if (rating) {
+              voters[username] = rating;
+            }
+          });
+        }
         const aggregates = aggregatePollOption(type, { ...option, voters });
-        if (
-          aggregates.votes !== (typeof option.votes === "number" ? option.votes : 0) ||
-          aggregates.tasteTotal !== (typeof option.tasteTotal === "number" ? option.tasteTotal : 0) ||
-          aggregates.creativityTotal !== (typeof option.creativityTotal === "number" ? option.creativityTotal : 0) ||
-          aggregates.yesVotes !== (typeof option.yesVotes === "number" ? option.yesVotes : 0) ||
-          aggregates.noVotes !== (typeof option.noVotes === "number" ? option.noVotes : 0)
-        ) {
-          optionChanged = true;
-        }
-        if (optionChanged) {
-          changed = true;
-        }
         return {
           ...option,
           id,
@@ -2349,14 +2408,19 @@ function getStoredPolls() {
       })
     };
   });
-  if (changed) {
-    saveJSON(EVENT_POLLS_KEY, normalized);
-  }
   return normalized;
 }
 
 function saveStoredPolls(polls) {
-  saveJSON(EVENT_POLLS_KEY, polls);
+  const definitions = polls.map((poll) => ({
+    ...poll,
+    voteStorageVersion: 2,
+    options: (poll.options || []).map((option, index) => ({
+      id: option.id || `opt-${index}`,
+      label: option.label || `Option ${index + 1}`
+    }))
+  }));
+  saveJSON(EVENT_POLLS_KEY, definitions);
 }
 
 function renderPolls() {
@@ -2441,15 +2505,7 @@ function renderPolls() {
           }
           const taste = Number(tasteInput.value);
           const creativity = Number(creativityInput.value);
-          targetOption.voters = targetOption.voters && typeof targetOption.voters === "object" ? targetOption.voters : {};
-          targetOption.voters[nextVoterId] = { type: "rating", taste, creativity };
-          const aggregates = aggregatePollOption(type, targetOption);
-          targetOption.votes = aggregates.votes;
-          targetOption.tasteTotal = aggregates.tasteTotal;
-          targetOption.creativityTotal = aggregates.creativityTotal;
-          targetOption.yesVotes = aggregates.yesVotes;
-          targetOption.noVotes = aggregates.noVotes;
-          saveStoredPolls(allPolls);
+          savePollVoteEntry(poll.id, optionKey, nextVoterId, { type: "rating", taste, creativity });
           renderPolls();
         });
         optionCard.appendChild(saveBtn);
@@ -2487,19 +2543,11 @@ function renderPolls() {
           if (!nextVoterId) {
             return;
           }
-          targetOption.voters = targetOption.voters && typeof targetOption.voters === "object" ? targetOption.voters : {};
-          const oldVote = normalizeChoiceVoterEntry(targetOption.voters[nextVoterId]);
+          const oldVote = normalizeChoiceVoterEntry(targetOption.voters && targetOption.voters[nextVoterId]);
           if (oldVote === choice) {
             return;
           }
-          targetOption.voters[nextVoterId] = choice;
-          const aggregates = aggregatePollOption(type, targetOption);
-          targetOption.votes = aggregates.votes;
-          targetOption.tasteTotal = aggregates.tasteTotal;
-          targetOption.creativityTotal = aggregates.creativityTotal;
-          targetOption.yesVotes = aggregates.yesVotes;
-          targetOption.noVotes = aggregates.noVotes;
-          saveStoredPolls(allPolls);
+          savePollVoteEntry(poll.id, optionKey, nextVoterId, choice);
           renderPolls();
         };
 
@@ -4207,6 +4255,7 @@ function mountPollDeletion() {
     }
     const polls = getStoredPolls().filter((poll) => poll.id !== pollId);
     saveStoredPolls(polls);
+    deleteSeparatedPollVotes(pollId);
     if (pollStatus) {
       pollStatus.textContent = "Abstimmung geloescht.";
     }

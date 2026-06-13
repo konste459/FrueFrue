@@ -1,9 +1,9 @@
-const CACHE_NAME = "fruefrue-pwa-v4";
+const CACHE_NAME = "fruefrue-pwa-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css?v=64",
-  "./main.js?v=93",
+  "./main.js?v=94",
   "./config.js?v=1",
   "./manifest.webmanifest",
   "./icon-192.png",
